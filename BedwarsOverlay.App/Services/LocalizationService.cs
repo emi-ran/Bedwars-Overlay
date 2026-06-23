@@ -144,7 +144,9 @@ namespace BedwarsOverlay.App.Services
         {
             // MainWindow - Title / Badge
             ["Title_BedwarsOverlay"] = "Bedwars Overlay",
+            ["Title_BedwarsOverlayShort"] = "BW Overlay",
             ["EditMode_Badge"] = "EDIT MODE",
+            ["EditMode_BadgeShort"] = "EDIT",
 
             // MainWindow - Tooltips
             ["Tooltip_ClearPlayers"] = "Clear current player list",

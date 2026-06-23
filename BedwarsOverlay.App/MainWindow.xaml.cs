@@ -1,13 +1,9 @@
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Globalization;
 using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -15,7 +11,6 @@ using BedwarsOverlay.App.Services;
 using BedwarsOverlay.Core.Api;
 using BedwarsOverlay.Core.LogWatching;
 using BedwarsOverlay.Core.Models;
-using BedwarsOverlay.Core.Stats;
 using BedwarsOverlay.Core.Storage;
 
 namespace BedwarsOverlay.App
@@ -47,13 +42,20 @@ namespace BedwarsOverlay.App
         private SettingsRepository? _settingsRepository;
         private MojangClient? _mojangClient;
         private HypixelClient? _hypixelClient;
-        private CancellationTokenSource? _lookupCts;
+        private PlayerLookupService? _playerLookupService;
         private bool _showingConfigNeeded;
+        private bool _isSettingsOpen;
 
         public MainWindow()
         {
             InitializeComponent();
             this.Loaded += MainWindow_Loaded;
+            this.SizeChanged += MainWindow_SizeChanged;
+        }
+
+        private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            UpdateTitleBarLayout();
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -81,7 +83,10 @@ namespace BedwarsOverlay.App
 
             // Initialize localization from saved settings and apply
             LocalizationService.Instance.Initialize(_settingsRepository.Language);
-            ApplyLocalization();
+            UpdateTitleBarLayout();
+
+            _playerLookupService = new PlayerLookupService(_mojangClient, _hypixelClient, _settingsRepository, AddDiagnosticLine);
+            GridLocalizer.ApplyLocalization(PlayersGrid);
 
             // Bind UI Elements
             LogDiagnosticsList.ItemsSource = _diagnosticLines;
@@ -217,6 +222,11 @@ namespace BedwarsOverlay.App
 
         private void ToggleEditMode()
         {
+            if (_isSettingsOpen)
+            {
+                return;
+            }
+
             _isEditMode = !_isEditMode;
             IsEditMode = _isEditMode;
             if (_isEditMode)
@@ -243,6 +253,7 @@ namespace BedwarsOverlay.App
             SearchPanel.Visibility = Visibility.Collapsed;
             EditModeBadge.Visibility = Visibility.Collapsed;
             ClearSearchFilter();
+            UpdateTitleBarLayout();
 
             if (DiagnosticsPanel != null)
             {
@@ -261,8 +272,8 @@ namespace BedwarsOverlay.App
             
             TitleBar.Background = Brushes.Transparent;
             ControlButtons.Visibility = Visibility.Visible;
-            SearchPanel.Visibility = Visibility.Visible;
             EditModeBadge.Visibility = Visibility.Visible;
+            UpdateTitleBarLayout();
 
             if (DiagnosticsPanel != null)
             {
@@ -323,56 +334,16 @@ namespace BedwarsOverlay.App
             DiagnosticsPanel.Visibility = showDiagnostics ? Visibility.Visible : Visibility.Collapsed;
         }
 
-        private void ApplyLocalization()
+        private void UpdateTitleBarLayout()
         {
-            if (_settingsRepository == null) return;
-
-            // DataGrid column headers cannot use DynamicResource or direct bindings easily,
-            // so we set them programmatically after language change.
             var loc = LocalizationService.Instance;
+            bool narrowTitle = ActualWidth > 0 && ActualWidth < 560;
+            bool narrowBadge = ActualWidth > 0 && ActualWidth < 660;
+            bool hideSearch = !_isEditMode || (ActualWidth > 0 && ActualWidth < 720);
 
-            // Column headers
-            PlayersGrid.Columns[0].Header = loc["Column_Lvl"];
-            PlayersGrid.Columns[1].Header = loc["Column_Name"];
-            PlayersGrid.Columns[2].Header = loc["Column_WS"];
-            PlayersGrid.Columns[3].Header = loc["Column_FKDR"];
-            PlayersGrid.Columns[4].Header = loc["Column_WLR"];
-            PlayersGrid.Columns[5].Header = loc["Column_FKills"];
-            PlayersGrid.Columns[6].Header = loc["Column_Wins"];
-            PlayersGrid.Columns[7].Header = loc["Column_Sniper"];
-
-            // Column header tooltips (set via HeaderStyle tooltip setter)
-            SetColumnTooltip(0, loc["Tooltip_Lvl"]);
-            SetColumnTooltip(1, loc["Tooltip_Name"]);
-            SetColumnTooltip(2, loc["Tooltip_WS"]);
-            SetColumnTooltip(3, loc["Tooltip_FKDR"]);
-            SetColumnTooltip(4, loc["Tooltip_WLR"]);
-            SetColumnTooltip(5, loc["Tooltip_FKills"]);
-            SetColumnTooltip(6, loc["Tooltip_Wins"]);
-            SetColumnTooltip(7, loc["Tooltip_Sniper"]);
-
-            // Title bar - keep brand name "Bedwars Overlay" unchanged
-        }
-
-        private void SetColumnTooltip(int columnIndex, string tooltipText)
-        {
-            if (columnIndex < 0 || columnIndex >= PlayersGrid.Columns.Count)
-                return;
-
-            var column = PlayersGrid.Columns[columnIndex];
-            if (column.HeaderStyle != null)
-            {
-                // Remove existing tooltip setter and add new one
-                var newStyle = new Style(typeof(DataGridColumnHeader), column.HeaderStyle.BasedOn);
-                foreach (var setter in column.HeaderStyle.Setters)
-                {
-                    if (setter is Setter s && s.Property == FrameworkElement.ToolTipProperty)
-                        continue;
-                    newStyle.Setters.Add(setter);
-                }
-                newStyle.Setters.Add(new Setter(FrameworkElement.ToolTipProperty, tooltipText));
-                column.HeaderStyle = newStyle;
-            }
+            TitleText.Text = loc[narrowTitle ? "Title_BedwarsOverlayShort" : "Title_BedwarsOverlay"];
+            EditModeBadgeText.Text = loc[narrowBadge ? "EditMode_BadgeShort" : "EditMode_Badge"];
+            SearchPanel.Visibility = hideSearch ? Visibility.Collapsed : Visibility.Visible;
         }
 
         private void SetStatus(string message)
@@ -396,48 +367,51 @@ namespace BedwarsOverlay.App
             _diagnosticLines.Add(line);
         }
 
-        private CancellationToken ResetLookupCancellation()
-        {
-            _lookupCts?.Cancel();
-            _lookupCts?.Dispose();
-            _lookupCts = new CancellationTokenSource();
-            return _lookupCts.Token;
-        }
-
         private void OpenSettings()
         {
-            if (_settingsRepository == null) return;
-            
-            var settingsWin = new SettingsWindow(_settingsRepository) { Owner = this };
-            if (settingsWin.ShowDialog() == true)
+            if (_settingsRepository == null || _isSettingsOpen) return;
+
+            _isSettingsOpen = true;
+            try
             {
-                // Re-apply localization after settings (language may have changed)
-                LocalizationService.Instance.Initialize(_settingsRepository.Language);
-                ApplyLocalization();
-
-                if (_mojangClient == null && _database != null)
+                var settingsWin = new SettingsWindow(_settingsRepository) { Owner = this };
+                if (settingsWin.ShowDialog() == true)
                 {
-                    _mojangClient = new MojangClient(_httpClient, _database);
-                }
-                if (_hypixelClient == null && _database != null)
-                {
-                    _hypixelClient = new HypixelClient(_httpClient, _database, _settingsRepository);
-                }
+                    // Re-apply localization after settings (language may have changed)
+                    LocalizationService.Instance.Initialize(_settingsRepository.Language);
+                    GridLocalizer.ApplyLocalization(PlayersGrid);
+                    UpdateTitleBarLayout();
 
-                RestartLogTailer();
-                UpdateDiagnosticsVisibility();
-
-                // Re-evaluate stats of existing players (if any) with the new settings
-                if (_players.Count > 0)
-                {
-                    var token = ResetLookupCancellation();
-                    int index = 0;
-                    foreach (var row in _players)
+                    if (_mojangClient == null && _database != null)
                     {
-                        _ = ResolvePlayerAsync(row.Name, row, index % 2 == 0, token);
-                        index++;
+                        _mojangClient = new MojangClient(_httpClient, _database);
+                    }
+                    if (_hypixelClient == null && _database != null)
+                    {
+                        _hypixelClient = new HypixelClient(_httpClient, _database, _settingsRepository);
+                    }
+
+                    // Ensure lookup service has current client references
+                    _playerLookupService?.Dispose();
+                    _playerLookupService = new PlayerLookupService(_mojangClient!, _hypixelClient!, _settingsRepository, AddDiagnosticLine);
+
+                    RestartLogTailer();
+                    UpdateDiagnosticsVisibility();
+
+                    // Re-evaluate stats of existing players (if any) with the new settings
+                    if (_players.Count > 0)
+                    {
+                        var token = _playerLookupService.CancelAndReset();
+                        foreach (var row in _players)
+                        {
+                            _ = _playerLookupService.ResolvePlayerAsync(row.Name, row, token);
+                        }
                     }
                 }
+            }
+            finally
+            {
+                _isSettingsOpen = false;
             }
         }
 
@@ -524,9 +498,9 @@ namespace BedwarsOverlay.App
 
                 // Run the parser to extract player names from `/who` logs
                 var players = _logParser?.ParsePlayerList(line);
-                if (players != null && players.Count > 0)
+                if (players != null && players.Count > 0 && _playerLookupService != null)
                 {
-                    var token = ResetLookupCancellation();
+                    var token = _playerLookupService.CancelAndReset();
                     _players.Clear();
                     PlaceholderPanel.Visibility = Visibility.Collapsed;
                     int index = 0;
@@ -535,8 +509,7 @@ namespace BedwarsOverlay.App
                         var placeholder = PlayerRow.CreateLoading(name, index % 2 == 0);
                         _players.Add(placeholder);
 
-                        // Asynchronously resolve player profile and stats
-                        _ = ResolvePlayerAsync(name, placeholder, index % 2 == 0, token);
+                        _ = _playerLookupService.ResolvePlayerAsync(name, placeholder, token);
                         index++;
                     }
 
@@ -545,142 +518,12 @@ namespace BedwarsOverlay.App
             }));
         }
 
-        private async Task ResolvePlayerAsync(string name, PlayerRow row, bool isEvenRow, CancellationToken cancellationToken)
-        {
-            if (_mojangClient == null || _hypixelClient == null || _settingsRepository == null) return;
-
-            try
-            {
-                // 1. Resolve Username to UUID
-                cancellationToken.ThrowIfCancellationRequested();
-                var mojangResult = await _mojangClient.ResolveUsernameAsync(name);
-                cancellationToken.ThrowIfCancellationRequested();
-                if (mojangResult.Status != MojangLookupStatus.Success || mojangResult.Uuid == null)
-                {
-                    string statusText = mojangResult.Status switch
-                    {
-                        MojangLookupStatus.RateLimited => "MOJANG_RATE_LIMIT",
-                        MojangLookupStatus.NetworkError => "MOJANG_NETWORK_ERROR",
-                        MojangLookupStatus.InvalidResponse => "MOJANG_INVALID_RESPONSE",
-                        _ => "NICKED_OR_UNKNOWN"
-                    };
-                    AddDiagnosticLine($"{name}: {statusText}");
-                    Dispatcher.Invoke(() =>
-                    {
-                        row.StatusText = statusText;
-                        row.NameColor = Brushes.Red; // highlight nicked/unknown players
-                        row.Level = "?";
-                        row.Winstreak = "?";
-                        row.Fkdr = "?";
-                        row.Wlr = "?";
-                        row.FinalKills = "?";
-                        row.Wins = "?";
-                        row.Sniper = "?";
-                    });
-                    return;
-                }
-
-                // 2. Fetch Hypixel stats JSON (with automatic DB caching and rate limit check)
-                var hypixelResult = await _hypixelClient.GetPlayerAsync(mojangResult.Uuid);
-                cancellationToken.ThrowIfCancellationRequested();
-                if (hypixelResult.Status != HypixelLookupStatus.Success || hypixelResult.PlayerJson == null)
-                {
-                    string statusText = hypixelResult.Status switch
-                    {
-                        HypixelLookupStatus.MissingApiKey => "MISSING_API_KEY",
-                        HypixelLookupStatus.InvalidApiKey => "INVALID_API_KEY",
-                        HypixelLookupStatus.RateLimited => "HYPIXEL_RATE_LIMIT",
-                        HypixelLookupStatus.NetworkError => "HYPIXEL_NETWORK_ERROR",
-                        HypixelLookupStatus.InvalidResponse => "HYPIXEL_INVALID_RESPONSE",
-                        _ => "NO_HYPIXEL_DATA"
-                    };
-                    AddDiagnosticLine($"{name}: {statusText}");
-                    Dispatcher.Invoke(() =>
-                    {
-                        row.StatusText = statusText;
-                        row.NameColor = Brushes.Orange;
-                        row.Level = "-";
-                        row.Winstreak = "-";
-                        row.Fkdr = "-";
-                        row.Wlr = "-";
-                        row.FinalKills = "-";
-                        row.Wins = "-";
-                        row.Sniper = "-";
-                    });
-                    return;
-                }
-
-                // 3. Parse stats and build updated UI row
-                var stats = StatsCalculator.ParseStats(hypixelResult.PlayerJson);
-
-                // Rank Color
-                Brush rankBrush = Brushes.White;
-                string rankColorName = stats.GetRankColorName();
-                if (rankColorName == "Cyan") rankBrush = new SolidColorBrush(Color.FromRgb(0x38, 0xBD, 0xF8));
-                else if (rankColorName == "Green") rankBrush = new SolidColorBrush(Color.FromRgb(0x34, 0xD3, 0x99));
-                else if (rankColorName == "Gold") rankBrush = new SolidColorBrush(Color.FromRgb(0xFB, 0xBF, 0x24));
-                else if (rankColorName == "Red") rankBrush = new SolidColorBrush(Color.FromRgb(0xEF, 0x44, 0x44));
-                else if (rankColorName == "Gray") rankBrush = new SolidColorBrush(Color.FromRgb(0x94, 0xA3, 0xB8));
-
-                string localName = _settingsRepository.LocalPlayerName;
-                bool isLocalPlayer = !string.IsNullOrEmpty(localName) && name.Equals(localName, StringComparison.OrdinalIgnoreCase);
-
-                string sniperStr = $"{CalculateThreatPercentage(stats):F1}%";
-
-                // Apply calculations to WPF UI model
-                Dispatcher.Invoke(() =>
-                {
-                    row.Update(
-                        stats.Level,
-                        stats.HasWinstreak,
-                        stats.Winstreak,
-                        stats.Fkdr,
-                        stats.Wlr,
-                        stats.FinalKills,
-                        stats.Wins,
-                        sniperStr,
-                        isLocalPlayer,
-                        rankBrush,
-                        stats.GetRankTag()
-                    );
-                });
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            catch (Exception ex)
-            {
-                AddDiagnosticLine($"{name}: ERROR {ex.Message}");
-                Dispatcher.Invoke(() =>
-                {
-                    row.StatusText = "ERROR";
-                    row.NameColor = Brushes.Red;
-                });
-            }
-        }
-
         private void OnLogTailerError(string error)
         {
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 AddDiagnosticLine($"[ERROR] {error}");
             }));
-        }
-
-        private static double CalculateThreatPercentage(BedwarsStats stats)
-        {
-            double threatPct;
-            if (stats.Fkdr >= 10.0) threatPct = stats.Fkdr * 1.5;
-            else if (stats.Fkdr >= 5.0) threatPct = stats.Fkdr;
-            else if (stats.Fkdr >= 1.0) threatPct = stats.Fkdr * 0.5;
-            else threatPct = stats.Fkdr * 0.2;
-
-            if (stats.HasWinstreak && stats.Winstreak > 5)
-            {
-                threatPct += stats.Winstreak * 0.8;
-            }
-
-            return Math.Min(threatPct, 100.0);
         }
 
         private void PlayersGrid_Sorting(object sender, DataGridSortingEventArgs e)
@@ -778,8 +621,7 @@ namespace BedwarsOverlay.App
 
         protected override void OnClosed(EventArgs e)
         {
-            _lookupCts?.Cancel();
-            _lookupCts?.Dispose();
+            _playerLookupService?.Dispose();
             _hotkeyService?.Dispose();
             _logTailer?.Stop();
             base.OnClosed(e);

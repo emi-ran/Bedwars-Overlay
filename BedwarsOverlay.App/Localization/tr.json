@@ -1,6 +1,8 @@
 {
   "Title_BedwarsOverlay": "Bedwars Overlay",
+  "Title_BedwarsOverlayShort": "BW Overlay",
   "EditMode_Badge": "DÜZENLEME MODU",
+  "EditMode_BadgeShort": "Düzenleme",
   "Tooltip_ClearPlayers": "Mevcut oyuncu listesini temizle",
   "Tooltip_Settings": "Ayarlar",
   "Search_Placeholder": "Oyuncu ara",

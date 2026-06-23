@@ -231,7 +231,7 @@
                     
                     <!-- Left: Gold Title -->
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
-                        <TextBlock Text="Bedwars Overlay" Foreground="#EAB308" FontSize="14" FontWeight="Bold" FontFamily="Segoe UI" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="TitleText" Text="Bedwars Overlay" Foreground="#EAB308" FontSize="14" FontWeight="Bold" FontFamily="Segoe UI" VerticalAlignment="Center"/>
                         <Border x:Name="EditModeBadge" Background="#273636F1" BorderBrush="#6366F1" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="10,0,0,0" Visibility="Collapsed">
                             <TextBlock x:Name="EditModeBadgeText" Text="{Binding Source={x:Static services:LocalizationService.Instance}, Path=EditMode_Badge, Mode=OneWay}" Foreground="#C7D2FE" FontSize="10" FontWeight="Bold" FontFamily="Segoe UI"/>
                         </Border>

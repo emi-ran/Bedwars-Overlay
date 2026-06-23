@@ -1,6 +1,8 @@
 {
   "Title_BedwarsOverlay": "Bedwars Overlay",
+  "Title_BedwarsOverlayShort": "BW Overlay",
   "EditMode_Badge": "EDIT MODE",
+  "EditMode_BadgeShort": "EDIT",
   "Tooltip_ClearPlayers": "Clear current player list",
   "Tooltip_Settings": "Settings",
   "Search_Placeholder": "Search player(s)",
