@@ -48,6 +48,9 @@ BedwarsOverlay/
 │  │  └─ HotkeyService.cs       (P/Invoke RegisterHotKey / WndProc hook)
 ├─ BedwarsOverlay.Core/
 │  ├─ BedwarsOverlay.Core.csproj (Class library, targets net8.0)
+│  └─ LogWatching/
+│     ├─ LogPathDetector.cs (Minecraft log path resolver)
+│     └─ LogTailer.cs       (Asynchronous, non-locking file tailer)
 ├─ BedwarsOverlay.Tests/
 │  ├─ BedwarsOverlay.Tests.csproj (xUnit tests, targets net8.0)
 ```
@@ -69,24 +72,20 @@ BedwarsOverlay/
 - [x] Verified compilation (`dotnet build` succeeds with 0 warnings/errors).
 - [x] Added `.gitignore` file.
 
+### Phase 2: Log Watcher and Path Detection [COMPLETED]
+- [x] Implemented `LogTailer.cs` in `BedwarsOverlay.Core` (asynchronous, shared-read background log tailer).
+- [x] Implemented `LogPathDetector.cs` to detect Badlion logs and Vanilla fallback logs automatically.
+- [x] Verified code builds successfully.
+
+### Phase 3: /who Regex Parser & Diagnostics [COMPLETED]
+- [x] Implemented `HypixelLogParser.cs` in `BedwarsOverlay.Core` with regex-based parsing.
+- [x] Automatically stripped Minecraft color/formatting signs (`§.`) before matching.
+- [x] Implemented a WPF diagnostics panel at the bottom of the window, visible only in Edit Mode.
+- [x] Wrote comprehensive xUnit tests in `ParserTests.cs` for multiple `/who` log variations and color formatting.
+
 ---
 
 ## 5. Next Steps / Remaining Tasks
-
-### Phase 2: Log Watcher and Path Detection
-- [ ] Implement `LogTailer.cs` in `BedwarsOverlay.Core`.
-  - Watch `latest.log` asynchronously in a background task (using `FileStream` with share permissions, polling from the end of the file).
-  - Automatically detect default paths:
-    - Badlion: `C:\Users\emiran\AppData\Roaming\.minecraft\logs\blclient\minecraft\latest.log`
-    - Vanilla: `%APPDATA%\.minecraft\logs\latest.log`
-  - Support custom log paths via config.
-
-### Phase 3: /who Regex Parser & Diagnostics
-- [ ] Implement `HypixelLogParser.cs` in `BedwarsOverlay.Core`.
-  - Parse lines containing the `/who` player lists (e.g. `ONLINE: player1, player2...`).
-  - Add standard chat lobby player list checks.
-- [ ] Add xUnit tests in `BedwarsOverlay.Tests` to verify player list parsing.
-- [ ] Add a diagnostics panel in WPF (visible in Edit Mode) to see the last 20 candidate log lines.
 
 ### Phase 4: SQLite Database & Mojang Resolver
 - [ ] Create `AppDatabase.cs` inside `BedwarsOverlay.Core` (schema definition).
@@ -104,10 +103,12 @@ BedwarsOverlay/
 - [ ] Implement `StatsCalculator.cs` to compute metrics (FKDR, KDR, WLR, BBLR, level star).
 - [ ] Cache Hypixel stats (TTL 30-120 minutes configurable).
 
-### Phase 6: WPF Player Table Rendering & Theme Styling
-- [ ] Implement MVVM viewmodels (`MainWindowViewModel.cs`).
-- [ ] Add `DataGrid` or custom Grid elements inside `MainWindow.xaml` to display the player list.
-- [ ] Style the table with a premium glassmorphic dark theme (semi-transparent backgrounds, colored stats, star level badges).
+### Phase 6: WPF Player Table Rendering & Theme Styling [COMPLETED]
+- [x] Styled the table with a premium Cubelify-inspired dark theme with alternating obsidian/carbon row colors.
+- [x] Implemented local player highlight (blue icons U+E77B/U+EA18 and steel blue background `#0C1B33`).
+- [x] Set up dynamic level prestige colors matching in-game BedWars ranges.
+- [x] Added action dropdown context menu `...` for each player row containing Plancke shortcut, Copy name, and Blacklist commands.
+- [x] Designed custom minimize and close title bar controls using Windows Segoe MDL2 font icons and native hover states.
 
 ### Phase 7: Risk Scorer, Blacklist & Encounters
 - [ ] Implement `RiskScorer.cs` using the weight formulas:
