@@ -26,3 +26,5 @@ appsettings.local.json
 *.sqlite
 logs/
 *.log
+.env
+*.env

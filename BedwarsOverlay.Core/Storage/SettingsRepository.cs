@@ -12,6 +12,9 @@ namespace BedwarsOverlay.Core.Storage
         public string HypixelApiKeyEncrypted { get; set; } = string.Empty;
         public string LogFilePath { get; set; } = string.Empty;
         public int CacheTtlMinutes { get; set; } = 60;
+        public string LocalPlayerName { get; set; } = string.Empty;
+        public string SortColumn { get; set; } = string.Empty;
+        public string SortDirection { get; set; } = string.Empty;
     }
 
     public class SettingsRepository
@@ -60,6 +63,45 @@ namespace BedwarsOverlay.Core.Storage
             set
             {
                 _settings.CacheTtlMinutes = value;
+                Save();
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the local player name to highlight in the overlay.
+        /// </summary>
+        public string LocalPlayerName
+        {
+            get => _settings.LocalPlayerName;
+            set
+            {
+                _settings.LocalPlayerName = value;
+                Save();
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the column used for sorting the player overlay.
+        /// </summary>
+        public string SortColumn
+        {
+            get => _settings.SortColumn;
+            set
+            {
+                _settings.SortColumn = value;
+                Save();
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the direction of sorting.
+        /// </summary>
+        public string SortDirection
+        {
+            get => _settings.SortDirection;
+            set
+            {
+                _settings.SortDirection = value;
                 Save();
             }
         }

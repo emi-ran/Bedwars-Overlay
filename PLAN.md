@@ -96,13 +96,11 @@ BedwarsOverlay/
   - Implement cache check (24 hour TTL).
   - Handle 204/404 errors (mark as `NICKED_OR_UNKNOWN`).
 
-### Phase 5: Hypixel API Client & Stats Calculator
-- [ ] Implement `HypixelClient.cs` (query player by UUID).
-  - Authenticate using the `API-Key` header.
-  - Parse `player.stats.Bedwars` and `player.achievements.bedwars_level` / `player.stats.Bedwars.Experience`.
-  - Handle rate limit `RateLimit-Remaining` / `RateLimit-Reset` headers.
-- [ ] Implement `StatsCalculator.cs` to compute metrics (FKDR, KDR, WLR, BBLR, level star).
-- [ ] Cache Hypixel stats (TTL 30-120 minutes configurable).
+### Phase 5: Hypixel API Client & Stats Calculator [COMPLETED]
+- [x] Implemented `HypixelClient.cs` in `BedwarsOverlay.Core/Api` with API-Key headers and check constraints.
+- [x] Implemented `StatsCalculator.cs` in `BedwarsOverlay.Core/Stats` to compute Bedwars level stars prestiges from XP and ratio stats.
+- [x] Configured SQLite caching of statistics with custom TTL settings.
+- [x] Integrated asynchronous API lookup queries into the main WPF application window.
 
 ### Phase 6: WPF Player Table Rendering & Theme Styling [COMPLETED]
 - [x] Styled the table with a premium Cubelify-inspired dark theme with alternating obsidian/carbon row colors.

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BedwarsOverlay.App"
         mc:Ignorable="d"
-        Title="Cubelify Overlay" Height="450" Width="800"
+        Title="Bedwars Overlay" Height="450" Width="800"
         MinWidth="400" MinHeight="200"
         AllowsTransparency="True"
         WindowStyle="None"
@@ -64,6 +64,151 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+
+        <!-- Modern Mini ScrollBar Style -->
+        <Style TargetType="{x:Type ScrollBar}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Opacity" Value="0"/>
+            <Style.Triggers>
+                <!-- Smooth fade in/out based on mouse over the DataGrid -->
+                <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=DataGrid}}" Value="True">
+                    <DataTrigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.EnterActions>
+                    <DataTrigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.4"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.ExitActions>
+                </DataTrigger>
+                <!-- Vertical ScrollBar -->
+                <Trigger Property="Orientation" Value="Vertical">
+                    <Setter Property="Width" Value="6"/>
+                    <Setter Property="MinWidth" Value="6"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type ScrollBar}">
+                                <Grid x:Name="Bg" Background="Transparent" SnapsToDevicePixels="true">
+                                    <Track x:Name="PART_Track" IsDirectionReversed="true" IsEnabled="{TemplateBinding IsEnabled}">
+                                        <Track.DecreaseRepeatButton>
+                                            <RepeatButton Command="ScrollBar.PageUpCommand" Focusable="false">
+                                                <RepeatButton.Template>
+                                                    <ControlTemplate TargetType="RepeatButton">
+                                                        <Border Background="Transparent"/>
+                                                    </ControlTemplate>
+                                                </RepeatButton.Template>
+                                            </RepeatButton>
+                                        </Track.DecreaseRepeatButton>
+                                        <Track.IncreaseRepeatButton>
+                                            <RepeatButton Command="ScrollBar.PageDownCommand" Focusable="false">
+                                                <RepeatButton.Template>
+                                                    <ControlTemplate TargetType="RepeatButton">
+                                                        <Border Background="Transparent"/>
+                                                    </ControlTemplate>
+                                                </RepeatButton.Template>
+                                            </RepeatButton>
+                                        </Track.IncreaseRepeatButton>
+                                        <Track.Thumb>
+                                            <Thumb x:Name="Thumb" Width="4" Background="#33FFFFFF" BorderThickness="0" HorizontalAlignment="Center">
+                                                <Thumb.Template>
+                                                    <ControlTemplate TargetType="{x:Type Thumb}">
+                                                        <Border CornerRadius="2" Background="{TemplateBinding Background}"/>
+                                                    </ControlTemplate>
+                                                </Thumb.Template>
+                                            </Thumb>
+                                        </Track.Thumb>
+                                    </Track>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="true">
+                                        <Setter TargetName="Thumb" Property="Background" Value="#66FFFFFF"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+
+                <!-- Horizontal ScrollBar -->
+                <Trigger Property="Orientation" Value="Horizontal">
+                    <Setter Property="Height" Value="6"/>
+                    <Setter Property="MinHeight" Value="6"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type ScrollBar}">
+                                <Grid x:Name="Bg" Background="Transparent" SnapsToDevicePixels="true">
+                                    <Track x:Name="PART_Track" IsDirectionReversed="false" IsEnabled="{TemplateBinding IsEnabled}">
+                                        <Track.DecreaseRepeatButton>
+                                            <RepeatButton Command="ScrollBar.PageLeftCommand" Focusable="false">
+                                                <RepeatButton.Template>
+                                                    <ControlTemplate TargetType="RepeatButton">
+                                                        <Border Background="Transparent"/>
+                                                    </ControlTemplate>
+                                                </RepeatButton.Template>
+                                            </RepeatButton>
+                                        </Track.DecreaseRepeatButton>
+                                        <Track.IncreaseRepeatButton>
+                                            <RepeatButton Command="ScrollBar.PageRightCommand" Focusable="false">
+                                                <RepeatButton.Template>
+                                                    <ControlTemplate TargetType="RepeatButton">
+                                                        <Border Background="Transparent"/>
+                                                    </ControlTemplate>
+                                                </RepeatButton.Template>
+                                            </RepeatButton>
+                                        </Track.IncreaseRepeatButton>
+                                        <Track.Thumb>
+                                            <Thumb x:Name="Thumb" Height="4" Background="#33FFFFFF" BorderThickness="0" VerticalAlignment="Center">
+                                                <Thumb.Template>
+                                                    <ControlTemplate TargetType="{x:Type Thumb}">
+                                                        <Border CornerRadius="2" Background="{TemplateBinding Background}"/>
+                                                    </ControlTemplate>
+                                                </Thumb.Template>
+                                            </Thumb>
+                                        </Track.Thumb>
+                                    </Track>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="true">
+                                        <Setter TargetName="Thumb" Property="Background" Value="#66FFFFFF"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Custom Premium ToolTip Style -->
+        <Style TargetType="ToolTip">
+            <Setter Property="Background" Value="#18181A"/>
+            <Setter Property="Foreground" Value="#E2E8F0"/>
+            <Setter Property="BorderBrush" Value="#6366F1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,5"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToolTip">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="4" 
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter Content="{TemplateBinding Content}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
     
     <Grid x:Name="MainGrid">
@@ -76,7 +221,7 @@
                 </Grid.RowDefinitions>
                 
                 <!-- Draggable Title Bar (styled like Cubelify) -->
-                <Grid x:Name="TitleBar" Background="#0F0F11" MouseDown="TitleBar_MouseDown">
+                <Grid x:Name="TitleBar" Background="Transparent" MouseDown="TitleBar_MouseDown">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -86,7 +231,7 @@
                     <!-- Left: Hamburger & Gold Title -->
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
                         <TextBlock Text="&#xE700;" FontFamily="Segoe MDL2 Assets" Foreground="#FF94A3B8" FontSize="14" Margin="0,0,12,0" Cursor="Hand" VerticalAlignment="Center"/>
-                        <TextBlock Text="Cubelify Overlay" Foreground="#EAB308" FontSize="14" FontWeight="Bold" FontFamily="Segoe UI" VerticalAlignment="Center"/>
+                        <TextBlock Text="Bedwars Overlay" Foreground="#EAB308" FontSize="14" FontWeight="Bold" FontFamily="Segoe UI" VerticalAlignment="Center"/>
                     </StackPanel>
                     
                     <!-- Center: Action Icons & Search Box -->
@@ -144,6 +289,7 @@
                                CanUserReorderColumns="False"
                                CanUserResizeColumns="False"
                                CanUserSortColumns="True"
+                               Sorting="PlayersGrid_Sorting"
                                GridLinesVisibility="Horizontal"
                                HorizontalGridLinesBrush="#10FFFFFF"
                                VerticalGridLinesBrush="Transparent"
@@ -208,10 +354,12 @@
                         
                         <DataGrid.Columns>
                             <!-- Level Column -->
-                            <DataGridTextColumn Header="Lvl" Binding="{Binding Level}" Width="45" IsReadOnly="True">
+                            <DataGridTextColumn Header="Lvl" Binding="{Binding Level}" Width="45" IsReadOnly="True" SortMemberPath="LevelRaw">
                                 <DataGridTextColumn.HeaderStyle>
                                     <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource DefaultHeaderStyle}">
                                         <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                        <Setter Property="ToolTipService.IsEnabled" Value="{Binding IsEditMode, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"/>
+                                        <Setter Property="ToolTip" Value="BedWars Level (Stars &amp; Prestige)"/>
                                     </Style>
                                 </DataGridTextColumn.HeaderStyle>
                                 <DataGridTextColumn.ElementStyle>
@@ -231,6 +379,8 @@
                                     <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource DefaultHeaderStyle}">
                                         <Setter Property="HorizontalContentAlignment" Value="Left"/>
                                         <Setter Property="Padding" Value="15,8,10,8"/>
+                                        <Setter Property="ToolTipService.IsEnabled" Value="{Binding IsEditMode, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"/>
+                                        <Setter Property="ToolTip" Value="Minecraft Username (Local player marked in blue with badges)"/>
                                     </Style>
                                 </DataGridTemplateColumn.HeaderStyle>
                                 <DataGridTemplateColumn.CellTemplate>
@@ -245,7 +395,13 @@
                                             
                                             <!-- Warning Symbol for High Risk / Blacklist -->
                                             <TextBlock Text="⚠" Foreground="#FFEF4444" FontSize="11" Margin="0,0,6,0" VerticalAlignment="Center" 
-                                                       Visibility="{Binding TagVisibility}"/>
+                                                       Visibility="{Binding TagVisibility}"
+                                                       ToolTip="Yüksek Tehdit: Bu oyuncu ekstrem istatistiklere (FKDR >= 5.0) sahip!"/>
+                                            
+                                            <!-- Rank Tag (e.g. [MVP+]) -->
+                                            <TextBlock Text="{Binding RankTag}" Foreground="{Binding NameColor}" FontWeight="Bold" Margin="0,0,5,0" VerticalAlignment="Center" 
+                                                       Visibility="{Binding RankTagVisibility}" FontFamily="Segoe UI" FontSize="11"/>
+                                            
                                             <TextBlock Text="{Binding Name}" Foreground="{Binding NameColor}" FontWeight="SemiBold" VerticalAlignment="Center" FontFamily="Segoe UI" FontSize="12"/>
                                         </StackPanel>
                                     </DataTemplate>
@@ -253,10 +409,12 @@
                             </DataGridTemplateColumn>
 
                             <!-- Winstreak Column -->
-                            <DataGridTextColumn Header="WS" Binding="{Binding Winstreak}" Width="45">
+                            <DataGridTextColumn Header="WS" Binding="{Binding Winstreak}" Width="45" SortMemberPath="WinstreakRaw">
                                 <DataGridTextColumn.HeaderStyle>
                                     <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource DefaultHeaderStyle}">
                                         <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                        <Setter Property="ToolTipService.IsEnabled" Value="{Binding IsEditMode, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"/>
+                                        <Setter Property="ToolTip" Value="BedWars Winstreak (WS)"/>
                                     </Style>
                                 </DataGridTextColumn.HeaderStyle>
                                 <DataGridTextColumn.ElementStyle>
@@ -271,10 +429,12 @@
                             </DataGridTextColumn>
 
                             <!-- FKDR Column -->
-                            <DataGridTextColumn Header="FKDR" Binding="{Binding Fkdr}" Width="55">
+                            <DataGridTextColumn Header="FKDR" Binding="{Binding Fkdr}" Width="55" SortMemberPath="FkdrRaw">
                                 <DataGridTextColumn.HeaderStyle>
                                     <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource DefaultHeaderStyle}">
                                         <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                        <Setter Property="ToolTipService.IsEnabled" Value="{Binding IsEditMode, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"/>
+                                        <Setter Property="ToolTip" Value="Final Kill / Death Ratio (FKDR)"/>
                                     </Style>
                                 </DataGridTextColumn.HeaderStyle>
                                 <DataGridTextColumn.ElementStyle>
@@ -289,10 +449,12 @@
                             </DataGridTextColumn>
 
                             <!-- WLR Column -->
-                            <DataGridTextColumn Header="WLR" Binding="{Binding Wlr}" Width="55">
+                            <DataGridTextColumn Header="WLR" Binding="{Binding Wlr}" Width="55" SortMemberPath="WlrRaw">
                                 <DataGridTextColumn.HeaderStyle>
                                     <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource DefaultHeaderStyle}">
                                         <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                        <Setter Property="ToolTipService.IsEnabled" Value="{Binding IsEditMode, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"/>
+                                        <Setter Property="ToolTip" Value="Win / Loss Ratio (WLR)"/>
                                     </Style>
                                 </DataGridTextColumn.HeaderStyle>
                                 <DataGridTextColumn.ElementStyle>
@@ -307,10 +469,12 @@
                             </DataGridTextColumn>
 
                             <!-- Final Kills Column -->
-                            <DataGridTextColumn Header="F. Kills" Binding="{Binding FinalKills}" Width="65">
+                            <DataGridTextColumn Header="F. Kills" Binding="{Binding FinalKills}" Width="65" SortMemberPath="FinalKillsRaw">
                                 <DataGridTextColumn.HeaderStyle>
                                     <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource DefaultHeaderStyle}">
                                         <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                        <Setter Property="ToolTipService.IsEnabled" Value="{Binding IsEditMode, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"/>
+                                        <Setter Property="ToolTip" Value="Total BedWars Final Kills"/>
                                     </Style>
                                 </DataGridTextColumn.HeaderStyle>
                                 <DataGridTextColumn.ElementStyle>
@@ -325,10 +489,12 @@
                             </DataGridTextColumn>
 
                             <!-- Wins Column -->
-                            <DataGridTextColumn Header="Wins" Binding="{Binding Wins}" Width="65">
+                            <DataGridTextColumn Header="Wins" Binding="{Binding Wins}" Width="65" SortMemberPath="WinsRaw">
                                 <DataGridTextColumn.HeaderStyle>
                                     <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource DefaultHeaderStyle}">
                                         <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                        <Setter Property="ToolTipService.IsEnabled" Value="{Binding IsEditMode, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"/>
+                                        <Setter Property="ToolTip" Value="Total BedWars Wins"/>
                                     </Style>
                                 </DataGridTextColumn.HeaderStyle>
                                 <DataGridTextColumn.ElementStyle>
@@ -343,10 +509,12 @@
                             </DataGridTextColumn>
 
                             <!-- Sniper Column -->
-                            <DataGridTextColumn Header="Sniper" Binding="{Binding Sniper}" Width="65">
+                            <DataGridTextColumn Header="Sniper" Binding="{Binding Sniper}" Width="65" SortMemberPath="SniperRaw">
                                 <DataGridTextColumn.HeaderStyle>
                                     <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource DefaultHeaderStyle}">
                                         <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                        <Setter Property="ToolTipService.IsEnabled" Value="{Binding IsEditMode, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"/>
+                                        <Setter Property="ToolTip" Value="Tehdit Skoru / Sniper Olasılığı (Threat Score / Sniper Chance)"/>
                                     </Style>
                                 </DataGridTextColumn.HeaderStyle>
                                 <DataGridTextColumn.ElementStyle>

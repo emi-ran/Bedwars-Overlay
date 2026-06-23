@@ -1,25 +1,46 @@
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Net.Http;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using BedwarsOverlay.App.Services;
+using BedwarsOverlay.Core.Api;
 using BedwarsOverlay.Core.LogWatching;
 using BedwarsOverlay.Core.Models;
+using BedwarsOverlay.Core.Stats;
+using BedwarsOverlay.Core.Storage;
 
 namespace BedwarsOverlay.App
 {
     public partial class MainWindow : Window
     {
+        private static readonly HttpClient _httpClient = new HttpClient();
+
+        public static readonly DependencyProperty IsEditModeProperty =
+            DependencyProperty.Register("IsEditMode", typeof(bool), typeof(MainWindow), new PropertyMetadata(false));
+
+        public bool IsEditMode
+        {
+            get => (bool)GetValue(IsEditModeProperty);
+            set => SetValue(IsEditModeProperty, value);
+        }
+
         private HotkeyService? _hotkeyService;
         private bool _isEditMode = false;
         private LogTailer? _logTailer;
         private HypixelLogParser? _logParser;
         private readonly ObservableCollection<string> _diagnosticLines = new();
         private readonly ObservableCollection<PlayerRow> _players = new();
+
+        private AppDatabase? _database;
+        private SettingsRepository? _settingsRepository;
+        private MojangClient? _mojangClient;
+        private HypixelClient? _hypixelClient;
 
         public MainWindow()
         {
@@ -35,33 +56,60 @@ namespace BedwarsOverlay.App
             // Disable Windows Aero Snap maximizing & vertical snapping behaviors natively
             ClickThroughService.DisableMaximizing(this);
 
+            // Initialize database settings and API clients
+            try
+            {
+                _database = new AppDatabase();
+                _settingsRepository = new SettingsRepository();
+                _mojangClient = new MojangClient(_httpClient, _database);
+                _hypixelClient = new HypixelClient(_httpClient, _database, _settingsRepository);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to initialize database/settings: {ex.Message}", "Initialization Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Application.Current.Shutdown();
+                return;
+            }
+
             // Bind UI Elements
             LogDiagnosticsList.ItemsSource = _diagnosticLines;
             PlayersGrid.ItemsSource = _players;
 
-            // Load initial mock players matching the Cubelify UI screenshot for styling demo
-            LoadMockPlayers();
-
-            // Setup search filtering
+            // Set up search filter
             var view = CollectionViewSource.GetDefaultView(_players);
-            view.Filter = FilterPlayer;
-
-            // Start Log Watcher and Parser
-            try
+            if (view != null)
             {
-                string logPath = LogPathDetector.GetDefaultLogPath();
-                _logParser = new HypixelLogParser();
-                _logTailer = new LogTailer(logPath);
-                
-                _logTailer.LineAppended += OnLogLineAppended;
-                _logTailer.ErrorEncountered += OnLogTailerError;
-                _logTailer.Start();
-                
-                _diagnosticLines.Add($"Log watch started on: {logPath}");
+                view.Filter = FilterPlayer;
             }
-            catch (Exception ex)
+
+            if (view is ListCollectionView listColView)
             {
-                _diagnosticLines.Add($"Failed to start log watcher: {ex.Message}");
+                listColView.IsLiveSorting = true;
+                listColView.LiveSortingProperties.Add("LevelRaw");
+                listColView.LiveSortingProperties.Add("WinstreakRaw");
+                listColView.LiveSortingProperties.Add("FkdrRaw");
+                listColView.LiveSortingProperties.Add("WlrRaw");
+                listColView.LiveSortingProperties.Add("FinalKillsRaw");
+                listColView.LiveSortingProperties.Add("WinsRaw");
+                listColView.LiveSortingProperties.Add("SniperRaw");
+            }
+
+            RestoreSorting();
+
+            // Start empty with placeholder text visible
+            PlaceholderPanel.Visibility = Visibility.Visible;
+
+            // Verify API key configuration on startup
+            string apiKey = _settingsRepository.ApiKey;
+            if (string.IsNullOrWhiteSpace(apiKey) || apiKey.Equals("your_real_hypixel_api_key_here", StringComparison.OrdinalIgnoreCase))
+            {
+                ParsedPlayersText.Text = "Please configure your Hypixel API Key in Settings.";
+                // Modelessly prompt settings dialog after load finishes
+                Dispatcher.BeginInvoke(new Action(() => OpenSettings()));
+            }
+            else
+            {
+                RestartLogTailer();
             }
 
             // Set up global hotkey
@@ -82,32 +130,6 @@ namespace BedwarsOverlay.App
             {
                 MessageBox.Show($"Error initializing hotkey service: {ex.Message}", "Initialization Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-        }
-
-        private void LoadMockPlayers()
-        {
-            var cyanBrush = new SolidColorBrush(Color.FromRgb(0x38, 0xBD, 0xF8));  // MVP/MVP+ Cyan
-            var greenBrush = new SolidColorBrush(Color.FromRgb(0x34, 0xD3, 0x99)); // VIP/VIP+ Emerald green
-            var whiteBrush = Brushes.White;                                       // Normal white
-            var grayBrush = new SolidColorBrush(Color.FromRgb(0x94, 0xA3, 0xB8));  // Unranked gray
-
-            // Match the screenshot players perfectly
-            _players.Add(PlayerRow.CreateMock("Metriusz", 157, 6.29, 1.98, 6054, 1770, "1.1%", true, cyanBrush, false));
-            _players.Add(PlayerRow.CreateMock("MTBMBsideB", 45, 0.97, 0.36, 379, 147, "2.6%", false, cyanBrush, true));
-            _players.Add(PlayerRow.CreateMock("DominoKidX", 87, 0.59, 0.14, 1648, 412, "0.9%", false, greenBrush, false));
-            _players.Add(PlayerRow.CreateMock("5Wizards2056", 39, 0.77, 0.24, 322, 98, "0%", false, grayBrush, true));
-            _players.Add(PlayerRow.CreateMock("ya_YEET_2000", 70, 0.44, 0.17, 447, 191, "4.6%", false, cyanBrush, false));
-            _players.Add(PlayerRow.CreateMock("mak47", 10, 1.15, 0.31, 78, 21, "0%", false, cyanBrush, true));
-            _players.Add(PlayerRow.CreateMock("Cyteriax", 11, 0.72, 0.31, 63, 28, "0.9%", false, grayBrush, false));
-            _players.Add(PlayerRow.CreateMock("TheHitmanTurtle", 16, 0.50, 0.11, 122, 28, "0%", false, cyanBrush, true));
-            _players.Add(PlayerRow.CreateMock("NerdyEnderman", 6, 0.57, 0.57, 16, 16, "0%", false, grayBrush, false));
-            _players.Add(PlayerRow.CreateMock("RugRat4000", 3, 0.38, 0.19, 12, 6, "0.4%", false, grayBrush, true));
-            _players.Add(PlayerRow.CreateMock("ShiningScarlet", 14, 0.19, 0.04, 63, 13, "1.6%", false, grayBrush, false));
-            _players.Add(PlayerRow.CreateMock("Avenger7447", 21, 0.15, 0.22, 66, 91, "0%", false, grayBrush, true));
-            _players.Add(PlayerRow.CreateMock("curry_taco02", 14, 0.18, 0.19, 39, 40, "0%", false, grayBrush, false));
-            _players.Add(PlayerRow.CreateMock("magnus12674", 4, 0.12, 0.06, 2, 1, "0%", false, grayBrush, true));
-            _players.Add(PlayerRow.CreateMock("Maxiporkbun", 4, 0.00, 0.07, 0, 1, "0.3%", false, grayBrush, false));
-            _players.Add(PlayerRow.CreateMock("filankee", 2, 0.00, 0.17, 0, 1, "13.3%", false, grayBrush, true));
         }
 
         private void MinimizeButton_Click(object sender, RoutedEventArgs e)
@@ -188,6 +210,7 @@ namespace BedwarsOverlay.App
         private void ToggleEditMode()
         {
             _isEditMode = !_isEditMode;
+            IsEditMode = _isEditMode;
             if (_isEditMode)
             {
                 ApplyEditMode();
@@ -207,7 +230,7 @@ namespace BedwarsOverlay.App
             OverlayBorder.Background = new SolidColorBrush(Color.FromArgb(0x35, 0x11, 0x11, 0x11)); // translucent dark background
             OverlayBorder.BorderBrush = new SolidColorBrush(Color.FromArgb(0x1F, 0xFF, 0xFF, 0xFF));  // very faint border
             
-            TitleBar.Background = new SolidColorBrush(Color.FromArgb(0x1F, 0x11, 0x11, 0x11));
+            TitleBar.Background = Brushes.Transparent;
             ControlButtons.Visibility = Visibility.Collapsed;
 
             if (DiagnosticsPanel != null)
@@ -225,7 +248,7 @@ namespace BedwarsOverlay.App
             OverlayBorder.Background = new SolidColorBrush(Color.FromRgb(0x11, 0x11, 0x11)); // solid dark background
             OverlayBorder.BorderBrush = new SolidColorBrush(Color.FromRgb(0x63, 0x66, 0xF1)); // premium indigo border
             
-            TitleBar.Background = new SolidColorBrush(Color.FromRgb(0x11, 0x11, 0x11));
+            TitleBar.Background = Brushes.Transparent;
             ControlButtons.Visibility = Visibility.Visible;
 
             if (DiagnosticsPanel != null)
@@ -269,7 +292,82 @@ namespace BedwarsOverlay.App
 
         private void SettingsButton_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Settings panel implementation is scheduled for a future phase.", "Settings", MessageBoxButton.OK, MessageBoxImage.Information);
+            OpenSettings();
+        }
+
+        private void OpenSettings()
+        {
+            if (_settingsRepository == null) return;
+            
+            var settingsWin = new SettingsWindow(_settingsRepository) { Owner = this };
+            if (settingsWin.ShowDialog() == true)
+            {
+                if (_mojangClient == null && _database != null)
+                {
+                    _mojangClient = new MojangClient(_httpClient, _database);
+                }
+                if (_hypixelClient == null && _database != null)
+                {
+                    _hypixelClient = new HypixelClient(_httpClient, _database, _settingsRepository);
+                }
+
+                RestartLogTailer();
+
+                // Re-evaluate stats of existing players (if any) with the new settings
+                if (_players.Count > 0)
+                {
+                    int index = 0;
+                    foreach (var row in _players)
+                    {
+                        _ = ResolvePlayerAsync(row.Name, row, index % 2 == 0);
+                        index++;
+                    }
+                }
+            }
+        }
+
+        private void RestartLogTailer()
+        {
+            if (_settingsRepository == null) return;
+
+            // Stop existing watcher
+            if (_logTailer != null)
+            {
+                _logTailer.Stop();
+                _logTailer.LineAppended -= OnLogLineAppended;
+                _logTailer.ErrorEncountered -= OnLogTailerError;
+                _logTailer = null;
+            }
+
+            string apiKey = _settingsRepository.ApiKey;
+            if (string.IsNullOrWhiteSpace(apiKey) || apiKey.Equals("your_real_hypixel_api_key_here", StringComparison.OrdinalIgnoreCase))
+            {
+                ParsedPlayersText.Text = "Please configure your Hypixel API Key in Settings.";
+                return;
+            }
+
+            // Restore the normal status text if it was showing configuration error
+            if (ParsedPlayersText.Text == "Please configure your Hypixel API Key in Settings.")
+            {
+                ParsedPlayersText.Text = "Waiting for Minecraft log lines...";
+            }
+
+            try
+            {
+                string logPath = _settingsRepository.LogFilePath;
+                _logParser = new HypixelLogParser();
+                _logTailer = new LogTailer(logPath);
+                
+                _logTailer.LineAppended += OnLogLineAppended;
+                _logTailer.ErrorEncountered += OnLogTailerError;
+                _logTailer.Start();
+                
+                _diagnosticLines.Add($"Log watch started on: {logPath}");
+            }
+            catch (Exception ex)
+            {
+                _diagnosticLines.Add($"Failed to start log watcher: {ex.Message}");
+            }
         }
 
         private void RefreshButton_Click(object sender, RoutedEventArgs e)
@@ -277,6 +375,7 @@ namespace BedwarsOverlay.App
             _players.Clear();
             _diagnosticLines.Clear();
             _diagnosticLines.Add("Cache cleared and log display refreshed.");
+            PlaceholderPanel.Visibility = Visibility.Visible;
         }
 
         private void OnLogLineAppended(string line)
@@ -294,16 +393,126 @@ namespace BedwarsOverlay.App
                 if (players != null && players.Count > 0)
                 {
                     _players.Clear();
+                    PlaceholderPanel.Visibility = Visibility.Collapsed;
                     int index = 0;
                     foreach (var name in players)
                     {
-                        // Create placeholder player rows. As Mojang and Hypixel clients are integrated
-                        // in subsequent phases, these will be populated with actual API statistics.
-                        _players.Add(PlayerRow.CreateMock(name, 1, 0.0, 0.0, 0, 0, "0%", false, Brushes.White, index % 2 == 0));
+                        var placeholder = PlayerRow.CreateLoading(name, index % 2 == 0);
+                        _players.Add(placeholder);
+
+                        // Asynchronously resolve player profile and stats
+                        _ = ResolvePlayerAsync(name, placeholder, index % 2 == 0);
                         index++;
                     }
+
+                    RestoreSorting();
                 }
             }));
+        }
+
+        private async Task ResolvePlayerAsync(string name, PlayerRow row, bool isEvenRow)
+        {
+            if (_mojangClient == null || _hypixelClient == null || _settingsRepository == null) return;
+
+            try
+            {
+                // 1. Resolve Username to UUID
+                string? uuid = await _mojangClient.ResolveUsernameToUuidAsync(name);
+                if (uuid == null)
+                {
+                    // Nicked or unknown player
+                    Dispatcher.Invoke(() =>
+                    {
+                        row.StatusText = "NICKED_OR_UNKNOWN";
+                        row.NameColor = Brushes.Red; // highlight nicked/unknown players
+                        row.Level = "?";
+                        row.Winstreak = "?";
+                        row.Fkdr = "?";
+                        row.Wlr = "?";
+                        row.FinalKills = "?";
+                        row.Wins = "?";
+                        row.Sniper = "?";
+                    });
+                    return;
+                }
+
+                // 2. Fetch Hypixel stats JSON (with automatic DB caching and rate limit check)
+                string? json = await _hypixelClient.GetPlayerJsonAsync(uuid);
+                if (json == null)
+                {
+                    // No Hypixel stats (e.g. rate-limit or no network)
+                    Dispatcher.Invoke(() =>
+                    {
+                        row.StatusText = "NO_HYPIXEL_DATA";
+                        row.NameColor = Brushes.Orange;
+                        row.Level = "-";
+                        row.Winstreak = "-";
+                        row.Fkdr = "-";
+                        row.Wlr = "-";
+                        row.FinalKills = "-";
+                        row.Wins = "-";
+                        row.Sniper = "-";
+                    });
+                    return;
+                }
+
+                // 3. Parse stats and build updated UI row
+                var stats = StatsCalculator.ParseStats(json);
+
+                // Rank Color
+                Brush rankBrush = Brushes.White;
+                string rankColorName = stats.GetRankColorName();
+                if (rankColorName == "Cyan") rankBrush = new SolidColorBrush(Color.FromRgb(0x38, 0xBD, 0xF8));
+                else if (rankColorName == "Green") rankBrush = new SolidColorBrush(Color.FromRgb(0x34, 0xD3, 0x99));
+                else if (rankColorName == "Gold") rankBrush = new SolidColorBrush(Color.FromRgb(0xFB, 0xBF, 0x24));
+                else if (rankColorName == "Red") rankBrush = new SolidColorBrush(Color.FromRgb(0xEF, 0x44, 0x44));
+                else if (rankColorName == "Gray") rankBrush = new SolidColorBrush(Color.FromRgb(0x94, 0xA3, 0xB8));
+
+                string localName = _settingsRepository.LocalPlayerName;
+                bool isLocalPlayer = !string.IsNullOrEmpty(localName) && name.Equals(localName, StringComparison.OrdinalIgnoreCase);
+
+                // Threat Score / Sniper percentage calculation
+                double threatPct = 0.0;
+                if (stats.Fkdr >= 10.0) threatPct = stats.Fkdr * 1.5;
+                else if (stats.Fkdr >= 5.0) threatPct = stats.Fkdr * 1.0;
+                else if (stats.Fkdr >= 1.0) threatPct = stats.Fkdr * 0.5;
+                else threatPct = stats.Fkdr * 0.2;
+
+                if (stats.HasWinstreak && stats.Winstreak > 5)
+                {
+                    threatPct += stats.Winstreak * 0.8;
+                }
+
+                // Bound threat score to 100%
+                if (threatPct > 100.0) threatPct = 100.0;
+                string sniperStr = $"{threatPct:F1}%";
+
+                // Apply calculations to WPF UI model
+                Dispatcher.Invoke(() =>
+                {
+                    row.Update(
+                        stats.Level,
+                        stats.HasWinstreak,
+                        stats.Winstreak,
+                        stats.Fkdr,
+                        stats.Wlr,
+                        stats.FinalKills,
+                        stats.Wins,
+                        sniperStr,
+                        isLocalPlayer,
+                        rankBrush,
+                        stats.GetRankTag()
+                    );
+                });
+            }
+            catch
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    row.StatusText = "ERROR";
+                    row.NameColor = Brushes.Red;
+                });
+            }
         }
 
         private void OnLogTailerError(string error)
@@ -316,6 +525,81 @@ namespace BedwarsOverlay.App
                 }
                 _diagnosticLines.Add($"[ERROR] {error}");
             }));
+        }
+
+        private void PlayersGrid_Sorting(object sender, DataGridSortingEventArgs e)
+        {
+            e.Handled = true;
+
+            var column = e.Column;
+            var direction = column.SortDirection == ListSortDirection.Ascending
+                ? ListSortDirection.Descending
+                : ListSortDirection.Ascending;
+
+            string sortMember = column.SortMemberPath;
+            if (string.IsNullOrEmpty(sortMember))
+            {
+                if (column is DataGridBoundColumn boundCol && boundCol.Binding is Binding binding)
+                {
+                    sortMember = binding.Path.Path;
+                }
+            }
+
+            if (string.IsNullOrEmpty(sortMember)) return;
+
+            ApplySort(sortMember, direction);
+
+            // Update column headers SortDirection
+            foreach (var col in PlayersGrid.Columns)
+            {
+                col.SortDirection = (col == column) ? direction : null;
+            }
+
+            // Save to settings
+            if (_settingsRepository != null)
+            {
+                _settingsRepository.SortColumn = sortMember;
+                _settingsRepository.SortDirection = direction.ToString();
+            }
+        }
+
+        private void ApplySort(string sortMemberPath, ListSortDirection direction)
+        {
+            var view = CollectionViewSource.GetDefaultView(_players);
+            if (view != null)
+            {
+                view.SortDescriptions.Clear();
+                view.SortDescriptions.Add(new SortDescription(sortMemberPath, direction));
+                view.Refresh();
+            }
+        }
+
+        private void RestoreSorting()
+        {
+            if (_settingsRepository == null) return;
+
+            string sortCol = _settingsRepository.SortColumn;
+            string sortDirStr = _settingsRepository.SortDirection;
+
+            if (string.IsNullOrEmpty(sortCol) || string.IsNullOrEmpty(sortDirStr))
+            {
+                // Default sorting (e.g. FKDR descending by default is a premium UX touch)
+                sortCol = "FkdrRaw";
+                sortDirStr = "Descending";
+            }
+
+            if (Enum.TryParse<ListSortDirection>(sortDirStr, out var direction))
+            {
+                foreach (var col in PlayersGrid.Columns)
+                {
+                    if (col.SortMemberPath == sortCol)
+                    {
+                        col.SortDirection = direction;
+                        ApplySort(sortCol, direction);
+                        break;
+                    }
+                }
+            }
         }
 
         private void SearchBox_GotFocus(object sender, RoutedEventArgs e)
