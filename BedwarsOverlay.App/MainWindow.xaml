@@ -7,6 +7,7 @@
          xmlns:services="clr-namespace:BedwarsOverlay.App.Services"
         mc:Ignorable="d"
         Title="Bedwars Overlay" Height="450" Width="800"
+        Icon="Assets/bedwars-overlay-icon.ico"
         MinWidth="400" MinHeight="200"
         AllowsTransparency="True"
         WindowStyle="None"

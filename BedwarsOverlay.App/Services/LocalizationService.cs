@@ -21,14 +21,14 @@ namespace BedwarsOverlay.App.Services
 
         private LocalizationService()
         {
-            _strings = _builtInEnglish;
+            _strings = _builtInEnglish ?? new Dictionary<string, string>();
         }
 
         public string GetString(string key)
         {
-            if (_strings.TryGetValue(key, out var val))
+            if (_strings != null && _strings.TryGetValue(key, out var val))
                 return val;
-            if (_builtInEnglish.TryGetValue(key, out var fallback))
+            if (_builtInEnglish != null && _builtInEnglish.TryGetValue(key, out var fallback))
                 return fallback;
             return key;
         }

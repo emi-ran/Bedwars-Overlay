@@ -336,6 +336,11 @@ namespace BedwarsOverlay.App
 
         private void UpdateTitleBarLayout()
         {
+            if (TitleText == null || EditModeBadgeText == null || SearchPanel == null)
+            {
+                return;
+            }
+
             var loc = LocalizationService.Instance;
             bool narrowTitle = ActualWidth > 0 && ActualWidth < 560;
             bool narrowBadge = ActualWidth > 0 && ActualWidth < 660;

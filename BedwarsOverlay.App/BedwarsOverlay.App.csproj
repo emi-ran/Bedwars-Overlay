@@ -13,6 +13,7 @@
     <None Update="Localization\*.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <Resource Include="Assets\bedwars-overlay-icon.ico" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -21,6 +22,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>Assets\bedwars-overlay-icon.ico</ApplicationIcon>
   </PropertyGroup>
 
 </Project>
