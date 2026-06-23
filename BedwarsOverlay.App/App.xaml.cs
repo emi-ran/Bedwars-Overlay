@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using BedwarsOverlay.App.Services;
 
 namespace BedwarsOverlay.App
 {
@@ -20,6 +21,16 @@ namespace BedwarsOverlay.App
 
             // Handle async Task exceptions
             TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+
+            EventManager.RegisterClassHandler(typeof(Window), Window.LoadedEvent, new RoutedEventHandler(Window_Loaded));
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (sender is Window window)
+            {
+                ClickThroughService.DisableMaximizing(window);
+            }
         }
 
         private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)

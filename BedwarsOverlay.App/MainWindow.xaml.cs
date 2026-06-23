@@ -1,11 +1,13 @@
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Globalization;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -46,6 +48,7 @@ namespace BedwarsOverlay.App
         private MojangClient? _mojangClient;
         private HypixelClient? _hypixelClient;
         private CancellationTokenSource? _lookupCts;
+        private bool _showingConfigNeeded;
 
         public MainWindow()
         {
@@ -58,9 +61,6 @@ namespace BedwarsOverlay.App
             // Start in play mode (transparent, click-through)
             ApplyPlayMode();
 
-            // Disable Windows Aero Snap maximizing & vertical snapping behaviors natively
-            ClickThroughService.DisableMaximizing(this);
-
             // Initialize database settings and API clients
             try
             {
@@ -71,10 +71,17 @@ namespace BedwarsOverlay.App
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to initialize database/settings: {ex.Message}", "Initialization Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    LocalizationService.Instance["Init_FailedDb"].Replace("{0}", ex.Message),
+                    LocalizationService.Instance["Init_ErrorTitle"],
+                    MessageBoxButton.OK, MessageBoxImage.Error);
                 Application.Current.Shutdown();
                 return;
             }
+
+            // Initialize localization from saved settings and apply
+            LocalizationService.Instance.Initialize(_settingsRepository.Language);
+            ApplyLocalization();
 
             // Bind UI Elements
             LogDiagnosticsList.ItemsSource = _diagnosticLines;
@@ -108,7 +115,8 @@ namespace BedwarsOverlay.App
             string apiKey = _settingsRepository.ApiKey;
             if (string.IsNullOrWhiteSpace(apiKey) || apiKey.Equals("your_real_hypixel_api_key_here", StringComparison.OrdinalIgnoreCase))
             {
-                SetStatus("Configure Hypixel API key in Settings.");
+                _showingConfigNeeded = true;
+                SetStatus(LocalizationService.Instance["Status_ConfigureApi"]);
                 // Modelessly prompt settings dialog after load finishes
                 Dispatcher.BeginInvoke(new Action(() => OpenSettings()));
             }
@@ -127,13 +135,18 @@ namespace BedwarsOverlay.App
                 bool success = _hotkeyService.Register(HotkeyService.MOD_CONTROL | HotkeyService.MOD_ALT, 0x4F);
                 if (!success)
                 {
-                    MessageBox.Show("Failed to register global hotkey Ctrl+Alt+O! Please check if another app is using this shortcut.", 
-                                    "Hotkey Registration Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show(
+                        LocalizationService.Instance["Hotkey_Failed"],
+                        LocalizationService.Instance["Hotkey_ErrorTitle"],
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error initializing hotkey service: {ex.Message}", "Initialization Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    LocalizationService.Instance["Hotkey_InitError"].Replace("{0}", ex.Message),
+                    LocalizationService.Instance["Init_ErrorTitle"],
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -161,7 +174,10 @@ namespace BedwarsOverlay.App
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Failed to copy to clipboard: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(
+                        LocalizationService.Instance["Clipboard_Error"].Replace("{0}", ex.Message),
+                        LocalizationService.Instance["Error_Title"],
+                        MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
@@ -180,7 +196,10 @@ namespace BedwarsOverlay.App
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Failed to open Plancke link: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(
+                        LocalizationService.Instance["Plancke_Error"].Replace("{0}", ex.Message),
+                        LocalizationService.Instance["Error_Title"],
+                        MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
@@ -304,6 +323,58 @@ namespace BedwarsOverlay.App
             DiagnosticsPanel.Visibility = showDiagnostics ? Visibility.Visible : Visibility.Collapsed;
         }
 
+        private void ApplyLocalization()
+        {
+            if (_settingsRepository == null) return;
+
+            // DataGrid column headers cannot use DynamicResource or direct bindings easily,
+            // so we set them programmatically after language change.
+            var loc = LocalizationService.Instance;
+
+            // Column headers
+            PlayersGrid.Columns[0].Header = loc["Column_Lvl"];
+            PlayersGrid.Columns[1].Header = loc["Column_Name"];
+            PlayersGrid.Columns[2].Header = loc["Column_WS"];
+            PlayersGrid.Columns[3].Header = loc["Column_FKDR"];
+            PlayersGrid.Columns[4].Header = loc["Column_WLR"];
+            PlayersGrid.Columns[5].Header = loc["Column_FKills"];
+            PlayersGrid.Columns[6].Header = loc["Column_Wins"];
+            PlayersGrid.Columns[7].Header = loc["Column_Sniper"];
+
+            // Column header tooltips (set via HeaderStyle tooltip setter)
+            SetColumnTooltip(0, loc["Tooltip_Lvl"]);
+            SetColumnTooltip(1, loc["Tooltip_Name"]);
+            SetColumnTooltip(2, loc["Tooltip_WS"]);
+            SetColumnTooltip(3, loc["Tooltip_FKDR"]);
+            SetColumnTooltip(4, loc["Tooltip_WLR"]);
+            SetColumnTooltip(5, loc["Tooltip_FKills"]);
+            SetColumnTooltip(6, loc["Tooltip_Wins"]);
+            SetColumnTooltip(7, loc["Tooltip_Sniper"]);
+
+            // Title bar - keep brand name "Bedwars Overlay" unchanged
+        }
+
+        private void SetColumnTooltip(int columnIndex, string tooltipText)
+        {
+            if (columnIndex < 0 || columnIndex >= PlayersGrid.Columns.Count)
+                return;
+
+            var column = PlayersGrid.Columns[columnIndex];
+            if (column.HeaderStyle != null)
+            {
+                // Remove existing tooltip setter and add new one
+                var newStyle = new Style(typeof(DataGridColumnHeader), column.HeaderStyle.BasedOn);
+                foreach (var setter in column.HeaderStyle.Setters)
+                {
+                    if (setter is Setter s && s.Property == FrameworkElement.ToolTipProperty)
+                        continue;
+                    newStyle.Setters.Add(setter);
+                }
+                newStyle.Setters.Add(new Setter(FrameworkElement.ToolTipProperty, tooltipText));
+                column.HeaderStyle = newStyle;
+            }
+        }
+
         private void SetStatus(string message)
         {
             ParsedPlayersText.Text = message;
@@ -340,6 +411,10 @@ namespace BedwarsOverlay.App
             var settingsWin = new SettingsWindow(_settingsRepository) { Owner = this };
             if (settingsWin.ShowDialog() == true)
             {
+                // Re-apply localization after settings (language may have changed)
+                LocalizationService.Instance.Initialize(_settingsRepository.Language);
+                ApplyLocalization();
+
                 if (_mojangClient == null && _database != null)
                 {
                     _mojangClient = new MojangClient(_httpClient, _database);
@@ -382,14 +457,16 @@ namespace BedwarsOverlay.App
             string apiKey = _settingsRepository.ApiKey;
             if (string.IsNullOrWhiteSpace(apiKey) || apiKey.Equals("your_real_hypixel_api_key_here", StringComparison.OrdinalIgnoreCase))
             {
-                SetStatus("Configure Hypixel API key in Settings.");
+                _showingConfigNeeded = true;
+                SetStatus(LocalizationService.Instance["Status_ConfigureApi"]);
                 return;
             }
 
             // Restore the normal status text if it was showing configuration error
-            if (ParsedPlayersText.Text == "Configure Hypixel API key in Settings.")
+            if (_showingConfigNeeded)
             {
-                SetStatus("Waiting for /who in Minecraft...");
+                _showingConfigNeeded = false;
+                SetStatus(LocalizationService.Instance["Status_WaitingWho"]);
             }
 
             try
@@ -397,7 +474,7 @@ namespace BedwarsOverlay.App
                 string logPath = _settingsRepository.LogFilePath;
                 if (!System.IO.File.Exists(logPath))
                 {
-                    SetStatus("Minecraft log file not found. Check Settings.");
+                    SetStatus(LocalizationService.Instance["Status_LogNotFound"]);
                     AddDiagnosticLine($"[ERROR] Log file not found: {logPath}");
                     return;
                 }
@@ -409,12 +486,12 @@ namespace BedwarsOverlay.App
                 _logTailer.ErrorEncountered += OnLogTailerError;
                 _logTailer.Start();
                 
-                SetStatus("Waiting for /who in Minecraft...");
+                SetStatus(LocalizationService.Instance["Status_WaitingWho"]);
                 AddDiagnosticLine($"Log watch started on: {logPath}");
             }
             catch (Exception ex)
             {
-                SetStatus("Could not start Minecraft log watcher. Check Settings.");
+                SetStatus(LocalizationService.Instance["Status_CannotWatchLog"]);
                 AddDiagnosticLine($"[ERROR] Failed to start log watcher: {ex.Message}");
             }
         }
@@ -423,7 +500,7 @@ namespace BedwarsOverlay.App
         {
             _players.Clear();
             _diagnosticLines.Clear();
-            AddDiagnosticLine("Current player list cleared.");
+            AddDiagnosticLine(LocalizationService.Instance["Status_Cleared"]);
             PlaceholderPanel.Visibility = Visibility.Visible;
         }
 

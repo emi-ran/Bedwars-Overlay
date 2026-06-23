@@ -2,6 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 using Microsoft.Win32;
+using BedwarsOverlay.App.Services;
 using BedwarsOverlay.Core.Storage;
 using BedwarsOverlay.Core.LogWatching;
 
@@ -16,13 +17,63 @@ namespace BedwarsOverlay.App
         {
             InitializeComponent();
             _settingsRepository = settingsRepository ?? throw new ArgumentNullException(nameof(settingsRepository));
-            
+
             // Populate settings fields on load
             ApiKeyBox.Text = _settingsRepository.ApiKey;
             ApiKeyMaskedBox.Password = ApiKeyBox.Text;
             LogPathBox.Text = _settingsRepository.LogFilePath;
             LocalPlayerBox.Text = _settingsRepository.LocalPlayerName;
             ShowLogDiagnosticsBox.IsChecked = _settingsRepository.ShowLogDiagnostics;
+
+            // Set language combo to match saved preference
+            string lang = _settingsRepository.Language;
+            if (string.IsNullOrEmpty(lang))
+            {
+                lang = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "tr" ? "tr" : "en";
+            }
+            for (int i = 0; i < LanguageCombo.Items.Count; i++)
+            {
+                if (LanguageCombo.Items[i] is System.Windows.Controls.ComboBoxItem item && item.Tag.ToString() == lang)
+                {
+                    LanguageCombo.SelectedIndex = i;
+                    break;
+                }
+            }
+
+            // Apply localization to UI controls
+            ApplyLocalization();
+
+            // React to language combo changes immediately
+            LanguageCombo.SelectionChanged += LanguageCombo_SelectionChanged;
+        }
+
+        private void LanguageCombo_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            if (LanguageCombo.SelectedItem is System.Windows.Controls.ComboBoxItem item)
+            {
+                string lang = item.Tag as string ?? "en";
+                LocalizationService.Instance.SetLanguage(lang);
+                ApplyLocalization();
+            }
+        }
+
+        private void ApplyLocalization()
+        {
+            var loc = LocalizationService.Instance;
+
+            SettingsTitleText.Text = loc["Settings_Title"];
+            LabelApiKey.Text = loc["Label_ApiKey"];
+            LabelLogPath.Text = loc["Label_LogPath"];
+            LabelLocalPlayer.Text = loc["Label_LocalPlayer"];
+            LabelLanguage.Text = loc["Lang_Label"];
+            ShowLogDiagnosticsBox.Content = loc["Checkbox_Diagnostics"];
+            BtnAutoDetect.Content = loc["Button_AutoDetect"];
+            BtnBrowse.Content = loc["Button_Browse"];
+            BtnCancel.Content = loc["Button_Cancel"];
+            BtnSaveSettings.Content = loc["Button_SaveSettings"];
+
+            // Update eye toggle tooltip based on current visibility state
+            ApiKeyVisibilityButton.ToolTip = _isApiKeyVisible ? loc["Tooltip_HideApiKey"] : loc["Tooltip_ShowApiKey"];
         }
 
         private void ApiKeyVisibilityButton_Click(object sender, RoutedEventArgs e)
@@ -35,7 +86,7 @@ namespace BedwarsOverlay.App
                 ApiKeyMaskedBox.Visibility = Visibility.Collapsed;
                 ApiKeyBox.Visibility = Visibility.Visible;
                 ApiKeyVisibilityButton.Content = "\uE8F5";
-                ApiKeyVisibilityButton.ToolTip = "Hide API key";
+                ApiKeyVisibilityButton.ToolTip = LocalizationService.Instance["Tooltip_HideApiKey"];
                 ApiKeyBox.Focus();
                 ApiKeyBox.CaretIndex = ApiKeyBox.Text.Length;
             }
@@ -45,7 +96,7 @@ namespace BedwarsOverlay.App
                 ApiKeyBox.Visibility = Visibility.Collapsed;
                 ApiKeyMaskedBox.Visibility = Visibility.Visible;
                 ApiKeyVisibilityButton.Content = "\uE890";
-                ApiKeyVisibilityButton.ToolTip = "Show API key";
+                ApiKeyVisibilityButton.ToolTip = LocalizationService.Instance["Tooltip_ShowApiKey"];
                 ApiKeyMaskedBox.Focus();
             }
         }
@@ -70,7 +121,7 @@ namespace BedwarsOverlay.App
             var openFileDialog = new OpenFileDialog
             {
                 Filter = "Minecraft Log Files (latest.log)|*.log|All Log Files (*.log)|*.log|All Files (*.*)|*.*",
-                Title = "Select Minecraft latest.log File"
+                Title = LocalizationService.Instance["Browse_Title"]
             };
 
             if (openFileDialog.ShowDialog() == true)
@@ -90,13 +141,18 @@ namespace BedwarsOverlay.App
                 }
                 else
                 {
-                    MessageBox.Show("Auto-detected path is not a valid file:\n" + detectedPath + "\n\nPlease click Browse to select it manually.", 
-                                    "Log Path Detection", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show(
+                        LocalizationService.Instance["Detection_NotFound"].Replace("{0}", detectedPath),
+                        LocalizationService.Instance["Detection_Title"],
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to auto-detect log path: {ex.Message}", "Log Path Detection Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    LocalizationService.Instance["Detection_Failed"].Replace("{0}", ex.Message),
+                    LocalizationService.Instance["Detection_ErrorTitle"],
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -107,11 +163,19 @@ namespace BedwarsOverlay.App
             string localName = LocalPlayerBox.Text.Trim();
             bool showLogDiagnostics = ShowLogDiagnosticsBox.IsChecked == true;
 
+            // Read selected language from combo box
+            string lang = "en";
+            if (LanguageCombo.SelectedItem is System.Windows.Controls.ComboBoxItem selectedItem)
+            {
+                lang = selectedItem.Tag as string ?? "en";
+            }
+
             // Save settings via repository
             _settingsRepository.ApiKey = apiKey;
             _settingsRepository.LogFilePath = logPath;
             _settingsRepository.LocalPlayerName = localName;
             _settingsRepository.ShowLogDiagnostics = showLogDiagnostics;
+            _settingsRepository.Language = lang;
 
             this.DialogResult = true;
         }

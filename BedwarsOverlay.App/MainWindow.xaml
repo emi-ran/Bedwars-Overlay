@@ -3,7 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:BedwarsOverlay.App"
+         xmlns:local="clr-namespace:BedwarsOverlay.App"
+         xmlns:services="clr-namespace:BedwarsOverlay.App.Services"
         mc:Ignorable="d"
         Title="Bedwars Overlay" Height="450" Width="800"
         MinWidth="400" MinHeight="200"
@@ -232,14 +233,14 @@
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
                         <TextBlock Text="Bedwars Overlay" Foreground="#EAB308" FontSize="14" FontWeight="Bold" FontFamily="Segoe UI" VerticalAlignment="Center"/>
                         <Border x:Name="EditModeBadge" Background="#273636F1" BorderBrush="#6366F1" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="10,0,0,0" Visibility="Collapsed">
-                            <TextBlock Text="EDIT MODE" Foreground="#C7D2FE" FontSize="10" FontWeight="Bold" FontFamily="Segoe UI"/>
+                            <TextBlock x:Name="EditModeBadgeText" Text="{Binding Source={x:Static services:LocalizationService.Instance}, Path=EditMode_Badge, Mode=OneWay}" Foreground="#C7D2FE" FontSize="10" FontWeight="Bold" FontFamily="Segoe UI"/>
                         </Border>
                     </StackPanel>
                     
                     <!-- Center: Action Icons & Search Box -->
                     <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,15,0">
-                        <TextBlock Text="&#xE72C;" FontFamily="Segoe MDL2 Assets" Foreground="#FF94A3B8" FontSize="14" Margin="0,0,18,0" Cursor="Hand" ToolTip="Clear current player list" VerticalAlignment="Center" MouseDown="RefreshButton_Click"/>
-                        <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" Foreground="#FF94A3B8" FontSize="14" Margin="0,0,20,0" Cursor="Hand" ToolTip="Settings" VerticalAlignment="Center" MouseDown="SettingsButton_Click"/>
+                        <TextBlock x:Name="RefreshIcon" Text="&#xE72C;" FontFamily="Segoe MDL2 Assets" Foreground="#FF94A3B8" FontSize="14" Margin="0,0,18,0" Cursor="Hand" ToolTip="{Binding Source={x:Static services:LocalizationService.Instance}, Path=Tooltip_ClearPlayers, Mode=OneWay}" VerticalAlignment="Center" MouseDown="RefreshButton_Click"/>
+                        <TextBlock x:Name="SettingsIcon" Text="&#xE713;" FontFamily="Segoe MDL2 Assets" Foreground="#FF94A3B8" FontSize="14" Margin="0,0,20,0" Cursor="Hand" ToolTip="{Binding Source={x:Static services:LocalizationService.Instance}, Path=Tooltip_Settings, Mode=OneWay}" VerticalAlignment="Center" MouseDown="SettingsButton_Click"/>
                         
                         <!-- Search Box -->
                         <Border x:Name="SearchPanel" CornerRadius="6" Background="#18181A" BorderThickness="1.2" BorderBrush="#2D2D30" Height="28" Width="200" Padding="6,0">
@@ -252,7 +253,7 @@
                                 <TextBlock Grid.Column="0" Text="&#xE93E;" FontFamily="Segoe MDL2 Assets" Foreground="#66FFFFFF" FontSize="11" VerticalAlignment="Center" Margin="0,0,6,0"/>
                                 
                                 <Grid Grid.Column="1">
-                                    <TextBlock Text="Search player(s)" Foreground="#66FFFFFF" FontSize="11" VerticalAlignment="Center" Margin="3,0,0,0" 
+                                    <TextBlock Text="{Binding Source={x:Static services:LocalizationService.Instance}, Path=Search_Placeholder, Mode=OneWay}" Foreground="#66FFFFFF" FontSize="11" VerticalAlignment="Center" Margin="3,0,0,0" 
                                                x:Name="SearchPlaceholder" IsHitTestVisible="False"/>
                                     <TextBox Background="Transparent" BorderThickness="0" Foreground="White" FontSize="11" VerticalAlignment="Center"
                                              CaretBrush="White"
@@ -276,8 +277,8 @@
                 <Grid Grid.Row="1">
                     <!-- Placeholder Text (Shown when no logs/players) -->
                     <StackPanel x:Name="PlaceholderPanel" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed" Margin="20">
-                        <TextBlock x:Name="DemoText" Text="Bedwars Overlay Active" Foreground="White" FontSize="18" FontWeight="Bold" TextAlignment="Center" FontFamily="Segoe UI"/>
-                        <TextBlock x:Name="ParsedPlayersText" Text="Waiting for Minecraft logs... Type /who in-game." Foreground="#FFCCCCCC" FontSize="13" Margin="0,8,0,0" TextAlignment="Center" FontFamily="Segoe UI" TextWrapping="Wrap" MaxWidth="600"/>
+                        <TextBlock x:Name="DemoText" Text="{Binding Source={x:Static services:LocalizationService.Instance}, Path=Placeholder_Active, Mode=OneWay}" Foreground="White" FontSize="18" FontWeight="Bold" TextAlignment="Center" FontFamily="Segoe UI"/>
+                        <TextBlock x:Name="ParsedPlayersText" Text="{Binding Source={x:Static services:LocalizationService.Instance}, Path=Placeholder_Waiting, Mode=OneWay}" Foreground="#FFCCCCCC" FontSize="13" Margin="0,8,0,0" TextAlignment="Center" FontFamily="Segoe UI" TextWrapping="Wrap" MaxWidth="600"/>
                     </StackPanel>
 
                     <!-- Player Stats Grid -->
@@ -395,9 +396,9 @@
                                                        Visibility="{Binding LocalPlayerIconsVisibility}"/>
                                             
                                             <!-- Warning Symbol for High Risk / Blacklist -->
-                                            <TextBlock Text="⚠" Foreground="#FFEF4444" FontSize="11" Margin="0,0,6,0" VerticalAlignment="Center" 
+                                            <TextBlock Text="&#x26A0;" Foreground="#FFEF4444" FontSize="11" Margin="0,0,6,0" VerticalAlignment="Center" 
                                                        Visibility="{Binding TagVisibility}"
-                                                       ToolTip="Yüksek Tehdit: Bu oyuncu ekstrem istatistiklere (FKDR >= 5.0) sahip!"/>
+                                                       ToolTip="{Binding Source={x:Static services:LocalizationService.Instance}, Path=WarningTooltip, Mode=OneWay}"/>
                                             
                                             <!-- Rank Tag (e.g. [MVP+]) -->
                                             <TextBlock Text="{Binding RankTag}" Foreground="{Binding NameColor}" FontWeight="Bold" Margin="0,0,5,0" VerticalAlignment="Center" 
@@ -541,12 +542,12 @@
                                         <Button Content="&#xE712;" FontFamily="Segoe MDL2 Assets" Background="Transparent" Foreground="#66FFFFFF" BorderThickness="0" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center" Click="EllipsisButton_Click" Cursor="Hand">
                                             <Button.ContextMenu>
                                                 <ContextMenu Background="#1E1E1E" Foreground="White" BorderBrush="#33FFFFFF" BorderThickness="1">
-                                                    <MenuItem Header="Copy Username" Click="CopyUsername_Click">
+                                                    <MenuItem x:Name="ContextCopyUsername" Header="{Binding Source={x:Static services:LocalizationService.Instance}, Path=ContextMenu_CopyUsername, Mode=OneWay}" Click="CopyUsername_Click">
                                                         <MenuItem.Icon>
                                                             <TextBlock Text="&#xE8C8;" FontFamily="Segoe MDL2 Assets" Foreground="White" FontSize="12" VerticalAlignment="Center"/>
                                                         </MenuItem.Icon>
                                                     </MenuItem>
-                                                    <MenuItem Header="Open Plancke Stats" Click="OpenPlancke_Click">
+                                                    <MenuItem x:Name="ContextOpenPlancke" Header="{Binding Source={x:Static services:LocalizationService.Instance}, Path=ContextMenu_OpenPlancke, Mode=OneWay}" Click="OpenPlancke_Click">
                                                         <MenuItem.Icon>
                                                             <TextBlock Text="&#xE774;" FontFamily="Segoe MDL2 Assets" Foreground="White" FontSize="12" VerticalAlignment="Center"/>
                                                         </MenuItem.Icon>
@@ -568,7 +569,7 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
-                        <TextBlock Text="LOG DIAGNOSTICS (Last 20 Log Lines):" Foreground="#FF818CF8" FontSize="10" FontWeight="Bold" Margin="0,0,0,5" FontFamily="Segoe UI"/>
+                        <TextBlock x:Name="DiagnosticsTitle" Text="{Binding Source={x:Static services:LocalizationService.Instance}, Path=Diagnostics_Title, Mode=OneWay}" Foreground="#FF818CF8" FontSize="10" FontWeight="Bold" Margin="0,0,0,5" FontFamily="Segoe UI"/>
                         <ListBox x:Name="LogDiagnosticsList" Grid.Row="1" Height="80" Background="Transparent" BorderThickness="0" Foreground="#FFAAAAAA" FontSize="10" FontFamily="Consolas, Courier New"/>
                     </Grid>
                 </Border>

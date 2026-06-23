@@ -16,6 +16,7 @@ namespace BedwarsOverlay.Core.Storage
         public bool ShowLogDiagnostics { get; set; } = false;
         public string SortColumn { get; set; } = string.Empty;
         public string SortDirection { get; set; } = string.Empty;
+        public string Language { get; set; } = string.Empty;
     }
 
     public class SettingsRepository
@@ -116,6 +117,20 @@ namespace BedwarsOverlay.Core.Storage
             set
             {
                 _settings.SortDirection = value;
+                Save();
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the UI language ("en" or "tr").
+        /// Empty string means auto-detect from system culture.
+        /// </summary>
+        public string Language
+        {
+            get => _settings.Language;
+            set
+            {
+                _settings.Language = value;
                 Save();
             }
         }

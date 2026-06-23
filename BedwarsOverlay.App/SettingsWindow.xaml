@@ -4,7 +4,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Settings" Height="400" Width="480"
+        xmlns:services="clr-namespace:BedwarsOverlay.App.Services"
+        Title="Settings" Height="430" Width="600"
         WindowStartupLocation="CenterOwner"
         AllowsTransparency="True"
         WindowStyle="None"
@@ -128,6 +129,111 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+
+        <Style x:Key="DarkCheckBoxStyle" TargetType="CheckBox">
+            <Setter Property="Foreground" Value="#FFD4D4D8"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border x:Name="Box" Width="15" Height="15" CornerRadius="3" Background="#18181A" BorderBrush="#3F3F46" BorderThickness="1.2" Margin="0,0,8,0">
+                                <TextBlock x:Name="CheckMark" Text="&#xE73E;" FontFamily="Segoe MDL2 Assets" Foreground="White" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed"/>
+                            </Border>
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Box" Property="BorderBrush" Value="#6366F1"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Box" Property="Background" Value="#6366F1"/>
+                                <Setter TargetName="Box" Property="BorderBrush" Value="#818CF8"/>
+                                <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="DarkComboBoxItemStyle" TargetType="ComboBoxItem">
+            <Setter Property="Foreground" Value="#E5E7EB"/>
+            <Setter Property="Background" Value="#18181A"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border x:Name="ItemBorder" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#27272A"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#312E81"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="DarkComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="#18181A"/>
+            <Setter Property="BorderBrush" Value="#2D2D30"/>
+            <Setter Property="BorderThickness" Value="1.2"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="ItemContainerStyle" Value="{StaticResource DarkComboBoxItemStyle}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton x:Name="ToggleButton" Focusable="False" IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}" ClickMode="Press">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border x:Name="ToggleBorder" Background="#18181A" BorderBrush="#2D2D30" BorderThickness="1.2" CornerRadius="6" Padding="8,0">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0" Text="{Binding SelectionBoxItem, RelativeSource={RelativeSource AncestorType=ComboBox}}" Foreground="White" VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Column="1" Text="&#xE70D;" FontFamily="Segoe MDL2 Assets" Foreground="#94A3B8" FontSize="10" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                            </Grid>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="ToggleBorder" Property="BorderBrush" Value="#6366F1"/>
+                                            </Trigger>
+                                            <Trigger Property="IsChecked" Value="True">
+                                                <Setter TargetName="ToggleBorder" Property="BorderBrush" Value="#818CF8"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <Popup x:Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Fade">
+                                <Border Background="#18181A" BorderBrush="#3F3F46" BorderThickness="1" CornerRadius="6" Margin="0,4,0,0" MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}">
+                                    <ScrollViewer MaxHeight="160">
+                                        <ItemsPresenter/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <Grid>
@@ -142,7 +248,7 @@
 
                 <!-- Header Bar -->
                 <Grid x:Name="TitleBar" Background="Transparent" MouseDown="TitleBar_MouseDown">
-                    <TextBlock Text="Overlay Settings" Foreground="#EAB308" FontSize="14" FontWeight="Bold" FontFamily="Segoe UI" VerticalAlignment="Center" Margin="15,0,0,0"/>
+                    <TextBlock x:Name="SettingsTitleText" Text="Overlay Settings" Foreground="#EAB308" FontSize="14" FontWeight="Bold" FontFamily="Segoe UI" VerticalAlignment="Center" Margin="15,0,0,0"/>
                     <Button Content="&#xE8BB;" FontFamily="Segoe MDL2 Assets" Foreground="White" FontSize="10" 
                             Background="Transparent" BorderThickness="0" Width="40" Height="40" HorizontalAlignment="Right"
                             Click="CancelButton_Click" Cursor="Hand">
@@ -169,7 +275,7 @@
                 <StackPanel Grid.Row="1" Margin="20,10,20,10">
                     
                     <!-- Hypixel API Key -->
-                    <TextBlock Text="Hypixel API Key" Style="{StaticResource FormLabelStyle}"/>
+                    <TextBlock x:Name="LabelApiKey" Text="Hypixel API Key" Style="{StaticResource FormLabelStyle}"/>
                     <Border Style="{StaticResource TextBoxBorderStyle}" Margin="0,0,0,16">
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -178,40 +284,50 @@
                             </Grid.ColumnDefinitions>
                             <PasswordBox Grid.Column="0" x:Name="ApiKeyMaskedBox" Style="{StaticResource FormPasswordBoxStyle}" PasswordChar="*"/>
                             <TextBox Grid.Column="0" x:Name="ApiKeyBox" Style="{StaticResource FormTextBoxStyle}" Text="" IsUndoEnabled="True" Visibility="Collapsed"/>
-                            <Button Grid.Column="1" x:Name="ApiKeyVisibilityButton" Content="&#xE890;" FontFamily="Segoe MDL2 Assets" Style="{StaticResource InlineButtonStyle}" Width="28" Padding="0" Margin="6,0,0,0" ToolTip="Show API key" Click="ApiKeyVisibilityButton_Click"/>
+                            <Button Grid.Column="1" x:Name="ApiKeyVisibilityButton" Content="&#xE890;" FontFamily="Segoe MDL2 Assets" Style="{StaticResource InlineButtonStyle}" Width="28" Padding="0" Margin="6,0,0,0" Click="ApiKeyVisibilityButton_Click"/>
                         </Grid>
                     </Border>
 
                     <!-- Log File Path -->
-                    <TextBlock Text="Minecraft Client Log Path (latest.log)" Style="{StaticResource FormLabelStyle}"/>
-                    <Border Style="{StaticResource TextBoxBorderStyle}" Margin="0,0,0,16">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox Grid.Column="0" x:Name="LogPathBox" Style="{StaticResource FormTextBoxStyle}" Text="" IsReadOnly="True" ToolTip="{Binding Text, ElementName=LogPathBox}"/>
-                            <Button Grid.Column="1" Content="Auto-Detect" Style="{StaticResource InlineButtonStyle}" Click="AutoDetectButton_Click" Margin="6,0,0,0"/>
-                            <Button Grid.Column="2" Content="Browse..." Style="{StaticResource InlineButtonStyle}" Click="BrowseButton_Click" Margin="6,0,0,0"/>
-                        </Grid>
-                    </Border>
+                    <TextBlock x:Name="LabelLogPath" Text="Minecraft Client Log Path (latest.log)" Style="{StaticResource FormLabelStyle}"/>
+                    <Grid Margin="0,0,0,16">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Border Grid.Row="0" Style="{StaticResource TextBoxBorderStyle}">
+                            <TextBox x:Name="LogPathBox" Style="{StaticResource FormTextBoxStyle}" Text="" IsReadOnly="True" ToolTip="{Binding Text, ElementName=LogPathBox}"/>
+                        </Border>
+                        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
+                            <Button x:Name="BtnAutoDetect" Style="{StaticResource InlineButtonStyle}" Click="AutoDetectButton_Click" MinWidth="96"/>
+                            <Button x:Name="BtnBrowse" Style="{StaticResource InlineButtonStyle}" Click="BrowseButton_Click" MinWidth="80" Margin="8,0,0,0"/>
+                        </StackPanel>
+                    </Grid>
 
                     <!-- Local Player Name -->
-                    <TextBlock Text="Local Player Username (Optional, highlights yourself in blue)" Style="{StaticResource FormLabelStyle}"/>
+                    <TextBlock x:Name="LabelLocalPlayer" Text="Local Player Username (Optional, highlights yourself in blue)" Style="{StaticResource FormLabelStyle}"/>
                     <Border Style="{StaticResource TextBoxBorderStyle}" Margin="0,0,0,16">
                         <TextBox x:Name="LocalPlayerBox" Style="{StaticResource FormTextBoxStyle}" Text=""/>
                     </Border>
 
-                    <CheckBox x:Name="ShowLogDiagnosticsBox" Content="Show Log Diagnostics in edit mode" Foreground="#FFD4D4D8" FontSize="12" FontFamily="Segoe UI"/>
+                    <CheckBox x:Name="ShowLogDiagnosticsBox" Style="{StaticResource DarkCheckBoxStyle}"/>
+
+                    <!-- Language Selection -->
+                    <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                        <TextBlock x:Name="LabelLanguage" Style="{StaticResource FormLabelStyle}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <ComboBox x:Name="LanguageCombo" Style="{StaticResource DarkComboBoxStyle}" Height="28" MinWidth="120" SelectedIndex="0">
+                            <ComboBoxItem Content="English" Tag="en"/>
+                            <ComboBoxItem Content="Türkçe" Tag="tr"/>
+                        </ComboBox>
+                    </StackPanel>
                     
                 </StackPanel>
 
                 <!-- Footer Action Buttons -->
                 <Border Grid.Row="2" Background="#18181A" CornerRadius="0,0,8,8" BorderThickness="0,1,0,0" BorderBrush="#27272A">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,20,0">
-                        <Button Content="Cancel" Style="{StaticResource SecondaryButtonStyle}" Click="CancelButton_Click" Width="80" Margin="0,0,10,0"/>
-                        <Button Content="Save Settings" Style="{StaticResource PrimaryButtonStyle}" Click="SaveButton_Click" Width="110"/>
+                        <Button x:Name="BtnCancel" Style="{StaticResource SecondaryButtonStyle}" Click="CancelButton_Click" Width="80" Margin="0,0,10,0"/>
+                        <Button x:Name="BtnSaveSettings" Style="{StaticResource PrimaryButtonStyle}" Click="SaveButton_Click" Width="110"/>
                     </StackPanel>
                 </Border>
             </Grid>
