@@ -14,6 +14,17 @@ namespace BedwarsOverlay.Core.Api
         public string name { get; set; } = string.Empty;
     }
 
+    public enum MojangLookupStatus
+    {
+        Success,
+        NickedOrUnknown,
+        RateLimited,
+        NetworkError,
+        InvalidResponse
+    }
+
+    public sealed record MojangLookupResult(MojangLookupStatus Status, string? Uuid = null);
+
     public class MojangClient
     {
         private readonly HttpClient _httpClient;
@@ -32,13 +43,21 @@ namespace BedwarsOverlay.Core.Api
         /// </summary>
         public async Task<string?> ResolveUsernameToUuidAsync(string username)
         {
-            if (string.IsNullOrWhiteSpace(username)) return null;
+            var result = await ResolveUsernameAsync(username);
+            return result.Status == MojangLookupStatus.Success ? result.Uuid : null;
+        }
+
+        public async Task<MojangLookupResult> ResolveUsernameAsync(string username)
+        {
+            if (string.IsNullOrWhiteSpace(username)) return new MojangLookupResult(MojangLookupStatus.NickedOrUnknown);
 
             // 1. Check local cache first
             string? cachedUuid = GetCachedUuid(username);
             if (cachedUuid != null)
             {
-                return cachedUuid == "NICKED" ? null : cachedUuid;
+                return cachedUuid == "NICKED"
+                    ? new MojangLookupResult(MojangLookupStatus.NickedOrUnknown)
+                    : new MojangLookupResult(MojangLookupStatus.Success, cachedUuid);
             }
 
             // 2. Query Mojang API
@@ -51,13 +70,18 @@ namespace BedwarsOverlay.Core.Api
                 {
                     // Negative caching: Save as NICKED to avoid spamming Mojang on every lobby /who
                     SaveUuidToCache(username, "NICKED");
-                    return null;
+                    return new MojangLookupResult(MojangLookupStatus.NickedOrUnknown);
+                }
+
+                if (response.StatusCode == (HttpStatusCode)429)
+                {
+                    return new MojangLookupResult(MojangLookupStatus.RateLimited);
                 }
 
                 if (!response.IsSuccessStatusCode)
                 {
                     // Do not cache server errors or rate limits, just return null
-                    return null;
+                    return new MojangLookupResult(MojangLookupStatus.NetworkError);
                 }
 
                 string responseBody = await response.Content.ReadAsStringAsync();
@@ -67,15 +91,20 @@ namespace BedwarsOverlay.Core.Api
                 {
                     // Cache the successful lookup
                     SaveUuidToCache(username, profile.id);
-                    return profile.id;
+                    return new MojangLookupResult(MojangLookupStatus.Success, profile.id);
                 }
+            }
+            catch (TaskCanceledException)
+            {
+                return new MojangLookupResult(MojangLookupStatus.NetworkError);
             }
             catch
             {
                 // Network or parsing errors, ignore caching
+                return new MojangLookupResult(MojangLookupStatus.NetworkError);
             }
 
-            return null;
+            return new MojangLookupResult(MojangLookupStatus.InvalidResponse);
         }
 
         private string? GetCachedUuid(string username)

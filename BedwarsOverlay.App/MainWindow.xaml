@@ -231,11 +231,14 @@
                     <!-- Left: Gold Title -->
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
                         <TextBlock Text="Bedwars Overlay" Foreground="#EAB308" FontSize="14" FontWeight="Bold" FontFamily="Segoe UI" VerticalAlignment="Center"/>
+                        <Border x:Name="EditModeBadge" Background="#273636F1" BorderBrush="#6366F1" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="10,0,0,0" Visibility="Collapsed">
+                            <TextBlock Text="EDIT MODE" Foreground="#C7D2FE" FontSize="10" FontWeight="Bold" FontFamily="Segoe UI"/>
+                        </Border>
                     </StackPanel>
                     
                     <!-- Center: Action Icons & Search Box -->
                     <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,15,0">
-                        <TextBlock Text="&#xE72C;" FontFamily="Segoe MDL2 Assets" Foreground="#FF94A3B8" FontSize="14" Margin="0,0,18,0" Cursor="Hand" ToolTip="Clear &amp; Refresh" VerticalAlignment="Center" MouseDown="RefreshButton_Click"/>
+                        <TextBlock Text="&#xE72C;" FontFamily="Segoe MDL2 Assets" Foreground="#FF94A3B8" FontSize="14" Margin="0,0,18,0" Cursor="Hand" ToolTip="Clear current player list" VerticalAlignment="Center" MouseDown="RefreshButton_Click"/>
                         <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" Foreground="#FF94A3B8" FontSize="14" Margin="0,0,20,0" Cursor="Hand" ToolTip="Settings" VerticalAlignment="Center" MouseDown="SettingsButton_Click"/>
                         
                         <!-- Search Box -->
@@ -546,17 +549,6 @@
                                                     <MenuItem Header="Open Plancke Stats" Click="OpenPlancke_Click">
                                                         <MenuItem.Icon>
                                                             <TextBlock Text="&#xE774;" FontFamily="Segoe MDL2 Assets" Foreground="White" FontSize="12" VerticalAlignment="Center"/>
-                                                        </MenuItem.Icon>
-                                                    </MenuItem>
-                                                    <Separator Background="#22FFFFFF"/>
-                                                    <MenuItem Header="Add to Blacklist" Click="AddBlacklist_Click">
-                                                        <MenuItem.Icon>
-                                                            <TextBlock Text="&#xE107;" FontFamily="Segoe MDL2 Assets" Foreground="Red" FontSize="12" VerticalAlignment="Center"/>
-                                                        </MenuItem.Icon>
-                                                    </MenuItem>
-                                                    <MenuItem Header="Remove from Blacklist" Click="RemoveBlacklist_Click">
-                                                        <MenuItem.Icon>
-                                                            <TextBlock Text="&#xE10A;" FontFamily="Segoe MDL2 Assets" Foreground="Green" FontSize="12" VerticalAlignment="Center"/>
                                                         </MenuItem.Icon>
                                                     </MenuItem>
                                                 </ContextMenu>

@@ -40,7 +40,7 @@ namespace BedwarsOverlay.App
             }
         }
 
-        private void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
+        private void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
         {
             LogCrash(e.Exception, "Unobserved Task Exception");
             e.SetObserved(); // prevent process crash

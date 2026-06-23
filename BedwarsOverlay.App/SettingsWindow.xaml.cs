@@ -10,6 +10,7 @@ namespace BedwarsOverlay.App
     public partial class SettingsWindow : Window
     {
         private readonly SettingsRepository _settingsRepository;
+        private bool _isApiKeyVisible;
 
         public SettingsWindow(SettingsRepository settingsRepository)
         {
@@ -24,20 +25,29 @@ namespace BedwarsOverlay.App
             ShowLogDiagnosticsBox.IsChecked = _settingsRepository.ShowLogDiagnostics;
         }
 
-        private void ApiKeyMaskedBox_GotFocus(object sender, RoutedEventArgs e)
+        private void ApiKeyVisibilityButton_Click(object sender, RoutedEventArgs e)
         {
-            ApiKeyBox.Text = ApiKeyMaskedBox.Password;
-            ApiKeyMaskedBox.Visibility = Visibility.Collapsed;
-            ApiKeyBox.Visibility = Visibility.Visible;
-            ApiKeyBox.Focus();
-            ApiKeyBox.CaretIndex = ApiKeyBox.Text.Length;
-        }
+            _isApiKeyVisible = !_isApiKeyVisible;
 
-        private void ApiKeyBox_LostFocus(object sender, RoutedEventArgs e)
-        {
-            ApiKeyMaskedBox.Password = ApiKeyBox.Text;
-            ApiKeyBox.Visibility = Visibility.Collapsed;
-            ApiKeyMaskedBox.Visibility = Visibility.Visible;
+            if (_isApiKeyVisible)
+            {
+                ApiKeyBox.Text = ApiKeyMaskedBox.Password;
+                ApiKeyMaskedBox.Visibility = Visibility.Collapsed;
+                ApiKeyBox.Visibility = Visibility.Visible;
+                ApiKeyVisibilityButton.Content = "\uE8F5";
+                ApiKeyVisibilityButton.ToolTip = "Hide API key";
+                ApiKeyBox.Focus();
+                ApiKeyBox.CaretIndex = ApiKeyBox.Text.Length;
+            }
+            else
+            {
+                ApiKeyMaskedBox.Password = ApiKeyBox.Text;
+                ApiKeyBox.Visibility = Visibility.Collapsed;
+                ApiKeyMaskedBox.Visibility = Visibility.Visible;
+                ApiKeyVisibilityButton.Content = "\uE890";
+                ApiKeyVisibilityButton.ToolTip = "Show API key";
+                ApiKeyMaskedBox.Focus();
+            }
         }
 
         private void TitleBar_MouseDown(object sender, MouseButtonEventArgs e)
@@ -92,17 +102,10 @@ namespace BedwarsOverlay.App
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
-            string apiKey = ApiKeyBox.Text.Trim();
+            string apiKey = (_isApiKeyVisible ? ApiKeyBox.Text : ApiKeyMaskedBox.Password).Trim();
             string logPath = LogPathBox.Text.Trim();
             string localName = LocalPlayerBox.Text.Trim();
             bool showLogDiagnostics = ShowLogDiagnosticsBox.IsChecked == true;
-
-            if (string.IsNullOrWhiteSpace(apiKey) || apiKey.Equals("your_real_hypixel_api_key_here", StringComparison.OrdinalIgnoreCase))
-            {
-                MessageBox.Show("Please enter a valid Hypixel API Key to enable player statistics retrieval.", 
-                                "Invalid API Key", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
 
             // Save settings via repository
             _settingsRepository.ApiKey = apiKey;

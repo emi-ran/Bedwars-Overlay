@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -19,7 +20,10 @@ namespace BedwarsOverlay.App
 {
     public partial class MainWindow : Window
     {
-        private static readonly HttpClient _httpClient = new HttpClient();
+        private static readonly HttpClient _httpClient = new HttpClient
+        {
+            Timeout = TimeSpan.FromSeconds(10)
+        };
 
         public static readonly DependencyProperty IsEditModeProperty =
             DependencyProperty.Register("IsEditMode", typeof(bool), typeof(MainWindow), new PropertyMetadata(false));
@@ -41,6 +45,7 @@ namespace BedwarsOverlay.App
         private SettingsRepository? _settingsRepository;
         private MojangClient? _mojangClient;
         private HypixelClient? _hypixelClient;
+        private CancellationTokenSource? _lookupCts;
 
         public MainWindow()
         {
@@ -103,7 +108,7 @@ namespace BedwarsOverlay.App
             string apiKey = _settingsRepository.ApiKey;
             if (string.IsNullOrWhiteSpace(apiKey) || apiKey.Equals("your_real_hypixel_api_key_here", StringComparison.OrdinalIgnoreCase))
             {
-                ParsedPlayersText.Text = "Please configure your Hypixel API Key in Settings.";
+                SetStatus("Configure Hypixel API key in Settings.");
                 // Modelessly prompt settings dialog after load finishes
                 Dispatcher.BeginInvoke(new Action(() => OpenSettings()));
             }
@@ -180,22 +185,6 @@ namespace BedwarsOverlay.App
             }
         }
 
-        private void AddBlacklist_Click(object sender, RoutedEventArgs e)
-        {
-            if (PlayersGrid.SelectedItem is PlayerRow player)
-            {
-                MessageBox.Show($"Added {player.Name} to local blacklist.", "Blacklist", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-        }
-
-        private void RemoveBlacklist_Click(object sender, RoutedEventArgs e)
-        {
-            if (PlayersGrid.SelectedItem is PlayerRow player)
-            {
-                MessageBox.Show($"Removed {player.Name} from local blacklist.", "Blacklist", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-        }
-
         private bool FilterPlayer(object obj)
         {
             if (obj is PlayerRow row)
@@ -233,6 +222,8 @@ namespace BedwarsOverlay.App
             TitleBar.Background = Brushes.Transparent;
             ControlButtons.Visibility = Visibility.Collapsed;
             SearchPanel.Visibility = Visibility.Collapsed;
+            EditModeBadge.Visibility = Visibility.Collapsed;
+            ClearSearchFilter();
 
             if (DiagnosticsPanel != null)
             {
@@ -252,6 +243,7 @@ namespace BedwarsOverlay.App
             TitleBar.Background = Brushes.Transparent;
             ControlButtons.Visibility = Visibility.Visible;
             SearchPanel.Visibility = Visibility.Visible;
+            EditModeBadge.Visibility = Visibility.Visible;
 
             if (DiagnosticsPanel != null)
             {
@@ -312,6 +304,35 @@ namespace BedwarsOverlay.App
             DiagnosticsPanel.Visibility = showDiagnostics ? Visibility.Visible : Visibility.Collapsed;
         }
 
+        private void SetStatus(string message)
+        {
+            ParsedPlayersText.Text = message;
+        }
+
+        private void AddDiagnosticLine(string line)
+        {
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.BeginInvoke(new Action(() => AddDiagnosticLine(line)));
+                return;
+            }
+
+            if (_diagnosticLines.Count >= 20)
+            {
+                _diagnosticLines.RemoveAt(0);
+            }
+
+            _diagnosticLines.Add(line);
+        }
+
+        private CancellationToken ResetLookupCancellation()
+        {
+            _lookupCts?.Cancel();
+            _lookupCts?.Dispose();
+            _lookupCts = new CancellationTokenSource();
+            return _lookupCts.Token;
+        }
+
         private void OpenSettings()
         {
             if (_settingsRepository == null) return;
@@ -334,10 +355,11 @@ namespace BedwarsOverlay.App
                 // Re-evaluate stats of existing players (if any) with the new settings
                 if (_players.Count > 0)
                 {
+                    var token = ResetLookupCancellation();
                     int index = 0;
                     foreach (var row in _players)
                     {
-                        _ = ResolvePlayerAsync(row.Name, row, index % 2 == 0);
+                        _ = ResolvePlayerAsync(row.Name, row, index % 2 == 0, token);
                         index++;
                     }
                 }
@@ -360,19 +382,26 @@ namespace BedwarsOverlay.App
             string apiKey = _settingsRepository.ApiKey;
             if (string.IsNullOrWhiteSpace(apiKey) || apiKey.Equals("your_real_hypixel_api_key_here", StringComparison.OrdinalIgnoreCase))
             {
-                ParsedPlayersText.Text = "Please configure your Hypixel API Key in Settings.";
+                SetStatus("Configure Hypixel API key in Settings.");
                 return;
             }
 
             // Restore the normal status text if it was showing configuration error
-            if (ParsedPlayersText.Text == "Please configure your Hypixel API Key in Settings.")
+            if (ParsedPlayersText.Text == "Configure Hypixel API key in Settings.")
             {
-                ParsedPlayersText.Text = "Waiting for Minecraft log lines...";
+                SetStatus("Waiting for /who in Minecraft...");
             }
 
             try
             {
                 string logPath = _settingsRepository.LogFilePath;
+                if (!System.IO.File.Exists(logPath))
+                {
+                    SetStatus("Minecraft log file not found. Check Settings.");
+                    AddDiagnosticLine($"[ERROR] Log file not found: {logPath}");
+                    return;
+                }
+
                 _logParser = new HypixelLogParser();
                 _logTailer = new LogTailer(logPath);
                 
@@ -380,11 +409,13 @@ namespace BedwarsOverlay.App
                 _logTailer.ErrorEncountered += OnLogTailerError;
                 _logTailer.Start();
                 
-                _diagnosticLines.Add($"Log watch started on: {logPath}");
+                SetStatus("Waiting for /who in Minecraft...");
+                AddDiagnosticLine($"Log watch started on: {logPath}");
             }
             catch (Exception ex)
             {
-                _diagnosticLines.Add($"Failed to start log watcher: {ex.Message}");
+                SetStatus("Could not start Minecraft log watcher. Check Settings.");
+                AddDiagnosticLine($"[ERROR] Failed to start log watcher: {ex.Message}");
             }
         }
 
@@ -392,24 +423,33 @@ namespace BedwarsOverlay.App
         {
             _players.Clear();
             _diagnosticLines.Clear();
-            _diagnosticLines.Add("Cache cleared and log display refreshed.");
+            AddDiagnosticLine("Current player list cleared.");
             PlaceholderPanel.Visibility = Visibility.Visible;
+        }
+
+        private void ClearSearchFilter()
+        {
+            if (SearchBox.Text.Length == 0)
+            {
+                return;
+            }
+
+            SearchBox.Text = string.Empty;
+            SearchPlaceholder.Visibility = Visibility.Visible;
+            CollectionViewSource.GetDefaultView(_players)?.Refresh();
         }
 
         private void OnLogLineAppended(string line)
         {
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                if (_diagnosticLines.Count >= 20)
-                {
-                    _diagnosticLines.RemoveAt(0);
-                }
-                _diagnosticLines.Add(line);
+                AddDiagnosticLine(line);
 
                 // Run the parser to extract player names from `/who` logs
                 var players = _logParser?.ParsePlayerList(line);
                 if (players != null && players.Count > 0)
                 {
+                    var token = ResetLookupCancellation();
                     _players.Clear();
                     PlaceholderPanel.Visibility = Visibility.Collapsed;
                     int index = 0;
@@ -419,7 +459,7 @@ namespace BedwarsOverlay.App
                         _players.Add(placeholder);
 
                         // Asynchronously resolve player profile and stats
-                        _ = ResolvePlayerAsync(name, placeholder, index % 2 == 0);
+                        _ = ResolvePlayerAsync(name, placeholder, index % 2 == 0, token);
                         index++;
                     }
 
@@ -428,20 +468,29 @@ namespace BedwarsOverlay.App
             }));
         }
 
-        private async Task ResolvePlayerAsync(string name, PlayerRow row, bool isEvenRow)
+        private async Task ResolvePlayerAsync(string name, PlayerRow row, bool isEvenRow, CancellationToken cancellationToken)
         {
             if (_mojangClient == null || _hypixelClient == null || _settingsRepository == null) return;
 
             try
             {
                 // 1. Resolve Username to UUID
-                string? uuid = await _mojangClient.ResolveUsernameToUuidAsync(name);
-                if (uuid == null)
+                cancellationToken.ThrowIfCancellationRequested();
+                var mojangResult = await _mojangClient.ResolveUsernameAsync(name);
+                cancellationToken.ThrowIfCancellationRequested();
+                if (mojangResult.Status != MojangLookupStatus.Success || mojangResult.Uuid == null)
                 {
-                    // Nicked or unknown player
+                    string statusText = mojangResult.Status switch
+                    {
+                        MojangLookupStatus.RateLimited => "MOJANG_RATE_LIMIT",
+                        MojangLookupStatus.NetworkError => "MOJANG_NETWORK_ERROR",
+                        MojangLookupStatus.InvalidResponse => "MOJANG_INVALID_RESPONSE",
+                        _ => "NICKED_OR_UNKNOWN"
+                    };
+                    AddDiagnosticLine($"{name}: {statusText}");
                     Dispatcher.Invoke(() =>
                     {
-                        row.StatusText = "NICKED_OR_UNKNOWN";
+                        row.StatusText = statusText;
                         row.NameColor = Brushes.Red; // highlight nicked/unknown players
                         row.Level = "?";
                         row.Winstreak = "?";
@@ -455,13 +504,23 @@ namespace BedwarsOverlay.App
                 }
 
                 // 2. Fetch Hypixel stats JSON (with automatic DB caching and rate limit check)
-                string? json = await _hypixelClient.GetPlayerJsonAsync(uuid);
-                if (json == null)
+                var hypixelResult = await _hypixelClient.GetPlayerAsync(mojangResult.Uuid);
+                cancellationToken.ThrowIfCancellationRequested();
+                if (hypixelResult.Status != HypixelLookupStatus.Success || hypixelResult.PlayerJson == null)
                 {
-                    // No Hypixel stats (e.g. rate-limit or no network)
+                    string statusText = hypixelResult.Status switch
+                    {
+                        HypixelLookupStatus.MissingApiKey => "MISSING_API_KEY",
+                        HypixelLookupStatus.InvalidApiKey => "INVALID_API_KEY",
+                        HypixelLookupStatus.RateLimited => "HYPIXEL_RATE_LIMIT",
+                        HypixelLookupStatus.NetworkError => "HYPIXEL_NETWORK_ERROR",
+                        HypixelLookupStatus.InvalidResponse => "HYPIXEL_INVALID_RESPONSE",
+                        _ => "NO_HYPIXEL_DATA"
+                    };
+                    AddDiagnosticLine($"{name}: {statusText}");
                     Dispatcher.Invoke(() =>
                     {
-                        row.StatusText = "NO_HYPIXEL_DATA";
+                        row.StatusText = statusText;
                         row.NameColor = Brushes.Orange;
                         row.Level = "-";
                         row.Winstreak = "-";
@@ -475,7 +534,7 @@ namespace BedwarsOverlay.App
                 }
 
                 // 3. Parse stats and build updated UI row
-                var stats = StatsCalculator.ParseStats(json);
+                var stats = StatsCalculator.ParseStats(hypixelResult.PlayerJson);
 
                 // Rank Color
                 Brush rankBrush = Brushes.White;
@@ -489,21 +548,7 @@ namespace BedwarsOverlay.App
                 string localName = _settingsRepository.LocalPlayerName;
                 bool isLocalPlayer = !string.IsNullOrEmpty(localName) && name.Equals(localName, StringComparison.OrdinalIgnoreCase);
 
-                // Threat Score / Sniper percentage calculation
-                double threatPct = 0.0;
-                if (stats.Fkdr >= 10.0) threatPct = stats.Fkdr * 1.5;
-                else if (stats.Fkdr >= 5.0) threatPct = stats.Fkdr * 1.0;
-                else if (stats.Fkdr >= 1.0) threatPct = stats.Fkdr * 0.5;
-                else threatPct = stats.Fkdr * 0.2;
-
-                if (stats.HasWinstreak && stats.Winstreak > 5)
-                {
-                    threatPct += stats.Winstreak * 0.8;
-                }
-
-                // Bound threat score to 100%
-                if (threatPct > 100.0) threatPct = 100.0;
-                string sniperStr = $"{threatPct:F1}%";
+                string sniperStr = $"{CalculateThreatPercentage(stats):F1}%";
 
                 // Apply calculations to WPF UI model
                 Dispatcher.Invoke(() =>
@@ -523,8 +568,12 @@ namespace BedwarsOverlay.App
                     );
                 });
             }
-            catch
+            catch (OperationCanceledException)
             {
+            }
+            catch (Exception ex)
+            {
+                AddDiagnosticLine($"{name}: ERROR {ex.Message}");
                 Dispatcher.Invoke(() =>
                 {
                     row.StatusText = "ERROR";
@@ -537,12 +586,24 @@ namespace BedwarsOverlay.App
         {
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                if (_diagnosticLines.Count >= 20)
-                {
-                    _diagnosticLines.RemoveAt(0);
-                }
-                _diagnosticLines.Add($"[ERROR] {error}");
+                AddDiagnosticLine($"[ERROR] {error}");
             }));
+        }
+
+        private static double CalculateThreatPercentage(BedwarsStats stats)
+        {
+            double threatPct;
+            if (stats.Fkdr >= 10.0) threatPct = stats.Fkdr * 1.5;
+            else if (stats.Fkdr >= 5.0) threatPct = stats.Fkdr;
+            else if (stats.Fkdr >= 1.0) threatPct = stats.Fkdr * 0.5;
+            else threatPct = stats.Fkdr * 0.2;
+
+            if (stats.HasWinstreak && stats.Winstreak > 5)
+            {
+                threatPct += stats.Winstreak * 0.8;
+            }
+
+            return Math.Min(threatPct, 100.0);
         }
 
         private void PlayersGrid_Sorting(object sender, DataGridSortingEventArgs e)
@@ -640,6 +701,8 @@ namespace BedwarsOverlay.App
 
         protected override void OnClosed(EventArgs e)
         {
+            _lookupCts?.Cancel();
+            _lookupCts?.Dispose();
             _hotkeyService?.Dispose();
             _logTailer?.Stop();
             base.OnClosed(e);

@@ -9,6 +9,19 @@ using Microsoft.Data.Sqlite;
 
 namespace BedwarsOverlay.Core.Api
 {
+    public enum HypixelLookupStatus
+    {
+        Success,
+        MissingApiKey,
+        InvalidApiKey,
+        RateLimited,
+        NoPlayerData,
+        NetworkError,
+        InvalidResponse
+    }
+
+    public sealed record HypixelLookupResult(HypixelLookupStatus Status, string? PlayerJson = null);
+
     public class HypixelClient
     {
         private readonly HttpClient _httpClient;
@@ -28,13 +41,19 @@ namespace BedwarsOverlay.Core.Api
         /// </summary>
         public async Task<string?> GetPlayerJsonAsync(string uuid)
         {
-            if (string.IsNullOrWhiteSpace(uuid)) return null;
+            var result = await GetPlayerAsync(uuid);
+            return result.Status == HypixelLookupStatus.Success ? result.PlayerJson : null;
+        }
+
+        public async Task<HypixelLookupResult> GetPlayerAsync(string uuid)
+        {
+            if (string.IsNullOrWhiteSpace(uuid)) return new HypixelLookupResult(HypixelLookupStatus.NoPlayerData);
 
             // 1. Check SQLite Cache
             string? cachedJson = GetCachedPlayerJson(uuid);
             if (cachedJson != null)
             {
-                return cachedJson;
+                return new HypixelLookupResult(HypixelLookupStatus.Success, cachedJson);
             }
 
             // 2. Fetch from Hypixel API
@@ -42,7 +61,7 @@ namespace BedwarsOverlay.Core.Api
             if (string.IsNullOrWhiteSpace(apiKey))
             {
                 // Without API key, we cannot query Hypixel
-                return null;
+                return new HypixelLookupResult(HypixelLookupStatus.MissingApiKey);
             }
 
             string url = $"https://api.hypixel.net/v2/player?uuid={uuid}";
@@ -57,18 +76,18 @@ namespace BedwarsOverlay.Core.Api
                     if (response.StatusCode == HttpStatusCode.Forbidden)
                     {
                         // Invalid API Key
-                        return null;
+                        return new HypixelLookupResult(HypixelLookupStatus.InvalidApiKey);
                     }
 
                     if (response.StatusCode == (HttpStatusCode)429)
                     {
                         // Rate limited
-                        return null;
+                        return new HypixelLookupResult(HypixelLookupStatus.RateLimited);
                     }
 
                     if (!response.IsSuccessStatusCode)
                     {
-                        return null;
+                        return new HypixelLookupResult(HypixelLookupStatus.NetworkError);
                     }
 
                     string responseBody = await response.Content.ReadAsStringAsync();
@@ -89,18 +108,23 @@ namespace BedwarsOverlay.Core.Api
 
                                 // Cache the lookup
                                 SavePlayerToCache(uuid, displayname, playerJson);
-                                return playerJson;
+                                return new HypixelLookupResult(HypixelLookupStatus.Success, playerJson);
                             }
                         }
                     }
                 }
             }
+            catch (TaskCanceledException)
+            {
+                return new HypixelLookupResult(HypixelLookupStatus.NetworkError);
+            }
             catch
             {
                 // Suppress network/parsing issues and return null
+                return new HypixelLookupResult(HypixelLookupStatus.InvalidResponse);
             }
 
-            return null;
+            return new HypixelLookupResult(HypixelLookupStatus.NoPlayerData);
         }
 
         private string? GetCachedPlayerJson(string uuid)

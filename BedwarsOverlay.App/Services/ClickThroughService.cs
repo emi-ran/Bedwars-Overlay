@@ -10,7 +10,6 @@ namespace BedwarsOverlay.App.Services
         private const int GWL_EXSTYLE = -20;
         private const int WS_EX_LAYERED = 0x00080000;
         private const int WS_EX_TRANSPARENT = 0x00000020;
-        private const int WS_EX_TOOLWINDOW = 0x00000080;
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
@@ -30,7 +29,7 @@ namespace BedwarsOverlay.App.Services
             if (hwnd == IntPtr.Zero) return;
 
             int extendedStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
-            SetWindowLong(hwnd, GWL_EXSTYLE, extendedStyle | WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW);
+            SetWindowLong(hwnd, GWL_EXSTYLE, extendedStyle | WS_EX_LAYERED | WS_EX_TRANSPARENT);
         }
 
         /// <summary>
@@ -42,9 +41,8 @@ namespace BedwarsOverlay.App.Services
             if (hwnd == IntPtr.Zero) return;
 
             int extendedStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
-            // Remove WS_EX_TRANSPARENT so the window receives mouse clicks,
-            // but keep WS_EX_LAYERED and WS_EX_TOOLWINDOW (to hide from Alt-Tab if desired).
-            SetWindowLong(hwnd, GWL_EXSTYLE, (extendedStyle & ~WS_EX_TRANSPARENT) | WS_EX_LAYERED | WS_EX_TOOLWINDOW);
+            // Remove WS_EX_TRANSPARENT so the window receives mouse clicks while remaining layered.
+            SetWindowLong(hwnd, GWL_EXSTYLE, (extendedStyle & ~WS_EX_TRANSPARENT) | WS_EX_LAYERED);
         }
 
         /// <summary>

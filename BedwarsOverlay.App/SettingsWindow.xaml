@@ -172,8 +172,13 @@
                     <TextBlock Text="Hypixel API Key" Style="{StaticResource FormLabelStyle}"/>
                     <Border Style="{StaticResource TextBoxBorderStyle}" Margin="0,0,0,16">
                         <Grid>
-                            <PasswordBox x:Name="ApiKeyMaskedBox" Style="{StaticResource FormPasswordBoxStyle}" PasswordChar="*" GotFocus="ApiKeyMaskedBox_GotFocus"/>
-                            <TextBox x:Name="ApiKeyBox" Style="{StaticResource FormTextBoxStyle}" Text="" IsUndoEnabled="True" Visibility="Collapsed" LostFocus="ApiKeyBox_LostFocus"/>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <PasswordBox Grid.Column="0" x:Name="ApiKeyMaskedBox" Style="{StaticResource FormPasswordBoxStyle}" PasswordChar="*"/>
+                            <TextBox Grid.Column="0" x:Name="ApiKeyBox" Style="{StaticResource FormTextBoxStyle}" Text="" IsUndoEnabled="True" Visibility="Collapsed"/>
+                            <Button Grid.Column="1" x:Name="ApiKeyVisibilityButton" Content="&#xE890;" FontFamily="Segoe MDL2 Assets" Style="{StaticResource InlineButtonStyle}" Width="28" Padding="0" Margin="6,0,0,0" ToolTip="Show API key" Click="ApiKeyVisibilityButton_Click"/>
                         </Grid>
                     </Border>
 
