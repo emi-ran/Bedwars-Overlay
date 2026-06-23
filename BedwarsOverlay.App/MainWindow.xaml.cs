@@ -232,10 +232,11 @@ namespace BedwarsOverlay.App
             
             TitleBar.Background = Brushes.Transparent;
             ControlButtons.Visibility = Visibility.Collapsed;
+            SearchPanel.Visibility = Visibility.Collapsed;
 
             if (DiagnosticsPanel != null)
             {
-                DiagnosticsPanel.Visibility = Visibility.Collapsed;
+                UpdateDiagnosticsVisibility();
             }
         }
 
@@ -250,10 +251,11 @@ namespace BedwarsOverlay.App
             
             TitleBar.Background = Brushes.Transparent;
             ControlButtons.Visibility = Visibility.Visible;
+            SearchPanel.Visibility = Visibility.Visible;
 
             if (DiagnosticsPanel != null)
             {
-                DiagnosticsPanel.Visibility = Visibility.Visible;
+                UpdateDiagnosticsVisibility();
             }
             
             // Force activate/focus the window
@@ -263,7 +265,7 @@ namespace BedwarsOverlay.App
 
         private void TitleBar_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.ChangedButton == MouseButton.Left && _isEditMode)
+            if (e.ChangedButton == MouseButton.Left && e.LeftButton == MouseButtonState.Pressed && _isEditMode)
             {
                 // Prevent maximizing on double-click
                 if (e.ClickCount == 2)
@@ -277,6 +279,10 @@ namespace BedwarsOverlay.App
                 try
                 {
                     this.DragMove();
+                }
+                catch (InvalidOperationException)
+                {
+                    // DragMove can only run while the left mouse button is still held.
                 }
                 finally
                 {
@@ -293,6 +299,17 @@ namespace BedwarsOverlay.App
         private void SettingsButton_Click(object sender, RoutedEventArgs e)
         {
             OpenSettings();
+        }
+
+        private void UpdateDiagnosticsVisibility()
+        {
+            if (DiagnosticsPanel == null)
+            {
+                return;
+            }
+
+            bool showDiagnostics = _isEditMode && _settingsRepository?.ShowLogDiagnostics == true;
+            DiagnosticsPanel.Visibility = showDiagnostics ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void OpenSettings()
@@ -312,6 +329,7 @@ namespace BedwarsOverlay.App
                 }
 
                 RestartLogTailer();
+                UpdateDiagnosticsVisibility();
 
                 // Re-evaluate stats of existing players (if any) with the new settings
                 if (_players.Count > 0)

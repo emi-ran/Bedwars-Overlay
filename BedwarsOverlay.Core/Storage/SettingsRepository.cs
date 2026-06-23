@@ -13,6 +13,7 @@ namespace BedwarsOverlay.Core.Storage
         public string LogFilePath { get; set; } = string.Empty;
         public int CacheTtlMinutes { get; set; } = 60;
         public string LocalPlayerName { get; set; } = string.Empty;
+        public bool ShowLogDiagnostics { get; set; } = false;
         public string SortColumn { get; set; } = string.Empty;
         public string SortDirection { get; set; } = string.Empty;
     }
@@ -76,6 +77,19 @@ namespace BedwarsOverlay.Core.Storage
             set
             {
                 _settings.LocalPlayerName = value;
+                Save();
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether log diagnostics are visible in edit mode.
+        /// </summary>
+        public bool ShowLogDiagnostics
+        {
+            get => _settings.ShowLogDiagnostics;
+            set
+            {
+                _settings.ShowLogDiagnostics = value;
                 Save();
             }
         }

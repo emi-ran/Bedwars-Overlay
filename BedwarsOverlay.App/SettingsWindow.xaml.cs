@@ -18,15 +18,40 @@ namespace BedwarsOverlay.App
             
             // Populate settings fields on load
             ApiKeyBox.Text = _settingsRepository.ApiKey;
+            ApiKeyMaskedBox.Password = ApiKeyBox.Text;
             LogPathBox.Text = _settingsRepository.LogFilePath;
             LocalPlayerBox.Text = _settingsRepository.LocalPlayerName;
+            ShowLogDiagnosticsBox.IsChecked = _settingsRepository.ShowLogDiagnostics;
+        }
+
+        private void ApiKeyMaskedBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+            ApiKeyBox.Text = ApiKeyMaskedBox.Password;
+            ApiKeyMaskedBox.Visibility = Visibility.Collapsed;
+            ApiKeyBox.Visibility = Visibility.Visible;
+            ApiKeyBox.Focus();
+            ApiKeyBox.CaretIndex = ApiKeyBox.Text.Length;
+        }
+
+        private void ApiKeyBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            ApiKeyMaskedBox.Password = ApiKeyBox.Text;
+            ApiKeyBox.Visibility = Visibility.Collapsed;
+            ApiKeyMaskedBox.Visibility = Visibility.Visible;
         }
 
         private void TitleBar_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.ChangedButton == MouseButton.Left)
+            if (e.ChangedButton == MouseButton.Left && e.LeftButton == MouseButtonState.Pressed)
             {
-                this.DragMove();
+                try
+                {
+                    this.DragMove();
+                }
+                catch (InvalidOperationException)
+                {
+                    // DragMove can only run while the left mouse button is still held.
+                }
             }
         }
 
@@ -70,6 +95,7 @@ namespace BedwarsOverlay.App
             string apiKey = ApiKeyBox.Text.Trim();
             string logPath = LogPathBox.Text.Trim();
             string localName = LocalPlayerBox.Text.Trim();
+            bool showLogDiagnostics = ShowLogDiagnosticsBox.IsChecked == true;
 
             if (string.IsNullOrWhiteSpace(apiKey) || apiKey.Equals("your_real_hypixel_api_key_here", StringComparison.OrdinalIgnoreCase))
             {
@@ -82,6 +108,7 @@ namespace BedwarsOverlay.App
             _settingsRepository.ApiKey = apiKey;
             _settingsRepository.LogFilePath = logPath;
             _settingsRepository.LocalPlayerName = localName;
+            _settingsRepository.ShowLogDiagnostics = showLogDiagnostics;
 
             this.DialogResult = true;
         }

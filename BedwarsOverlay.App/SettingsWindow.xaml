@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Settings" Height="360" Width="480"
+        Title="Settings" Height="400" Width="480"
         WindowStartupLocation="CenterOwner"
         AllowsTransparency="True"
         WindowStyle="None"
@@ -33,6 +33,16 @@
 
         <!-- Custom TextBox Style -->
         <Style x:Key="FormTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="CaretBrush" Value="White"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+        </Style>
+
+        <Style x:Key="FormPasswordBoxStyle" TargetType="PasswordBox">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Foreground" Value="White"/>
@@ -161,7 +171,10 @@
                     <!-- Hypixel API Key -->
                     <TextBlock Text="Hypixel API Key" Style="{StaticResource FormLabelStyle}"/>
                     <Border Style="{StaticResource TextBoxBorderStyle}" Margin="0,0,0,16">
-                        <TextBox x:Name="ApiKeyBox" Style="{StaticResource FormTextBoxStyle}" Text="" IsUndoEnabled="True"/>
+                        <Grid>
+                            <PasswordBox x:Name="ApiKeyMaskedBox" Style="{StaticResource FormPasswordBoxStyle}" PasswordChar="*" GotFocus="ApiKeyMaskedBox_GotFocus"/>
+                            <TextBox x:Name="ApiKeyBox" Style="{StaticResource FormTextBoxStyle}" Text="" IsUndoEnabled="True" Visibility="Collapsed" LostFocus="ApiKeyBox_LostFocus"/>
+                        </Grid>
                     </Border>
 
                     <!-- Log File Path -->
@@ -181,9 +194,11 @@
 
                     <!-- Local Player Name -->
                     <TextBlock Text="Local Player Username (Optional, highlights yourself in blue)" Style="{StaticResource FormLabelStyle}"/>
-                    <Border Style="{StaticResource TextBoxBorderStyle}">
+                    <Border Style="{StaticResource TextBoxBorderStyle}" Margin="0,0,0,16">
                         <TextBox x:Name="LocalPlayerBox" Style="{StaticResource FormTextBoxStyle}" Text=""/>
                     </Border>
+
+                    <CheckBox x:Name="ShowLogDiagnosticsBox" Content="Show Log Diagnostics in edit mode" Foreground="#FFD4D4D8" FontSize="12" FontFamily="Segoe UI"/>
                     
                 </StackPanel>
 
