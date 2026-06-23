@@ -1,0 +1,28 @@
+## Build outputs
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+
+## IDE and editor caches
+.vs/
+.idea/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+## OS metadata
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+## Local user settings and sensitive caches
+*.local
+appsettings.local.json
+/BedwarsOverlay.App/appsettings.local.json
+*.db
+*.sqlite
+logs/
+*.log

@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="BedwarsOverlay.App/BedwarsOverlay.App.csproj" />
+  <Project Path="BedwarsOverlay.Core/BedwarsOverlay.Core.csproj" />
+  <Project Path="BedwarsOverlay.Tests/BedwarsOverlay.Tests.csproj" />
+</Solution>

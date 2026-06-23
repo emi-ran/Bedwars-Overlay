@@ -1,0 +1,1014 @@
+API KEY = d2c215c2-3957-4cbe-a738-6bb6df198dc2
+
+Hypixel Logo
+Search...
+Introduction
+Authentication
+Player Data
+Resources
+SkyBlock
+Housing
+Other
+get
+Active Network Boosters
+get
+Current Player Counts
+get
+Current Leaderboards
+get
+Punishment Statistics
+Documentation Powered by ReDoc
+Hypixel Public API (v2)
+Download OpenAPI specification:Download
+
+URL: https://developer.hypixel.net
+Terms of Service
+Introduction
+This is the official Hypixel API documentation. Hypixel Website - GitHub Repo - API Help Forum
+
+All use of the API must conform to the API policies, violation of these policies may lead to applications being revoked or users banned from the API.
+
+Limits
+API keys are limited to a maximum amount of requests per 5 minute intervals. These limits will depend on the type of application that the key is assigned to.
+
+Endpoints which require the use of an API key will also respond with headers to assist with managing the rate limit:
+
+'RateLimit-Limit' - The limit of requests per minute for the provided API key.
+'RateLimit-Remaining' - The remaining amount of requests allowed for the current minute.
+'RateLimit-Reset' - The amount of seconds until the next minute and the reset of the API key usages.
+GameTypes
+ID	Type Name	Database Name	Clean Name
+2	QUAKECRAFT	Quake	Quake
+3	WALLS	Walls	Walls
+4	PAINTBALL	Paintball	Paintball
+5	SURVIVAL_GAMES	HungerGames	Blitz Survival Games
+6	TNTGAMES	TNTGames	TNT Games
+7	VAMPIREZ	VampireZ	VampireZ
+13	WALLS3	Walls3	Mega Walls
+14	ARCADE	Arcade	Arcade
+17	ARENA	Arena	Arena
+20	UHC	UHC	UHC Champions
+21	MCGO	MCGO	Cops and Crims
+23	BATTLEGROUND	Battleground	Warlords
+24	SUPER_SMASH	SuperSmash	Smash Heroes
+25	GINGERBREAD	GingerBread	Turbo Kart Racers
+26	HOUSING	Housing	Housing
+51	SKYWARS	SkyWars	SkyWars
+52	TRUE_COMBAT	TrueCombat	Crazy Walls
+54	SPEED_UHC	SpeedUHC	Speed UHC
+55	SKYCLASH	SkyClash	SkyClash
+56	LEGACY	Legacy	Classic Games
+57	PROTOTYPE	Prototype	Prototype
+58	BEDWARS	Bedwars	Bed Wars
+59	MURDER_MYSTERY	MurderMystery	Murder Mystery
+60	BUILD_BATTLE	BuildBattle	Build Battle
+61	DUELS	Duels	Duels
+63	SKYBLOCK	SkyBlock	SkyBlock
+64	PIT	Pit	Pit
+65	REPLAY	Replay	Replay
+67	SMP	SMP	SMP
+68	WOOL_GAMES	WoolGames	Wool Wars
+Storage
+Games store their respective stats and data in a Player's stats collection. The game's specific data is held within a JSON object named after it's Database Name (seen above.)
+
+GameType Notes
+Clean names are what is displayed to the user when referencing the name.
+Database names or IDs are used when the API references a specific GameType.
+Notes
+Date and Time
+Generally dates are stored as a Unix Epoch times in milliseconds.
+
+Response Format
+Responses are served in JSON format.
+
+UUID Parameters
+All uuid parameters support both dashed and undashed versions.
+
+SkyBlock items and inventories
+Items and inventory data are stored as a base64 encoded string containing gzipped nbt data. If a method is missing important information about an item or inventory, you should try checking this!
+
+Note: the base64 string may contain a unicode escape for non-alphabetical symbols, and some programming languages may have silent defects when interpreting the string.
+
+Authentication
+ApiKey
+Obtained via the Hypixel Developer Dashboard when creating an application. You can also request higher limits for production applications in this dashboard.
+
+Security Scheme Type	API Key
+Header parameter name:	API-Key
+Player Data
+Data of a specific player, including game stats
+Authorizations:
+ApiKey
+query Parameters
+uuid
+required
+string
+Responses
+200 Get player's data
+400 Some data is missing, this is usually a field.
+403 Access is forbidden, usually due to an invalid API key being used.
+429 A request limit has been reached, usually this is due to the limit on the key being reached but can also be triggered by a global throttle.
+
+get
+/v2/player
+Response samples
+200400403429
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"player": {
+"uuid": "3fa85f6457174562b3fc2c963f66afa6",
+"displayname": "string",
+"rank": "ADMIN",
+"packageRank": "MVP_PLUS",
+"newPackageRank": "MVP_PLUS",
+"monthlyPackageRank": "SUPERSTAR",
+"firstLogin": 0,
+"lastLogin": 0,
+"lastLogout": 0,
+"stats": { }
+}
+}
+The recently played games of a specific player
+Authorizations:
+ApiKey
+query Parameters
+uuid
+required
+string
+Responses
+200 Get player's recent game
+400 Some data is missing, this is usually a field.
+403 Access is forbidden, usually due to an invalid API key being used.
+422 Some data provided is invalid.
+429 A request limit has been reached, usually this is due to the limit on the key being reached but can also be triggered by a global throttle.
+
+get
+/v2/recentgames
+Response samples
+200400403422429
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"uuid": "095be615-a8ad-4c33-8e9c-c7612fbf6c9f",
+"games": [
+{}
+]
+}
+The current online status of a specific player
+Authorizations:
+ApiKey
+query Parameters
+uuid
+required
+string
+Responses
+200 Get player status
+400 Some data is missing, this is usually a field.
+403 Access is forbidden, usually due to an invalid API key being used.
+429 A request limit has been reached, usually this is due to the limit on the key being reached but can also be triggered by a global throttle.
+
+get
+/v2/status
+Response samples
+200400403429
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"uuid": "ad8fefaa8351454bb739a4eaa872173f",
+"session": {
+"online": true,
+"gameType": "string",
+"mode": "string",
+"map": "string"
+}
+}
+Retrieve a Guild by a player, id, or name
+Authorizations:
+ApiKey
+query Parameters
+id	
+string <objectid>
+player	
+string <uuid>
+name	
+string
+Responses
+200 Get guild information
+400 Some data is missing, this is usually a field.
+403 Access is forbidden, usually due to an invalid API key being used.
+429 A request limit has been reached, usually this is due to the limit on the key being reached but can also be triggered by a global throttle.
+
+get
+/v2/guild
+Response samples
+200400403429
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"guild": { }
+}
+Resources
+Game Information
+Returns information about Hypixel Games. This endpoint is in early development and we are working to add more information when possible HypixelDev/PublicAPI#197
+
+Responses
+200 A successful response
+
+get
+/v2/resources/games
+Response samples
+200
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"lastUpdated": 0,
+"games": {
+"property1": {},
+"property2": {}
+}
+}
+Achievements
+Responses
+200 A successful response
+
+get
+/v2/resources/achievements
+Response samples
+200
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"lastUpdated": 0,
+"achievements": { }
+}
+Challenges
+Responses
+200 A successful response
+
+get
+/v2/resources/challenges
+Response samples
+200
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"lastUpdated": 0,
+"challenges": { }
+}
+Quests
+Responses
+200 A successful response
+
+get
+/v2/resources/quests
+Response samples
+200
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"lastUpdated": 0,
+"quests": { }
+}
+Guild Achievements
+Responses
+200 A successful response
+
+get
+/v2/resources/guilds/achievements
+Response samples
+200
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"lastUpdated": 0,
+"one_time": { },
+"tiered": { }
+}
+Vanity Pets
+Responses
+200 A successful response
+
+get
+/v2/resources/vanity/pets
+Response samples
+200
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"lastUpdated": 0,
+"types": { },
+"rarities": { }
+}
+Vanity Companions
+Responses
+200 A successful response
+
+get
+/v2/resources/vanity/companions
+Response samples
+200
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"lastUpdated": 0,
+"types": { },
+"rarities": { }
+}
+SkyBlock
+Collections
+Information regarding Collections in the SkyBlock game.
+
+Responses
+200 A successful response
+
+get
+/v2/resources/skyblock/collections
+Response samples
+200
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"lastUpdated": 0,
+"version": "0.11.22",
+"collections": { }
+}
+Skills
+Information regarding skills in the SkyBlock game.
+
+Responses
+200 A successful response
+
+get
+/v2/resources/skyblock/skills
+Response samples
+200
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"lastUpdated": 0,
+"version": "0.11.22",
+"skills": { }
+}
+Items
+Information regarding items in the SkyBlock game.
+
+Responses
+200 A successful response
+
+get
+/v2/resources/skyblock/items
+Response samples
+200
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"lastUpdated": 0,
+"items": [
+{}
+]
+}
+Election and Mayor
+Information regarding the current mayor and ongoing election in SkyBlock.
+
+Responses
+200 A successful response
+
+get
+/v2/resources/skyblock/election
+Response samples
+200
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"lastUpdated": 0,
+"mayor": { },
+"current": { }
+}
+Current Bingo Event
+Information regarding the current bingo event and its goals.
+
+Responses
+200 A successful response
+
+get
+/v2/resources/skyblock/bingo
+Response samples
+200
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"lastUpdated": 0,
+"id": 27,
+"name": "March 2024",
+"start": 1709269200000,
+"end": 1709874000000,
+"modifier": "NORMAL",
+"goals": [
+{}
+]
+}
+News
+Authorizations:
+ApiKey
+Responses
+200 A successful response
+403 Access is forbidden, usually due to an invalid API key being used.
+429 A request limit has been reached, usually this is due to the limit on the key being reached but can also be triggered by a global throttle.
+
+get
+/v2/skyblock/news
+Response samples
+200403429
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"items": [
+{}
+]
+}
+Request auction(s) by the auction UUID, player UUID, or profile UUID.
+Returns the auctions selected by the provided query. Only one query parameter can be used in a single request, and cannot be filtered by multiple.
+
+Authorizations:
+ApiKey
+query Parameters
+uuid	
+string
+The auction UUID that you wish to request
+
+player	
+string
+The player UUID that you wish to request
+
+profile	
+string
+The profile UUID that you wish to request
+
+Responses
+200 A successful response
+400 Some data is missing, this is usually a field.
+403 Access is forbidden, usually due to an invalid API key being used.
+422 Some data provided is invalid.
+429 A request limit has been reached, usually this is due to the limit on the key being reached but can also be triggered by a global throttle.
+
+get
+/v2/skyblock/auction
+Response samples
+200400403422429
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"auctions": [
+{}
+]
+}
+Active auctions
+Returns the currently active auctions sorted by last updated first and paginated.
+
+query Parameters
+page	
+number
+Default: 0
+Responses
+200 A successful response
+404 The page provided does not exist.
+422 The page provided is invalid.
+503 The data is not yet populated and should be available shortly
+
+get
+/v2/skyblock/auctions
+Response samples
+200404422503
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"page": 0,
+"totalPages": 32,
+"totalAuctions": 31267,
+"lastUpdated": 1571065561345,
+"auctions": [
+{}
+]
+}
+Recently ended auctions
+SkyBlock auctions which ended in the last 60 seconds.
+
+Responses
+200 A successful response
+
+get
+/v2/skyblock/auctions_ended
+Response samples
+200
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"lastUpdated": 1607456463916,
+"auctions": [
+{}
+]
+}
+Bazaar
+Returns the list of products along with their sell summary, buy summary and quick status.
+
+Product Description
+The returned product info has 3 main fields:
+
+buy_summary
+sell_summary
+quick_status
+buy_summary and sell_summary are the current top 30 orders for each transaction type (in-game example: Stock of Stonks).
+
+quick_status is a computed summary of the live state of the product (used for advanced mode view in the bazaar):
+
+sellVolume and buyVolume are the sum of item amounts in all orders.
+sellPrice and buyPrice are the weighted average of the top 2% of orders by volume.
+movingWeek is the historic transacted volume from last 7d + live state.
+sellOrders and buyOrders are the count of active orders.
+Responses
+200 A successful response
+503 The data is not yet populated and should be available shortly
+
+get
+/v2/skyblock/bazaar
+Response samples
+200503
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"lastUpdated": 1590854517479,
+"products": {
+"INK_SACK:3": {}
+}
+}
+Profile by UUID
+SkyBlock profile data, such as stats, objectives etc. The data returned can differ depending on the players in-game API settings.
+
+Authorizations:
+ApiKey
+query Parameters
+profile	
+string <uuid>
+Responses
+200 A successful response
+400 Some data is missing, this is usually a field.
+403 Access is forbidden, usually due to an invalid API key being used.
+422 Some data provided is invalid.
+429 A request limit has been reached, usually this is due to the limit on the key being reached but can also be triggered by a global throttle.
+
+get
+/v2/skyblock/profile
+Response samples
+200400403422429
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"profile": {
+"profile_id": "bfcb6779-b1f9-41fc-92d7-88f8bc1d12e8",
+"members": {},
+"cute_name": "string",
+"selected": true,
+"community_upgrades": { },
+"banking": {},
+"game_mode": "ironman"
+}
+}
+Profiles by player
+Authorizations:
+ApiKey
+query Parameters
+uuid	
+string <uuid>
+Responses
+200 A successful response
+400 Some data is missing, this is usually a field.
+403 Access is forbidden, usually due to an invalid API key being used.
+422 Some data provided is invalid.
+429 A request limit has been reached, usually this is due to the limit on the key being reached but can also be triggered by a global throttle.
+
+get
+/v2/skyblock/profiles
+Response samples
+200400403422429
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"profiles": [
+{}
+]
+}
+Museum data by profile ID
+SkyBlock museum data for all members of the provided profile. The data returned can differ depending on the players in-game API settings.
+
+Authorizations:
+ApiKey
+query Parameters
+profile	
+string <uuid>
+Responses
+200 A successful response
+403 Access is forbidden, usually due to an invalid API key being used.
+422 Some data provided is invalid.
+429 A request limit has been reached, usually this is due to the limit on the key being reached but can also be triggered by a global throttle.
+
+get
+/v2/skyblock/museum
+Response samples
+200403422429
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"profile": {
+"value": 0,
+"appraisal": true,
+"items": { },
+"special": [ ]
+}
+}
+Garden data by profile ID
+SkyBlock garden data for the provided profile.
+
+Authorizations:
+ApiKey
+query Parameters
+profile	
+string <uuid>
+Responses
+200 A successful response
+403 Access is forbidden, usually due to an invalid API key being used.
+404 The request responded with no result.
+422 Some data provided is invalid.
+429 A request limit has been reached, usually this is due to the limit on the key being reached but can also be triggered by a global throttle.
+
+get
+/v2/skyblock/garden
+Response samples
+200403404422429
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"garden": {
+"uuid": "095be615-a8ad-4c33-8e9c-c7612fbf6c9f",
+"commission_data": {},
+"composter_data": {},
+"active_commissions": {},
+"resources_collected": {},
+"crop_upgrade_levels": {},
+"unlocked_plots_ids": [],
+"garden_experience": 0,
+"unlocked_barn_skins": [],
+"selected_barn_skin": "string"
+}
+}
+Bingo data by player
+Bingo data for participated events of the provided player.
+
+Authorizations:
+ApiKey
+query Parameters
+uuid	
+string <uuid>
+Responses
+200 A successful response
+400 Some data is missing, this is usually a field.
+403 Access is forbidden, usually due to an invalid API key being used.
+404 No data could be found for the provided player uuid.
+422 Some data provided is invalid.
+429 A request limit has been reached, usually this is due to the limit on the key being reached but can also be triggered by a global throttle.
+
+get
+/v2/skyblock/bingo
+Response samples
+200400403404422429
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"events": [
+{}
+]
+}
+Active/Upcoming Fire Sales
+Retrieve the currently active or upcoming Fire Sales for SkyBlock.
+
+Responses
+200 A successful response
+
+get
+/v2/skyblock/firesales
+Response samples
+200
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"sales": [
+{}
+]
+}
+Housing
+The currently active public houses.
+This data may be cached for a short period of time.
+
+Authorizations:
+ApiKey
+Responses
+200 A successful response
+403 Access is forbidden, usually due to an invalid API key being used.
+429 A request limit has been reached, usually this is due to the limit on the key being reached but can also be triggered by a global throttle.
+
+get
+/v2/housing/active
+Response samples
+200403429
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+[
+{
+"uuid": "095be615-a8ad-4c33-8e9c-c7612fbf6c9f",
+"owner": "534359f7-5407-4b19-ba92-c71c370022a5",
+"name": "string",
+"createdAt": 0,
+"players": 0,
+"cookies": {}
+}
+]
+Information about a specific house.
+This data may be cached for a short period of time.
+
+Authorizations:
+ApiKey
+query Parameters
+house
+required
+string
+The UUID of the house to get information about.
+
+Responses
+200 A successful response
+403 Access is forbidden, usually due to an invalid API key being used.
+404 The request responded with no result.
+429 A request limit has been reached, usually this is due to the limit on the key being reached but can also be triggered by a global throttle.
+
+get
+/v2/housing/house
+Response samples
+200403404429
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"uuid": "095be615-a8ad-4c33-8e9c-c7612fbf6c9f",
+"owner": "534359f7-5407-4b19-ba92-c71c370022a5",
+"name": "string",
+"createdAt": 0,
+"players": 0,
+"cookies": {
+"current": 0
+}
+}
+The public houses for a specific player.
+This data may be cached for a short period of time.
+
+Authorizations:
+ApiKey
+query Parameters
+player	
+string
+The UUID of the player to get houses for.
+
+Responses
+200 A successful response
+403 Access is forbidden, usually due to an invalid API key being used.
+429 A request limit has been reached, usually this is due to the limit on the key being reached but can also be triggered by a global throttle.
+
+get
+/v2/housing/houses
+Response samples
+200403429
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+[
+{
+"uuid": "095be615-a8ad-4c33-8e9c-c7612fbf6c9f",
+"owner": "534359f7-5407-4b19-ba92-c71c370022a5",
+"name": "string",
+"createdAt": 0,
+"players": 0,
+"cookies": {}
+}
+]
+Other
+Active Network Boosters
+Authorizations:
+ApiKey
+Responses
+200 Get boosters list
+403 Access is forbidden, usually due to an invalid API key being used.
+429 A request limit has been reached, usually this is due to the limit on the key being reached but can also be triggered by a global throttle.
+
+get
+/v2/boosters
+Response samples
+200403429
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"boosters": [
+{}
+],
+"boosterState": {
+"decrementing": true
+}
+}
+Current Player Counts
+Authorizations:
+ApiKey
+Responses
+200 A successful response
+403 Access is forbidden, usually due to an invalid API key being used.
+429 A request limit has been reached, usually this is due to the limit on the key being reached but can also be triggered by a global throttle.
+
+get
+/v2/counts
+Response samples
+200403429
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"playerCount": 0,
+"games": {
+"GAME_TYPE": {}
+}
+}
+Current Leaderboards
+Authorizations:
+ApiKey
+Responses
+200 A successful response
+403 Access is forbidden, usually due to an invalid API key being used.
+429 A request limit has been reached, usually this is due to the limit on the key being reached but can also be triggered by a global throttle.
+503 The data is not yet populated and should be available shortly
+
+get
+/v2/leaderboards
+Response samples
+200403429503
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"leaderboards": { }
+}
+Punishment Statistics
+Authorizations:
+ApiKey
+Responses
+200 A successful response
+403 Access is forbidden, usually due to an invalid API key being used.
+429 A request limit has been reached, usually this is due to the limit on the key being reached but can also be triggered by a global throttle.
+503 The data is not yet populated and should be available shortly
+
+get
+/v2/punishmentstats
+Response samples
+200403429503
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"success": true,
+"watchdog_lastMinute": 0,
+"staff_rollingDaily": 0,
+"watchdog_total": 0,
+"watchdog_rollingDaily": 0,
+"staff_total": 0
+}
