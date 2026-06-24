@@ -2,7 +2,7 @@
 
 All notable user-facing changes to Bedwars Overlay are tracked here.
 
-## Unreleased
+## 1.2.0 - 2026-06-25
 
 - Added overlay chat commands read from Minecraft log output: `/bwstats`, `/bwignore`, `/bwclear`, and `/bwhelp`.
 - Added `/bwstats <name...>` for loading specific players while bypassing ignore filters.

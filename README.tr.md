@@ -85,13 +85,13 @@ Installer oluşturmak için Inno Setup 6 kur:
 Release dosyalarını oluştur:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.1.0"
+.\scripts\publish-release.ps1 -Version "1.2.0"
 ```
 
 `.pfx` sertifika ile release dosyalarını imzala:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.1.0" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
+.\scripts\publish-release.ps1 -Version "1.2.0" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
 ```
 
 Script sertifika şifresini sorar. `.pfx` veya `.p12` dosyalarını commit etme.
