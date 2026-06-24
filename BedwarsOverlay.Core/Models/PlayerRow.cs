@@ -264,6 +264,31 @@ namespace BedwarsOverlay.Core.Models
             set => SetProperty(ref _rowBackground, value);
         }
 
+        private bool _isEliminated;
+        public bool IsEliminated
+        {
+            get => _isEliminated;
+            set
+            {
+                if (SetProperty(ref _isEliminated, value))
+                {
+                    OnPropertyChanged(nameof(EliminationTagVisibility));
+                }
+            }
+        }
+
+        public Visibility EliminationTagVisibility => IsEliminated ? Visibility.Visible : Visibility.Collapsed;
+
+        public void MarkEliminated()
+        {
+            IsEliminated = true;
+            RowBackground = new SolidColorBrush(Color.FromArgb(0xAA, 0x7F, 0x1D, 0x1D));
+            NameColor = new SolidColorBrush(Color.FromRgb(0xFE, 0xCA, 0xCA));
+            Tag = "FINAL KILL";
+            TagVisibility = Visibility.Visible;
+            RiskColor = new SolidColorBrush(Color.FromRgb(0xFE, 0xF2, 0xF2));
+        }
+
         /// <summary>
         /// Gets the prestige color for a specific Bedwars level.
         /// </summary>
@@ -409,6 +434,11 @@ namespace BedwarsOverlay.Core.Models
             Brush nameBrush,
             string rankTag = "")
         {
+            if (IsEliminated)
+            {
+                return;
+            }
+
             var greenBrush = new SolidColorBrush(Color.FromRgb(0x22, 0xC5, 0x5E)); // bright green
             var goldBrush = new SolidColorBrush(Color.FromRgb(0xFB, 0xBF, 0x24));  // warm gold
             var redBrush = new SolidColorBrush(Color.FromRgb(0xEF, 0x44, 0x44));   // soft red

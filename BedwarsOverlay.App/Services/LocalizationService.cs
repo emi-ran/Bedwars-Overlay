@@ -195,6 +195,7 @@ namespace BedwarsOverlay.App.Services
             ["Status_WaitingWho"] = "Waiting for /who in Minecraft...",
             ["Status_LogNotFound"] = "Minecraft log file not found. Check Settings.",
             ["Status_Cleared"] = "Current player list cleared.",
+            ["Status_CommandHelp"] = "Bedwars Overlay commands shown below.",
             ["Status_CannotWatchLog"] = "Could not start Minecraft log watcher. Check Settings.",
 
             // Dialog titles / messages
@@ -208,7 +209,7 @@ namespace BedwarsOverlay.App.Services
             ["Plancke_Error"] = "Failed to open Plancke link: {0}",
             ["OpenUrl_Error"] = "Failed to open link: {0}",
             ["Shortcuts_Title"] = "Shortcuts",
-            ["Shortcuts_Help"] = "Ctrl+Alt+O toggles edit mode. Ctrl+Alt+H hides or shows the overlay.",
+            ["Shortcuts_Help"] = "Ctrl+Alt+O toggles edit mode. Ctrl+Alt+H hides or shows the overlay. Use /bwstats name(s) to load specific players and /bwignore name(s) to hide players.",
             ["Onboarding_Title"] = "Welcome to Bedwars Overlay",
             ["Onboarding_Body"] = "Track players from /who, spot risky stats, and keep the overlay out of your way while playing.",
             ["Onboarding_EditShortcut"] = "Ctrl+Alt+O: edit / play mode",
@@ -222,6 +223,9 @@ namespace BedwarsOverlay.App.Services
             ["Label_ApiKey"] = "Hypixel API Key",
             ["Label_LogPath"] = "Minecraft Client Log Path (latest.log)",
             ["Label_LocalPlayer"] = "Local Player Username (Optional, highlights yourself in blue)",
+            ["Label_IgnoredPlayers"] = "Ignored Players (one name per line, or comma-separated)",
+            ["Checkbox_IgnorePartyPlayers"] = "Ignore party players from /p list",
+            ["Checkbox_IgnoreLocalPlayer"] = "Ignore yourself",
             ["Checkbox_Diagnostics"] = "Show Log Diagnostics in edit mode",
             ["Button_AutoDetect"] = "Auto-Detect",
             ["Button_Browse"] = "Browse...",
@@ -251,6 +255,13 @@ namespace BedwarsOverlay.App.Services
             ["Lang_Label"] = "Language",
             ["Lang_English"] = "English",
             ["Lang_Turkish"] = "Türkçe",
+            ["Help_Title"] = "Bedwars Overlay Commands",
+            ["Help_BwStats"] = "/bwstats <name...> - Show only these players. Ignores filters.",
+            ["Help_BwIgnore"] = "/bwignore <name...> - Add players to ignored list.",
+            ["Help_BwClear"] = "/bwclear - Clear current overlay list.",
+            ["Help_BwHelp"] = "/bwhelp - Show this command help.",
+            ["Help_PList"] = "/p list - Update party list for party ignore.",
+            ["Help_Who"] = "/who - Load current game players. Applies ignore filters.",
         };
     }
 }

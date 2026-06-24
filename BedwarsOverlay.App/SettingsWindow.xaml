@@ -392,7 +392,14 @@
                         <TextBox x:Name="LocalPlayerBox" Style="{StaticResource FormTextBoxStyle}" Text=""/>
                     </Border>
 
+                    <CheckBox x:Name="IgnorePartyPlayersBox" Style="{StaticResource DarkCheckBoxStyle}" Margin="0,0,0,10"/>
+                    <CheckBox x:Name="IgnoreLocalPlayerBox" Style="{StaticResource DarkCheckBoxStyle}" Margin="0,0,0,10"/>
                     <CheckBox x:Name="ShowLogDiagnosticsBox" Style="{StaticResource DarkCheckBoxStyle}" Margin="0,0,0,16"/>
+
+                    <TextBlock x:Name="LabelIgnoredPlayers" Style="{StaticResource FormLabelStyle}"/>
+                    <Border Background="#18181A" BorderBrush="#2D2D30" BorderThickness="1.2" CornerRadius="6" Padding="8,6" Margin="0,0,0,16">
+                        <TextBox x:Name="IgnoredPlayersBox" Style="{StaticResource FormTextBoxStyle}" MinHeight="58" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top"/>
+                    </Border>
 
                     <TextBlock x:Name="LabelVisibleColumns" Text="Visible Columns" Style="{StaticResource FormLabelStyle}"/>
                     <Border Background="#141416" BorderBrush="#2D2D30" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,16">

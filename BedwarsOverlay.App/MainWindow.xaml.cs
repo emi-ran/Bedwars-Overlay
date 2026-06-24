@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Net.Http;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -40,6 +43,8 @@ namespace BedwarsOverlay.App
         private HypixelLogParser? _logParser;
         private readonly ObservableCollection<string> _diagnosticLines = new();
         private readonly ObservableCollection<PlayerRow> _players = new();
+        private readonly HashSet<string> _partyPlayers = new(StringComparer.OrdinalIgnoreCase);
+        private const int FinalKillRemoveDelayMs = 2500;
 
         private AppDatabase? _database;
         private SettingsRepository? _settingsRepository;
@@ -63,7 +68,7 @@ namespace BedwarsOverlay.App
 
         private void MainWindow_SourceInitialized(object? sender, EventArgs e)
         {
-            ClickThroughService.HideFromAltTab(this);
+            ClickThroughService.SetTaskbarAndAltTabVisibility(this, _isEditMode);
         }
 
         private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -361,6 +366,7 @@ namespace BedwarsOverlay.App
         {
             // Enable Win32 Click-Through
             ClickThroughService.EnableClickThrough(this);
+            ClickThroughService.SetTaskbarAndAltTabVisibility(this, false);
 
             // Style UI for background play mode (semi-transparent)
             OverlayBorder.Background = new SolidColorBrush(Color.FromArgb(0x35, 0x11, 0x11, 0x11)); // translucent dark background
@@ -383,6 +389,7 @@ namespace BedwarsOverlay.App
         {
             // Disable Win32 Click-Through (allows clicks to interact with window)
             ClickThroughService.DisableClickThrough(this);
+            ClickThroughService.SetTaskbarAndAltTabVisibility(this, true);
 
             // Style UI for interactive edit mode (solid background)
             OverlayBorder.Background = new SolidColorBrush(Color.FromRgb(0x11, 0x11, 0x11)); // solid dark background
@@ -585,6 +592,7 @@ namespace BedwarsOverlay.App
 
                     RestartLogTailer();
                     UpdateDiagnosticsVisibility();
+                    RemoveIgnoredExistingPlayers();
 
                     // Re-evaluate stats of existing players (if any) with the new settings
                     if (_players.Count > 0)
@@ -660,10 +668,8 @@ namespace BedwarsOverlay.App
 
         private void RefreshButton_Click(object sender, RoutedEventArgs e)
         {
-            _players.Clear();
             _diagnosticLines.Clear();
-            AddDiagnosticLine(LocalizationService.Instance["Status_Cleared"]);
-            PlaceholderPanel.Visibility = Visibility.Visible;
+            ClearPlayers();
         }
 
         private void ClearSearchFilter()
@@ -684,27 +690,75 @@ namespace BedwarsOverlay.App
             {
                 AddDiagnosticLine(line);
 
+                if (_logParser?.IsPartyListHeader(line) == true)
+                {
+                    _partyPlayers.Clear();
+                    return;
+                }
+
+                if (_logParser?.IsHelpCommand(line) == true)
+                {
+                    ShowCommandHelp();
+                    return;
+                }
+
+                if (_logParser?.IsClearCommand(line) == true)
+                {
+                    ClearPlayers();
+                    return;
+                }
+
+                var ignoredPlayers = _logParser?.ParseIgnoredPlayers(line);
+                if (ignoredPlayers != null && _settingsRepository != null)
+                {
+                    foreach (var player in ignoredPlayers)
+                    {
+                        _settingsRepository.AddIgnoredPlayer(player);
+                    }
+
+                    AddDiagnosticLine($"Ignored player list updated: {string.Join(", ", ignoredPlayers)}");
+                    RemoveIgnoredExistingPlayers();
+                    return;
+                }
+
+                var partyPlayers = _logParser?.ParsePartyPlayers(line);
+                if (partyPlayers != null)
+                {
+                    foreach (var player in partyPlayers)
+                    {
+                        _partyPlayers.Add(player);
+                    }
+
+                    AddDiagnosticLine($"Party list updated: {_partyPlayers.Count} player(s)");
+                    RemoveIgnoredExistingPlayers();
+                    return;
+                }
+
+                var statsCommandPlayers = _logParser?.ParseStatsCommandPlayers(line);
+                if (statsCommandPlayers != null && statsCommandPlayers.Count > 0 && _playerLookupService != null)
+                {
+                    LoadPlayers(statsCommandPlayers);
+                    return;
+                }
+
                 // Run the parser to extract player names from `/who` logs
                 var players = _logParser?.ParsePlayerList(line);
                 if (players != null && players.Count > 0 && _playerLookupService != null)
                 {
-                    var token = _playerLookupService.CancelAndReset();
-                    _players.Clear();
-                    PlaceholderPanel.Visibility = Visibility.Collapsed;
-                    int index = 0;
-                    foreach (var name in players)
-                    {
-                        var placeholder = PlayerRow.CreateLoading(name, index % 2 == 0);
-                        _players.Add(placeholder);
-
-                        _ = _playerLookupService.ResolvePlayerAsync(name, placeholder, token);
-                        index++;
-                    }
-
-                    RestoreSorting();
+                    players = FilterIgnoredPlayers(players);
+                    LoadPlayers(players);
                 }
                 else
                 {
+                    if (_logParser?.IsGameEndSummary(line) == true)
+                    {
+                        _playerLookupService?.CancelAndReset();
+                        _players.Clear();
+                        PlaceholderPanel.Visibility = Visibility.Visible;
+                        AddDiagnosticLine("Game ended. Current player list cleared.");
+                        return;
+                    }
+
                     var finalKillVictim = _logParser?.ParseFinalKillVictim(line);
                     if (!string.IsNullOrWhiteSpace(finalKillVictim))
                     {
@@ -712,12 +766,12 @@ namespace BedwarsOverlay.App
                         {
                             if (_players[i].Name.Equals(finalKillVictim, StringComparison.OrdinalIgnoreCase))
                             {
-                                _players.RemoveAt(i);
-                                AddDiagnosticLine($"Removed final-killed player: {finalKillVictim}");
-
-                                if (_players.Count == 0)
+                                var eliminatedPlayer = _players[i];
+                                if (!eliminatedPlayer.IsEliminated)
                                 {
-                                    PlaceholderPanel.Visibility = Visibility.Visible;
+                                    eliminatedPlayer.MarkEliminated();
+                                    AddDiagnosticLine($"Marked final-killed player: {finalKillVictim}");
+                                    _ = RemoveFinalKilledPlayerAfterDelayAsync(eliminatedPlayer);
                                 }
 
                                 break;
@@ -726,6 +780,131 @@ namespace BedwarsOverlay.App
                     }
                 }
             }));
+        }
+
+        private void ShowCommandHelp()
+        {
+            var loc = LocalizationService.Instance;
+            string[] helpLines =
+            {
+                loc["Help_Title"],
+                loc["Help_BwStats"],
+                loc["Help_BwIgnore"],
+                loc["Help_BwClear"],
+                loc["Help_BwHelp"],
+                loc["Help_PList"],
+                loc["Help_Who"]
+            };
+
+            foreach (var helpLine in helpLines)
+            {
+                AddDiagnosticLine(helpLine);
+            }
+
+            SetStatus(loc["Status_CommandHelp"]);
+        }
+
+        private void ClearPlayers()
+        {
+            _playerLookupService?.CancelAndReset();
+            _players.Clear();
+            PlaceholderPanel.Visibility = Visibility.Visible;
+            AddDiagnosticLine(LocalizationService.Instance["Status_Cleared"]);
+            SetStatus(LocalizationService.Instance["Status_Cleared"]);
+        }
+
+        private void LoadPlayers(List<string> players)
+        {
+            if (_playerLookupService == null)
+            {
+                return;
+            }
+
+            var token = _playerLookupService.CancelAndReset();
+            _players.Clear();
+            PlaceholderPanel.Visibility = players.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            int index = 0;
+            foreach (var name in players)
+            {
+                var placeholder = PlayerRow.CreateLoading(name, index % 2 == 0);
+                _players.Add(placeholder);
+
+                _ = _playerLookupService.ResolvePlayerAsync(name, placeholder, token);
+                index++;
+            }
+
+            RestoreSorting();
+        }
+
+        private async Task RemoveFinalKilledPlayerAfterDelayAsync(PlayerRow player)
+        {
+            await Task.Delay(FinalKillRemoveDelayMs);
+
+            await Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (!player.IsEliminated)
+                {
+                    return;
+                }
+
+                int index = _players.IndexOf(player);
+                if (index < 0)
+                {
+                    return;
+                }
+
+                string name = player.Name;
+                _players.RemoveAt(index);
+                AddDiagnosticLine($"Removed final-killed player: {name}");
+
+                if (_players.Count == 0)
+                {
+                    PlaceholderPanel.Visibility = Visibility.Visible;
+                }
+            }));
+        }
+
+        private List<string> FilterIgnoredPlayers(List<string> players)
+        {
+            if (_settingsRepository == null)
+            {
+                return players;
+            }
+
+            string localPlayer = _settingsRepository.LocalPlayerName;
+            var ignoredPlayers = _settingsRepository.GetIgnoredPlayers();
+            return players
+                .Where(player => !ignoredPlayers.Exists(ignoredPlayer => ignoredPlayer.Equals(player, StringComparison.OrdinalIgnoreCase)))
+                .Where(player => !_settingsRepository.IgnoreLocalPlayer || !player.Equals(localPlayer, StringComparison.OrdinalIgnoreCase))
+                .Where(player => !_settingsRepository.IgnorePartyPlayers || !_partyPlayers.Contains(player))
+                .ToList();
+        }
+
+        private void RemoveIgnoredExistingPlayers()
+        {
+            if (_settingsRepository == null)
+            {
+                return;
+            }
+
+            string localPlayer = _settingsRepository.LocalPlayerName;
+            var ignoredPlayers = _settingsRepository.GetIgnoredPlayers();
+            for (int i = _players.Count - 1; i >= 0; i--)
+            {
+                string player = _players[i].Name;
+                bool ignoreListed = ignoredPlayers.Exists(ignoredPlayer => ignoredPlayer.Equals(player, StringComparison.OrdinalIgnoreCase));
+                bool ignoreLocal = _settingsRepository.IgnoreLocalPlayer && player.Equals(localPlayer, StringComparison.OrdinalIgnoreCase);
+                bool ignoreParty = _settingsRepository.IgnorePartyPlayers && _partyPlayers.Contains(player);
+                if (ignoreListed || ignoreLocal || ignoreParty)
+                {
+                    _players.RemoveAt(i);
+                }
+            }
+
+            if (_players.Count == 0)
+            {
+                PlaceholderPanel.Visibility = Visibility.Visible;
+            }
         }
 
         private void OnLogTailerError(string error)

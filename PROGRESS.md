@@ -30,20 +30,27 @@ Develop a **Windows-only external stats overlay** for Minecraft BedWars. The app
 
 - Reads Minecraft `latest.log` and detects `/who` output.
 - Parses `/who` player lists, including Minecraft color/formatting codes.
-- Removes players from the current table when a matching Hypixel `FINAL KILL!` log line appears.
+- Supports overlay chat commands through Hypixel unknown-command log echoes: `/bwstats`, `/bwignore`, `/bwclear`, and `/bwhelp`.
+- Supports `/bwstats <name...>` to load specific players while bypassing ignore filters.
+- Supports `/bwignore <name...>` plus Settings ignored-player management to hide selected players from filtered lists.
+- Supports `/p list` parsing for party-member detection and optional party ignore.
+- Supports optional self ignore based on the configured local player name.
+- Supports `/bwclear` to clear the current overlay list and `/bwhelp` to show localized command help.
+- Detects Bed Wars end-of-game summary output and clears the current player list.
+- Marks players with a red `FINAL KILL` row state before removing them when a matching Hypixel `FINAL KILL!` log line appears.
 - Resolves usernames through Mojang API with local SQLite cache.
 - Fetches Hypixel Bed Wars stats with API-key authentication and local SQLite cache.
 - Calculates level, FKDR, WLR, wins, final kills, winstreak, and sniper risk display values.
 - Renders a styled WPF overlay table with sorting and search.
 - Supports visible column settings for `LVL`, `WS`, `FKDR`, `WLR`, `FKILLS`, `WINS`, and `SNIPER`.
 - Supports English and Turkish localization through JSON files.
-- Provides Settings UI for API key, log path, local player name, diagnostics, language, and visible columns.
+- Provides Settings UI for API key, log path, local player name, diagnostics, language, visible columns, ignored players, party ignore, and self ignore.
 - Supports global hotkeys:
   - `Ctrl+Alt+O`: edit/play mode
   - `Ctrl+Alt+H`: hide/show overlay
 - Starts in edit mode after onboarding so the overlay can be moved and resized.
 - Saves and restores window position and size between runs.
-- Runs with `ShowInTaskbar=False` and a system tray icon.
+- Hides from taskbar and Alt-Tab in play mode, appears there in edit mode, and keeps a system tray icon.
 - Closing the overlay hides it to tray; tray menu can show/hide, open settings, or exit the app.
 - Disables maximize/Aero snap behavior for the overlay window.
 - Includes release packaging script and Inno Setup installer script.
@@ -126,7 +133,7 @@ dotnet build "BedwarsOverlay.App\BedwarsOverlay.App.csproj"
 dotnet test "BedwarsOverlay.slnx"
 ```
 
-Current expected state: build succeeds with 0 errors, tests pass.
+Current expected state: build succeeds with 0 errors, tests pass. If the running app locks `BedwarsOverlay.App\bin\Debug\net8.0-windows\BedwarsOverlay.Core.dll`, close the app or build the app project with a temporary `OutputPath`.
 
 ---
 

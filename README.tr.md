@@ -9,13 +9,17 @@ Bedwars Overlay, Hypixel Bed Wars oyuncuları için küçük bir Windows overlay
 ## Ne İşe Yarar?
 
 - `/who` listesindeki oyuncuları gösterir.
+- `/bwstats` ile belirli oyuncuları yükleyebilirsin.
+- `/bwignore`, Ayarlar'daki gizlenen oyuncular, `/p list` parti gizleme ve kendini gizleme seçenekleriyle oyuncuları gizleyebilirsin.
 - Level, winstreak, FKDR, WLR, final kills, wins ve sniper riski gibi Bed Wars statlarını gösterir.
 - Ayarlardan tek tek stat kolonlarını gizleyip gösterebilirsin.
 - Riskli lobbyleri ve normal dışı statları daha hızlı fark etmene yardımcı olur.
-- Hypixel loglarında bir oyuncu için `FINAL KILL!` mesajı gelirse o oyuncuyu tablodan siler.
+- Hypixel loglarında bir oyuncu için `FINAL KILL!` mesajı gelirse satırı kısa süre kırmızı `FINAL KILL` efektiyle gösterir, sonra tablodan siler.
+- Hypixel Bed Wars oyun sonu özetini yazınca mevcut listeyi temizler.
 - İlk açılışta düzenleme modunda gelir; overlay’i istediğin yere taşıyıp boyutlandırabilirsin.
 - Overlay konumunu ve boyutunu sonraki açılış için hatırlar.
 - Play mode’da saydam çalışır ve Minecraft’ı engellemez.
+- Play mode’da taskbar ve Alt-Tab’da görünmez; düzenleme modunda görünür.
 - Sistem tepsisinden çalışır; overlay’i kapatmak gizler, tepsi menüsünden tekrar açabilir veya uygulamadan çıkabilirsin.
 - Türkçe ve İngilizce destekler.
 
@@ -23,6 +27,17 @@ Bedwars Overlay, Hypixel Bed Wars oyuncuları için küçük bir Windows overlay
 
 - `Ctrl+Alt+O`: düzenleme modu ile saydam play mode arasında geçiş yapar.
 - `Ctrl+Alt+H`: overlay’i gizler veya gösterir. Gizlenen overlay sistem tepsisinden tekrar açılabilir.
+
+## Overlay Komutları
+
+Bu komutları Minecraft chat’e yaz. Hypixel bunları bilinmeyen komut olarak log’a yazar, overlay de bu log çıktısını okur.
+
+- `/who`: mevcut oyun oyuncularını yükler ve ignore filtrelerini uygular.
+- `/bwstats <isim...>`: sadece yazılan oyuncuları yükler. Filtreleri yok sayar; böylece ignore edilmiş oyuncuyu da inceleyebilirsin.
+- `/bwignore <isim...>`: oyuncuları gizlenenler listesine ekler ve mevcut overlay’den siler.
+- `/bwclear`: mevcut overlay listesini temizler.
+- `/bwhelp`: komut yardımını overlay tanılama/status alanında gösterir.
+- `/p list`: `Ignore party players from /p list` ayarı için parti listesini günceller.
 
 ## Kurulum
 
@@ -32,7 +47,7 @@ Bedwars Overlay, Hypixel Bed Wars oyuncuları için küçük bir Windows overlay
 4. Ayarlar penceresini aç.
 5. Hypixel API key gir.
 6. Minecraft `latest.log` yolunu kontrol et veya seç.
-7. İstersen görünür stat kolonlarını seç.
+7. İstersen görünür stat kolonlarını seç ve gizlenen oyuncuları ayarla.
 8. Bed Wars lobby’sine gir ve Minecraft içinde `/who` yaz.
 
 ![Ayarlar penceresi](docs/assets/settings-window.png)

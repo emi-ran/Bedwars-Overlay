@@ -453,6 +453,9 @@
                                     <Trigger Property="IsMouseOver" Value="True">
                                         <Setter Property="Background" Value="#10FFFFFF"/>
                                     </Trigger>
+                                    <DataTrigger Binding="{Binding IsEliminated}" Value="True">
+                                        <Setter Property="Background" Value="#AA7F1D1D"/>
+                                    </DataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </DataGrid.RowStyle>
@@ -502,7 +505,10 @@
                                             <TextBlock Text="&#x26A0;" Foreground="#FFEF4444" FontSize="11" Margin="0,0,6,0" VerticalAlignment="Center" 
                                                        Visibility="{Binding TagVisibility}"
                                                        ToolTip="{Binding Source={x:Static services:LocalizationService.Instance}, Path=WarningTooltip, Mode=OneWay}"/>
-                                            
+                                            <Border Background="#55EF4444" BorderBrush="#EF4444" BorderThickness="1" CornerRadius="4" Padding="4,1" Margin="0,0,6,0" Visibility="{Binding EliminationTagVisibility}">
+                                                <TextBlock Text="{Binding Tag}" Foreground="#FECACA" FontSize="9" FontWeight="Bold" FontFamily="Segoe UI"/>
+                                            </Border>
+                                             
                                             <!-- Rank Tag (e.g. [MVP+]) -->
                                             <TextBlock Text="{Binding RankTag}" Foreground="{Binding NameColor}" FontWeight="Bold" Margin="0,0,5,0" VerticalAlignment="Center" 
                                                        Visibility="{Binding RankTagVisibility}" FontFamily="Segoe UI" FontSize="11"/>

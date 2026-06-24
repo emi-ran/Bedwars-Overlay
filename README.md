@@ -9,13 +9,17 @@ Bedwars Overlay is a small Windows overlay for Hypixel Bed Wars players. It read
 ## What It Does
 
 - Shows players from your `/who` list.
+- Lets you load specific players with `/bwstats`.
+- Lets you hide players with `/bwignore`, Settings ignored players, `/p list` party ignore, and self ignore.
 - Displays useful Bed Wars stats such as level, winstreak, FKDR, WLR, final kills, wins, and sniper risk.
 - Lets you hide or show individual stat columns from Settings.
 - Helps you quickly notice risky lobbies and unusual stats.
-- Removes players from the table when Hypixel logs a `FINAL KILL!` message for them.
+- Marks final-killed players with a short red `FINAL KILL` effect, then removes them from the table.
+- Clears the current list when Hypixel prints the Bed Wars end-of-game summary.
 - Starts in edit mode so you can move and resize the overlay.
 - Remembers the overlay position and size between runs.
 - Switches into transparent play mode so it does not block Minecraft.
+- Hides from the taskbar and Alt-Tab in play mode, and appears there in edit mode.
 - Runs from the system tray; closing the overlay hides it, and the tray menu can show it again or exit the app.
 - Supports English and Turkish.
 
@@ -23,6 +27,17 @@ Bedwars Overlay is a small Windows overlay for Hypixel Bed Wars players. It read
 
 - `Ctrl+Alt+O`: switch between edit mode and transparent play mode.
 - `Ctrl+Alt+H`: hide or show the overlay. Hidden overlays stay available from the system tray.
+
+## Overlay Commands
+
+Type these in Minecraft chat. Hypixel will report them as unknown commands, and the overlay reads that log output.
+
+- `/who`: load current game players and apply ignore filters.
+- `/bwstats <name...>`: load only the listed players. This ignores filters so you can inspect a player even if they are ignored.
+- `/bwignore <name...>`: add players to the ignored players list and remove them from the current overlay.
+- `/bwclear`: clear the current overlay list.
+- `/bwhelp`: show the command help in the overlay diagnostics/status area.
+- `/p list`: update the party list used by the `Ignore party players from /p list` setting.
 
 ## Setup
 
@@ -32,7 +47,7 @@ Bedwars Overlay is a small Windows overlay for Hypixel Bed Wars players. It read
 4. Open Settings.
 5. Add your Hypixel API key.
 6. Check or select your Minecraft `latest.log` path.
-7. Optionally choose which stat columns are visible.
+7. Optionally choose which stat columns are visible and configure ignored players.
 8. Join a Bed Wars lobby and type `/who` in Minecraft.
 
 ![Settings window](docs/assets/settings-window.png)

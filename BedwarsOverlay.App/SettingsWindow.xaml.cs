@@ -26,6 +26,9 @@ namespace BedwarsOverlay.App
             ApiKeyMaskedBox.Password = ApiKeyBox.Text;
             LogPathBox.Text = _settingsRepository.LogFilePath;
             LocalPlayerBox.Text = _settingsRepository.LocalPlayerName;
+            IgnorePartyPlayersBox.IsChecked = _settingsRepository.IgnorePartyPlayers;
+            IgnoreLocalPlayerBox.IsChecked = _settingsRepository.IgnoreLocalPlayer;
+            IgnoredPlayersBox.Text = string.Join(Environment.NewLine, _settingsRepository.GetIgnoredPlayers());
             ShowLogDiagnosticsBox.IsChecked = _settingsRepository.ShowLogDiagnostics;
             ShowLevelColumnBox.IsChecked = _settingsRepository.ShowLevelColumn;
             ShowWinstreakColumnBox.IsChecked = _settingsRepository.ShowWinstreakColumn;
@@ -77,8 +80,11 @@ namespace BedwarsOverlay.App
             LabelLocalPlayer.Text = loc["Label_LocalPlayer"];
             LabelLanguage.Text = loc["Lang_Label"];
             LabelVisibleColumns.Text = loc["Label_VisibleColumns"];
+            LabelIgnoredPlayers.Text = loc["Label_IgnoredPlayers"];
             ShortcutsTitleText.Text = loc["Shortcuts_Title"];
             ShortcutsHelpText.Text = loc["Shortcuts_Help"];
+            IgnorePartyPlayersBox.Content = loc["Checkbox_IgnorePartyPlayers"];
+            IgnoreLocalPlayerBox.Content = loc["Checkbox_IgnoreLocalPlayer"];
             ShowLogDiagnosticsBox.Content = loc["Checkbox_Diagnostics"];
             BtnAutoDetect.Content = loc["Button_AutoDetect"];
             BtnBrowse.Content = loc["Button_Browse"];
@@ -256,7 +262,10 @@ namespace BedwarsOverlay.App
             string apiKey = (_isApiKeyVisible ? ApiKeyBox.Text : ApiKeyMaskedBox.Password).Trim();
             string logPath = LogPathBox.Text.Trim();
             string localName = LocalPlayerBox.Text.Trim();
+            string ignoredPlayers = IgnoredPlayersBox.Text.Trim();
             bool showLogDiagnostics = ShowLogDiagnosticsBox.IsChecked == true;
+            bool ignorePartyPlayers = IgnorePartyPlayersBox.IsChecked == true;
+            bool ignoreLocalPlayer = IgnoreLocalPlayerBox.IsChecked == true;
 
             // Read selected language from combo box
             string lang = "en";
@@ -269,6 +278,9 @@ namespace BedwarsOverlay.App
             _settingsRepository.ApiKey = apiKey;
             _settingsRepository.LogFilePath = logPath;
             _settingsRepository.LocalPlayerName = localName;
+            _settingsRepository.IgnoredPlayers = ignoredPlayers;
+            _settingsRepository.IgnorePartyPlayers = ignorePartyPlayers;
+            _settingsRepository.IgnoreLocalPlayer = ignoreLocalPlayer;
             _settingsRepository.ShowLogDiagnostics = showLogDiagnostics;
             _settingsRepository.Language = lang;
             _settingsRepository.ShowLevelColumn = ShowLevelColumnBox.IsChecked == true;

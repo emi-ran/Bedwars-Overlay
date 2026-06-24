@@ -60,15 +60,24 @@ namespace BedwarsOverlay.App.Services
         }
 
         /// <summary>
-        /// Keeps the overlay on the taskbar while hiding it from the Alt-Tab switcher.
+        /// Controls whether the overlay appears in the taskbar and Alt-Tab switcher.
         /// </summary>
-        public static void HideFromAltTab(Window window)
+        public static void SetTaskbarAndAltTabVisibility(Window window, bool isVisible)
         {
+            window.ShowInTaskbar = isVisible;
+
             var hwnd = new WindowInteropHelper(window).Handle;
             if (hwnd == IntPtr.Zero) return;
 
             int extendedStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
-            SetWindowLong(hwnd, GWL_EXSTYLE, extendedStyle | WS_EX_TOOLWINDOW | WS_EX_APPWINDOW);
+            if (isVisible)
+            {
+                SetWindowLong(hwnd, GWL_EXSTYLE, (extendedStyle & ~WS_EX_TOOLWINDOW) | WS_EX_APPWINDOW);
+            }
+            else
+            {
+                SetWindowLong(hwnd, GWL_EXSTYLE, (extendedStyle & ~WS_EX_APPWINDOW) | WS_EX_TOOLWINDOW);
+            }
         }
     }
 }

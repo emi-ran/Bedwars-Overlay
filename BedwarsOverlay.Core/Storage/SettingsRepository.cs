@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -14,6 +15,9 @@ namespace BedwarsOverlay.Core.Storage
         public int CacheTtlMinutes { get; set; } = 60;
         public string LocalPlayerName { get; set; } = string.Empty;
         public bool ShowLogDiagnostics { get; set; } = false;
+        public bool IgnorePartyPlayers { get; set; } = false;
+        public bool IgnoreLocalPlayer { get; set; } = false;
+        public string IgnoredPlayers { get; set; } = string.Empty;
         public string SortColumn { get; set; } = string.Empty;
         public string SortDirection { get; set; } = string.Empty;
         public string Language { get; set; } = string.Empty;
@@ -105,6 +109,67 @@ namespace BedwarsOverlay.Core.Storage
                 _settings.ShowLogDiagnostics = value;
                 Save();
             }
+        }
+
+        public bool IgnorePartyPlayers
+        {
+            get => _settings.IgnorePartyPlayers;
+            set
+            {
+                _settings.IgnorePartyPlayers = value;
+                Save();
+            }
+        }
+
+        public bool IgnoreLocalPlayer
+        {
+            get => _settings.IgnoreLocalPlayer;
+            set
+            {
+                _settings.IgnoreLocalPlayer = value;
+                Save();
+            }
+        }
+
+        public string IgnoredPlayers
+        {
+            get => _settings.IgnoredPlayers;
+            set
+            {
+                _settings.IgnoredPlayers = value;
+                Save();
+            }
+        }
+
+        public void AddIgnoredPlayer(string playerName)
+        {
+            if (string.IsNullOrWhiteSpace(playerName) || !System.Text.RegularExpressions.Regex.IsMatch(playerName, "^[a-zA-Z0-9_]{3,16}$"))
+            {
+                return;
+            }
+
+            var players = GetIgnoredPlayers();
+            if (!players.Exists(player => player.Equals(playerName, StringComparison.OrdinalIgnoreCase)))
+            {
+                players.Add(playerName);
+                IgnoredPlayers = string.Join(Environment.NewLine, players);
+            }
+        }
+
+        public List<string> GetIgnoredPlayers()
+        {
+            var players = new List<string>();
+            string[] rawPlayers = _settings.IgnoredPlayers.Split(new[] { '\r', '\n', ',', ' ', ';' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var rawPlayer in rawPlayers)
+            {
+                string player = rawPlayer.Trim();
+                if (System.Text.RegularExpressions.Regex.IsMatch(player, "^[a-zA-Z0-9_]{3,16}$") && !players.Exists(existing => existing.Equals(player, StringComparison.OrdinalIgnoreCase)))
+                {
+                    players.Add(player);
+                }
+            }
+
+            return players;
         }
 
         /// <summary>

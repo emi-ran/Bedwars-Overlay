@@ -22,6 +22,8 @@ dotnet build "BedwarsOverlay.App\BedwarsOverlay.App.csproj"
 dotnet test "BedwarsOverlay.slnx"
 ```
 
+If the running app locks build outputs, close Bedwars Overlay before building or build with a temporary `OutputPath`.
+
 ## Development Notes
 
 - Target platform is Windows.
