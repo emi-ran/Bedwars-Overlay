@@ -21,6 +21,7 @@ namespace BedwarsOverlay.Core.Api
     }
 
     public sealed record HypixelLookupResult(HypixelLookupStatus Status, string? PlayerJson = null);
+    public sealed record HypixelApiKeyValidationResult(HypixelLookupStatus Status);
 
     public class HypixelClient
     {
@@ -125,6 +126,49 @@ namespace BedwarsOverlay.Core.Api
             }
 
             return new HypixelLookupResult(HypixelLookupStatus.NoPlayerData);
+        }
+
+        public async Task<HypixelApiKeyValidationResult> ValidateApiKeyAsync(string apiKey)
+        {
+            if (string.IsNullOrWhiteSpace(apiKey))
+            {
+                return new HypixelApiKeyValidationResult(HypixelLookupStatus.MissingApiKey);
+            }
+
+            try
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Get, "https://api.hypixel.net/v2/counts");
+                request.Headers.Add("API-Key", apiKey);
+
+                using var response = await _httpClient.SendAsync(request);
+                if (response.StatusCode == HttpStatusCode.Forbidden)
+                {
+                    return new HypixelApiKeyValidationResult(HypixelLookupStatus.InvalidApiKey);
+                }
+
+                if (response.StatusCode == (HttpStatusCode)429)
+                {
+                    return new HypixelApiKeyValidationResult(HypixelLookupStatus.RateLimited);
+                }
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return new HypixelApiKeyValidationResult(HypixelLookupStatus.NetworkError);
+                }
+
+                string responseBody = await response.Content.ReadAsStringAsync();
+                using var doc = JsonDocument.Parse(responseBody);
+                bool success = doc.RootElement.TryGetProperty("success", out var successProp) && successProp.GetBoolean();
+                return new HypixelApiKeyValidationResult(success ? HypixelLookupStatus.Success : HypixelLookupStatus.InvalidResponse);
+            }
+            catch (TaskCanceledException)
+            {
+                return new HypixelApiKeyValidationResult(HypixelLookupStatus.NetworkError);
+            }
+            catch
+            {
+                return new HypixelApiKeyValidationResult(HypixelLookupStatus.InvalidResponse);
+            }
         }
 
         private string? GetCachedPlayerJson(string uuid)

@@ -23,9 +23,9 @@ namespace BedwarsOverlay.App.Services
         private readonly Window _window;
         private IntPtr _hwnd;
         private HwndSource? _hwndSource;
-        private readonly int _hotkeyId = 9000; // Unique ID for this hotkey instance
+        private readonly HashSet<int> _registeredHotkeyIds = new();
 
-        public event Action? HotkeyPressed;
+        public event Action<int>? HotkeyPressed;
 
         public HotkeyService(Window window)
         {
@@ -59,11 +59,12 @@ namespace BedwarsOverlay.App.Services
         /// <param name="modifiers">E.g., MOD_CONTROL | MOD_ALT</param>
         /// <param name="key">Virtual Key code (e.g., 0x4F for 'O')</param>
         /// <returns>True if registered successfully.</returns>
-        public bool Register(uint modifiers, uint key)
+        public bool Register(int id, uint modifiers, uint key)
         {
             if (_hwnd == IntPtr.Zero) return false;
-            Unregister();
-            return RegisterHotKey(_hwnd, _hotkeyId, modifiers, key);
+            if (!RegisterHotKey(_hwnd, id, modifiers, key)) return false;
+            _registeredHotkeyIds.Add(id);
+            return true;
         }
 
         /// <summary>
@@ -73,16 +74,24 @@ namespace BedwarsOverlay.App.Services
         {
             if (_hwnd != IntPtr.Zero)
             {
-                UnregisterHotKey(_hwnd, _hotkeyId);
+                foreach (int id in _registeredHotkeyIds)
+                {
+                    UnregisterHotKey(_hwnd, id);
+                }
+                _registeredHotkeyIds.Clear();
             }
         }
 
         private IntPtr HwndHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
-            if (msg == WM_HOTKEY && wParam.ToInt32() == _hotkeyId)
+            if (msg == WM_HOTKEY)
             {
-                HotkeyPressed?.Invoke();
-                handled = true;
+                long id = wParam.ToInt64();
+                if (id >= int.MinValue && id <= int.MaxValue && _registeredHotkeyIds.Contains((int)id))
+                {
+                    HotkeyPressed?.Invoke((int)id);
+                    handled = true;
+                }
             }
             return IntPtr.Zero;
         }

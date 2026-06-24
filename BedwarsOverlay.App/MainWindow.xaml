@@ -213,7 +213,7 @@
         </Style>
     </Window.Resources>
     
-    <Grid x:Name="MainGrid">
+    <Grid x:Name="MainGrid" PreviewMouseDown="MainGrid_PreviewMouseDown" Focusable="True">
         <Border x:Name="OverlayBorder" CornerRadius="8" BorderThickness="1.5" BorderBrush="#1F2937" Background="#0F0F11">
             <Grid>
                 <Grid.RowDefinitions>
@@ -223,7 +223,7 @@
                 </Grid.RowDefinitions>
                 
                 <!-- Draggable Title Bar (styled like Cubelify) -->
-                <Grid x:Name="TitleBar" Background="Transparent" MouseDown="TitleBar_MouseDown">
+                <Grid x:Name="TitleBar" Background="Transparent" MouseDown="TitleBar_MouseDown" ToolTip="{Binding Source={x:Static services:LocalizationService.Instance}, Path=Shortcuts_Help, Mode=OneWay}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -281,6 +281,30 @@
                         <TextBlock x:Name="DemoText" Text="{Binding Source={x:Static services:LocalizationService.Instance}, Path=Placeholder_Active, Mode=OneWay}" Foreground="White" FontSize="18" FontWeight="Bold" TextAlignment="Center" FontFamily="Segoe UI"/>
                         <TextBlock x:Name="ParsedPlayersText" Text="{Binding Source={x:Static services:LocalizationService.Instance}, Path=Placeholder_Waiting, Mode=OneWay}" Foreground="#FFCCCCCC" FontSize="13" Margin="0,8,0,0" TextAlignment="Center" FontFamily="Segoe UI" TextWrapping="Wrap" MaxWidth="600"/>
                     </StackPanel>
+
+                    <Border x:Name="OnboardingPanel" Panel.ZIndex="20" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="420" Background="#F0111113" BorderBrush="#EAB308" BorderThickness="1.5" CornerRadius="12" Padding="22" Margin="16" Visibility="Collapsed">
+                        <StackPanel>
+                            <TextBlock Text="&#xE946;" FontFamily="Segoe MDL2 Assets" Foreground="#EAB308" FontSize="24" HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                            <TextBlock x:Name="OnboardingTitleText" Foreground="White" FontSize="19" FontWeight="Bold" TextAlignment="Center" FontFamily="Segoe UI"/>
+                            <TextBlock x:Name="OnboardingBodyText" Foreground="#D4D4D8" FontSize="13" TextAlignment="Center" TextWrapping="Wrap" Margin="0,10,0,16" FontFamily="Segoe UI"/>
+                            <Border Background="#18181A" BorderBrush="#2D2D30" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,16">
+                                <StackPanel>
+                                    <TextBlock x:Name="OnboardingEditShortcutText" Foreground="#E5E7EB" FontSize="12" FontWeight="SemiBold" TextAlignment="Center" FontFamily="Segoe UI"/>
+                                    <TextBlock x:Name="OnboardingHideShortcutText" Foreground="#E5E7EB" FontSize="12" FontWeight="SemiBold" TextAlignment="Center" Margin="0,6,0,0" FontFamily="Segoe UI"/>
+                                    <TextBlock x:Name="OnboardingSettingsText" Foreground="#A1A1AA" FontSize="12" TextAlignment="Center" TextWrapping="Wrap" Margin="0,8,0,0" FontFamily="Segoe UI"/>
+                                </StackPanel>
+                            </Border>
+                            <Button x:Name="OnboardingDoneButton" Height="34" MinWidth="110" HorizontalAlignment="Center" Padding="18,0" Background="#EAB308" Foreground="#111827" BorderThickness="0" FontWeight="Bold" Cursor="Hand" Click="OnboardingDoneButton_Click">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </StackPanel>
+                    </Border>
 
                     <!-- Player Stats Grid -->
                     <DataGrid x:Name="PlayersGrid"

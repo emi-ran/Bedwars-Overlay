@@ -28,3 +28,8 @@ logs/
 *.log
 .env
 *.env
+
+## Signing certificates and publish artifacts
+*.pfx
+*.p12
+/publish/

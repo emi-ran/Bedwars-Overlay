@@ -22,6 +22,9 @@ namespace BedwarsOverlay.App
             Timeout = TimeSpan.FromSeconds(10)
         };
 
+        private const int ToggleEditModeHotkeyId = 9000;
+        private const int ToggleVisibilityHotkeyId = 9001;
+
         public static readonly DependencyProperty IsEditModeProperty =
             DependencyProperty.Register("IsEditMode", typeof(bool), typeof(MainWindow), new PropertyMetadata(false));
 
@@ -45,6 +48,8 @@ namespace BedwarsOverlay.App
         private PlayerLookupService? _playerLookupService;
         private bool _showingConfigNeeded;
         private bool _isSettingsOpen;
+        private bool _isHiddenMode;
+        private bool _needsConfigPrompt;
 
         public MainWindow()
         {
@@ -60,9 +65,6 @@ namespace BedwarsOverlay.App
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            // Start in play mode (transparent, click-through)
-            ApplyPlayMode();
-
             // Initialize database settings and API clients
             try
             {
@@ -116,28 +118,31 @@ namespace BedwarsOverlay.App
             // Start empty with placeholder text visible
             PlaceholderPanel.Visibility = Visibility.Visible;
 
-            // Verify API key configuration on startup
             string apiKey = _settingsRepository.ApiKey;
-            if (string.IsNullOrWhiteSpace(apiKey) || apiKey.Equals("your_real_hypixel_api_key_here", StringComparison.OrdinalIgnoreCase))
+            _needsConfigPrompt = string.IsNullOrWhiteSpace(apiKey) || apiKey.Equals("your_real_hypixel_api_key_here", StringComparison.OrdinalIgnoreCase);
+            ApplyOnboardingLocalization();
+
+            if (!_settingsRepository.HasCompletedOnboarding)
             {
-                _showingConfigNeeded = true;
-                SetStatus(LocalizationService.Instance["Status_ConfigureApi"]);
-                // Modelessly prompt settings dialog after load finishes
-                Dispatcher.BeginInvoke(new Action(() => OpenSettings()));
+                ShowOnboarding();
             }
             else
             {
-                RestartLogTailer();
+                _isEditMode = true;
+                IsEditMode = true;
+                ApplyEditMode();
+                ContinueStartupAfterOnboarding();
             }
 
             // Set up global hotkey
             try
             {
                 _hotkeyService = new HotkeyService(this);
-                _hotkeyService.HotkeyPressed += ToggleEditMode;
-                
-                // Register Ctrl + Alt + O (Modifiers: Control = 0x0002, Alt = 0x0001 -> 3; Virtual Key 'O' = 0x4F)
-                bool success = _hotkeyService.Register(HotkeyService.MOD_CONTROL | HotkeyService.MOD_ALT, 0x4F);
+                _hotkeyService.HotkeyPressed += HandleHotkeyPressed;
+
+                bool success =
+                    _hotkeyService.Register(ToggleEditModeHotkeyId, HotkeyService.MOD_CONTROL | HotkeyService.MOD_ALT, 0x4F) && // Ctrl+Alt+O
+                    _hotkeyService.Register(ToggleVisibilityHotkeyId, HotkeyService.MOD_CONTROL | HotkeyService.MOD_ALT, 0x48);  // Ctrl+Alt+H
                 if (!success)
                 {
                     MessageBox.Show(
@@ -152,6 +157,71 @@ namespace BedwarsOverlay.App
                     LocalizationService.Instance["Hotkey_InitError"].Replace("{0}", ex.Message),
                     LocalizationService.Instance["Init_ErrorTitle"],
                     MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void HandleHotkeyPressed(int id)
+        {
+            if (id == ToggleEditModeHotkeyId)
+            {
+                ToggleEditMode();
+            }
+            else if (id == ToggleVisibilityHotkeyId)
+            {
+                ToggleVisibilityMode();
+            }
+        }
+
+        private void ShowOnboarding()
+        {
+            _isEditMode = true;
+            IsEditMode = true;
+            ApplyEditMode();
+            PlaceholderPanel.Visibility = Visibility.Collapsed;
+            OnboardingPanel.Visibility = Visibility.Visible;
+        }
+
+        private void ApplyOnboardingLocalization()
+        {
+            var loc = LocalizationService.Instance;
+            OnboardingTitleText.Text = loc["Onboarding_Title"];
+            OnboardingBodyText.Text = loc["Onboarding_Body"];
+            OnboardingEditShortcutText.Text = loc["Onboarding_EditShortcut"];
+            OnboardingHideShortcutText.Text = loc["Onboarding_HideShortcut"];
+            OnboardingSettingsText.Text = loc["Onboarding_Settings"];
+            OnboardingDoneButton.Content = loc[_needsConfigPrompt ? "Onboarding_OpenSettings" : "Onboarding_Done"];
+        }
+
+        private void OnboardingDoneButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_settingsRepository == null)
+            {
+                return;
+            }
+
+            _settingsRepository.HasCompletedOnboarding = true;
+            OnboardingPanel.Visibility = Visibility.Collapsed;
+            PlaceholderPanel.Visibility = Visibility.Visible;
+
+            ContinueStartupAfterOnboarding();
+        }
+
+        private void ContinueStartupAfterOnboarding()
+        {
+            if (_settingsRepository == null)
+            {
+                return;
+            }
+
+            if (_needsConfigPrompt)
+            {
+                _showingConfigNeeded = true;
+                SetStatus(LocalizationService.Instance["Status_ConfigureApi"]);
+                Dispatcher.BeginInvoke(new Action(() => OpenSettings()));
+            }
+            else
+            {
+                RestartLogTailer();
             }
         }
 
@@ -222,7 +292,7 @@ namespace BedwarsOverlay.App
 
         private void ToggleEditMode()
         {
-            if (_isSettingsOpen)
+            if (_isSettingsOpen || _isHiddenMode || OnboardingPanel.Visibility == Visibility.Visible)
             {
                 return;
             }
@@ -237,6 +307,24 @@ namespace BedwarsOverlay.App
             {
                 ApplyPlayMode();
             }
+        }
+
+        private void ToggleVisibilityMode()
+        {
+            if (_isSettingsOpen)
+            {
+                return;
+            }
+
+            if (_isHiddenMode)
+            {
+                _isHiddenMode = false;
+                Show();
+                return;
+            }
+
+            _isHiddenMode = true;
+            Hide();
         }
 
         private void ApplyPlayMode()
@@ -613,15 +701,50 @@ namespace BedwarsOverlay.App
 
         private void SearchBox_LostFocus(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrEmpty(SearchBox.Text))
-            {
-                SearchPlaceholder.Visibility = Visibility.Visible;
-            }
+            UpdateSearchPlaceholder();
         }
 
         private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
         {
+            UpdateSearchPlaceholder();
             CollectionViewSource.GetDefaultView(_players).Refresh();
+        }
+
+        private void MainGrid_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (!SearchBox.IsKeyboardFocusWithin)
+            {
+                return;
+            }
+
+            if (e.OriginalSource is DependencyObject source && IsDescendantOf(source, SearchPanel))
+            {
+                return;
+            }
+
+            MainGrid.Focus();
+            Keyboard.ClearFocus();
+            UpdateSearchPlaceholder();
+        }
+
+        private void UpdateSearchPlaceholder()
+        {
+            SearchPlaceholder.Visibility = string.IsNullOrEmpty(SearchBox.Text) && !SearchBox.IsKeyboardFocusWithin
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+        }
+
+        private static bool IsDescendantOf(DependencyObject child, DependencyObject parent)
+        {
+            for (DependencyObject? current = child; current != null; current = VisualTreeHelper.GetParent(current))
+            {
+                if (current == parent)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         protected override void OnClosed(EventArgs e)

@@ -17,6 +17,7 @@ namespace BedwarsOverlay.Core.Storage
         public string SortColumn { get; set; } = string.Empty;
         public string SortDirection { get; set; } = string.Empty;
         public string Language { get; set; } = string.Empty;
+        public bool HasCompletedOnboarding { get; set; } = false;
     }
 
     public class SettingsRepository
@@ -131,6 +132,19 @@ namespace BedwarsOverlay.Core.Storage
             set
             {
                 _settings.Language = value;
+                Save();
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether the first-run intro/tutorial was completed.
+        /// </summary>
+        public bool HasCompletedOnboarding
+        {
+            get => _settings.HasCompletedOnboarding;
+            set
+            {
+                _settings.HasCompletedOnboarding = value;
                 Save();
             }
         }

@@ -1,8 +1,10 @@
 using System;
+using System.Net.Http;
 using System.Windows;
 using System.Windows.Input;
 using Microsoft.Win32;
 using BedwarsOverlay.App.Services;
+using BedwarsOverlay.Core.Api;
 using BedwarsOverlay.Core.Storage;
 using BedwarsOverlay.Core.LogWatching;
 
@@ -11,6 +13,7 @@ namespace BedwarsOverlay.App
     public partial class SettingsWindow : Window
     {
         private readonly SettingsRepository _settingsRepository;
+        private static readonly HttpClient _httpClient = new() { Timeout = TimeSpan.FromSeconds(10) };
         private bool _isApiKeyVisible;
 
         public SettingsWindow(SettingsRepository settingsRepository)
@@ -66,11 +69,18 @@ namespace BedwarsOverlay.App
             LabelLogPath.Text = loc["Label_LogPath"];
             LabelLocalPlayer.Text = loc["Label_LocalPlayer"];
             LabelLanguage.Text = loc["Lang_Label"];
+            ShortcutsTitleText.Text = loc["Shortcuts_Title"];
+            ShortcutsHelpText.Text = loc["Shortcuts_Help"];
             ShowLogDiagnosticsBox.Content = loc["Checkbox_Diagnostics"];
             BtnAutoDetect.Content = loc["Button_AutoDetect"];
             BtnBrowse.Content = loc["Button_Browse"];
+            BtnGetApiKey.Content = loc["Button_GetApiKey"];
+            BtnCheckApiKey.Content = loc["Button_CheckApiKey"];
             BtnCancel.Content = loc["Button_Cancel"];
             BtnSaveSettings.Content = loc["Button_SaveSettings"];
+            GitHubButtonText.Text = loc["Button_GitHub"];
+            LicenseText.Text = loc["Footer_License"];
+            ApiKeyStatusText.Text = loc["ApiKey_StatusIdle"];
 
             // Update eye toggle tooltip based on current visibility state
             ApiKeyVisibilityButton.ToolTip = _isApiKeyVisible ? loc["Tooltip_HideApiKey"] : loc["Tooltip_ShowApiKey"];
@@ -85,7 +95,6 @@ namespace BedwarsOverlay.App
                 ApiKeyBox.Text = ApiKeyMaskedBox.Password;
                 ApiKeyMaskedBox.Visibility = Visibility.Collapsed;
                 ApiKeyBox.Visibility = Visibility.Visible;
-                ApiKeyVisibilityButton.Content = "\uE8F5";
                 ApiKeyVisibilityButton.ToolTip = LocalizationService.Instance["Tooltip_HideApiKey"];
                 ApiKeyBox.Focus();
                 ApiKeyBox.CaretIndex = ApiKeyBox.Text.Length;
@@ -95,9 +104,87 @@ namespace BedwarsOverlay.App
                 ApiKeyMaskedBox.Password = ApiKeyBox.Text;
                 ApiKeyBox.Visibility = Visibility.Collapsed;
                 ApiKeyMaskedBox.Visibility = Visibility.Visible;
-                ApiKeyVisibilityButton.Content = "\uE890";
                 ApiKeyVisibilityButton.ToolTip = LocalizationService.Instance["Tooltip_ShowApiKey"];
                 ApiKeyMaskedBox.Focus();
+            }
+        }
+
+        private void GetApiKeyButton_Click(object sender, RoutedEventArgs e)
+        {
+            OpenUrl("https://developer.hypixel.net/");
+        }
+
+        private void GitHubButton_Click(object sender, RoutedEventArgs e)
+        {
+            OpenUrl("https://github.com/emi-ran/Bedwars-Overlay");
+        }
+
+        private void OpenUrl(string url)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = url,
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    LocalizationService.Instance["OpenUrl_Error"].Replace("{0}", ex.Message),
+                    LocalizationService.Instance["Error_Title"],
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private async void CheckApiKeyButton_Click(object sender, RoutedEventArgs e)
+        {
+            string apiKey = (_isApiKeyVisible ? ApiKeyBox.Text : ApiKeyMaskedBox.Password).Trim();
+            var loc = LocalizationService.Instance;
+
+            BtnCheckApiKey.IsEnabled = false;
+            ApiKeyStatusText.Foreground = System.Windows.Media.Brushes.LightGray;
+            ApiKeyStatusText.Text = loc["ApiKey_StatusChecking"];
+
+            try
+            {
+                var database = new AppDatabase();
+                var client = new HypixelClient(_httpClient, database, _settingsRepository);
+                var result = await client.ValidateApiKeyAsync(apiKey);
+                ApplyApiKeyValidationStatus(result.Status);
+            }
+            finally
+            {
+                BtnCheckApiKey.IsEnabled = true;
+            }
+        }
+
+        private void ApplyApiKeyValidationStatus(HypixelLookupStatus status)
+        {
+            var loc = LocalizationService.Instance;
+            switch (status)
+            {
+                case HypixelLookupStatus.Success:
+                    ApiKeyStatusText.Foreground = System.Windows.Media.Brushes.LightGreen;
+                    ApiKeyStatusText.Text = loc["ApiKey_StatusValid"];
+                    break;
+                case HypixelLookupStatus.MissingApiKey:
+                    ApiKeyStatusText.Foreground = System.Windows.Media.Brushes.Orange;
+                    ApiKeyStatusText.Text = loc["ApiKey_StatusMissing"];
+                    break;
+                case HypixelLookupStatus.InvalidApiKey:
+                    ApiKeyStatusText.Foreground = System.Windows.Media.Brushes.OrangeRed;
+                    ApiKeyStatusText.Text = loc["ApiKey_StatusInvalid"];
+                    break;
+                case HypixelLookupStatus.RateLimited:
+                    ApiKeyStatusText.Foreground = System.Windows.Media.Brushes.Orange;
+                    ApiKeyStatusText.Text = loc["ApiKey_StatusRateLimited"];
+                    break;
+                default:
+                    ApiKeyStatusText.Foreground = System.Windows.Media.Brushes.OrangeRed;
+                    ApiKeyStatusText.Text = loc["ApiKey_StatusError"];
+                    break;
             }
         }
 

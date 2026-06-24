@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         xmlns:services="clr-namespace:BedwarsOverlay.App.Services"
-        Title="Settings" Height="430" Width="600"
+        Title="Settings" Height="500" Width="640"
         WindowStartupLocation="CenterOwner"
         AllowsTransparency="True"
         WindowStyle="None"
@@ -159,6 +159,76 @@
             </Setter>
         </Style>
 
+        <Style TargetType="{x:Type ScrollBar}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Opacity" Value="0"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=ScrollViewer}}" Value="True">
+                    <DataTrigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.EnterActions>
+                    <DataTrigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.4"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.ExitActions>
+                </DataTrigger>
+                <Trigger Property="Orientation" Value="Vertical">
+                    <Setter Property="Width" Value="6"/>
+                    <Setter Property="MinWidth" Value="6"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type ScrollBar}">
+                                <Grid Background="Transparent" SnapsToDevicePixels="true">
+                                    <Track x:Name="PART_Track" IsDirectionReversed="true" IsEnabled="{TemplateBinding IsEnabled}">
+                                        <Track.DecreaseRepeatButton>
+                                            <RepeatButton Command="ScrollBar.PageUpCommand" Focusable="false">
+                                                <RepeatButton.Template>
+                                                    <ControlTemplate TargetType="RepeatButton">
+                                                        <Border Background="Transparent"/>
+                                                    </ControlTemplate>
+                                                </RepeatButton.Template>
+                                            </RepeatButton>
+                                        </Track.DecreaseRepeatButton>
+                                        <Track.IncreaseRepeatButton>
+                                            <RepeatButton Command="ScrollBar.PageDownCommand" Focusable="false">
+                                                <RepeatButton.Template>
+                                                    <ControlTemplate TargetType="RepeatButton">
+                                                        <Border Background="Transparent"/>
+                                                    </ControlTemplate>
+                                                </RepeatButton.Template>
+                                            </RepeatButton>
+                                        </Track.IncreaseRepeatButton>
+                                        <Track.Thumb>
+                                            <Thumb x:Name="Thumb" Width="4" Background="#33FFFFFF" BorderThickness="0" HorizontalAlignment="Center">
+                                                <Thumb.Template>
+                                                    <ControlTemplate TargetType="{x:Type Thumb}">
+                                                        <Border CornerRadius="2" Background="{TemplateBinding Background}"/>
+                                                    </ControlTemplate>
+                                                </Thumb.Template>
+                                            </Thumb>
+                                        </Track.Thumb>
+                                    </Track>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="true">
+                                        <Setter TargetName="Thumb" Property="Background" Value="#66FFFFFF"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
         <Style x:Key="DarkComboBoxItemStyle" TargetType="ComboBoxItem">
             <Setter Property="Foreground" Value="#E5E7EB"/>
             <Setter Property="Background" Value="#18181A"/>
@@ -272,11 +342,12 @@
                 </Grid>
 
                 <!-- Settings Content Area -->
-                <StackPanel Grid.Row="1" Margin="20,10,20,10">
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="24,14,18,12">
+                <StackPanel Margin="0,0,8,0">
                     
                     <!-- Hypixel API Key -->
                     <TextBlock x:Name="LabelApiKey" Text="Hypixel API Key" Style="{StaticResource FormLabelStyle}"/>
-                    <Border Style="{StaticResource TextBoxBorderStyle}" Margin="0,0,0,16">
+                    <Border Style="{StaticResource TextBoxBorderStyle}" Margin="0,0,0,8">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -287,6 +358,17 @@
                             <Button Grid.Column="1" x:Name="ApiKeyVisibilityButton" Content="&#xE890;" FontFamily="Segoe MDL2 Assets" Style="{StaticResource InlineButtonStyle}" Width="28" Padding="0" Margin="6,0,0,0" Click="ApiKeyVisibilityButton_Click"/>
                         </Grid>
                     </Border>
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock x:Name="ApiKeyStatusText" Grid.Column="0" Foreground="#A1A1AA" FontSize="11" FontFamily="Segoe UI" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button x:Name="BtnGetApiKey" Style="{StaticResource InlineButtonStyle}" Click="GetApiKeyButton_Click" MinWidth="92"/>
+                            <Button x:Name="BtnCheckApiKey" Style="{StaticResource InlineButtonStyle}" Click="CheckApiKeyButton_Click" MinWidth="82" Margin="8,0,0,0"/>
+                        </StackPanel>
+                    </Grid>
 
                     <!-- Log File Path -->
                     <TextBlock x:Name="LabelLogPath" Text="Minecraft Client Log Path (latest.log)" Style="{StaticResource FormLabelStyle}"/>
@@ -310,25 +392,56 @@
                         <TextBox x:Name="LocalPlayerBox" Style="{StaticResource FormTextBoxStyle}" Text=""/>
                     </Border>
 
-                    <CheckBox x:Name="ShowLogDiagnosticsBox" Style="{StaticResource DarkCheckBoxStyle}"/>
+                    <CheckBox x:Name="ShowLogDiagnosticsBox" Style="{StaticResource DarkCheckBoxStyle}" Margin="0,0,0,16"/>
 
                     <!-- Language Selection -->
-                    <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
-                        <TextBlock x:Name="LabelLanguage" Style="{StaticResource FormLabelStyle}" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                        <ComboBox x:Name="LanguageCombo" Style="{StaticResource DarkComboBoxStyle}" Height="28" MinWidth="120" SelectedIndex="0">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                        <TextBlock x:Name="LabelLanguage" Style="{StaticResource FormLabelStyle}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <ComboBox x:Name="LanguageCombo" Style="{StaticResource DarkComboBoxStyle}" Height="30" MinWidth="150" SelectedIndex="0">
                             <ComboBoxItem Content="English" Tag="en"/>
                             <ComboBoxItem Content="Türkçe" Tag="tr"/>
                         </ComboBox>
                     </StackPanel>
-                    
+
+                    <Border Background="#141416" BorderBrush="#2D2D30" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,8">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="&#xE765;" FontFamily="Segoe MDL2 Assets" Foreground="#EAB308" FontSize="16" VerticalAlignment="Top" Margin="0,1,10,0"/>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock x:Name="ShortcutsTitleText" Foreground="#E5E7EB" FontSize="12" FontWeight="SemiBold" FontFamily="Segoe UI"/>
+                                <TextBlock x:Name="ShortcutsHelpText" Foreground="#A1A1AA" FontSize="12" FontFamily="Segoe UI" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
                 </StackPanel>
+                </ScrollViewer>
 
                 <!-- Footer Action Buttons -->
                 <Border Grid.Row="2" Background="#18181A" CornerRadius="0,0,8,8" BorderThickness="0,1,0,0" BorderBrush="#27272A">
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,20,0">
-                        <Button x:Name="BtnCancel" Style="{StaticResource SecondaryButtonStyle}" Click="CancelButton_Click" Width="80" Margin="0,0,10,0"/>
-                        <Button x:Name="BtnSaveSettings" Style="{StaticResource PrimaryButtonStyle}" Click="SaveButton_Click" Width="110"/>
-                    </StackPanel>
+                    <Grid Margin="20,0,20,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" x:Name="BtnGitHub" Style="{StaticResource SecondaryButtonStyle}" Click="GitHubButton_Click" MinWidth="96" HorizontalAlignment="Left" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Viewbox Width="14" Height="14" Margin="0,0,7,0">
+                                    <Path Fill="#D4D4D8" Data="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82A7.65 7.65 0 0 1 8 4.58c.68 0 1.36.09 2 .26 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/>
+                                </Viewbox>
+                                <TextBlock x:Name="GitHubButtonText" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <TextBlock Grid.Column="1" x:Name="LicenseText" Foreground="#71717A" FontSize="11" FontFamily="Segoe UI" VerticalAlignment="Center" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="12,0"/>
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <Button x:Name="BtnCancel" Style="{StaticResource SecondaryButtonStyle}" Click="CancelButton_Click" Width="80" Margin="0,0,10,0"/>
+                            <Button x:Name="BtnSaveSettings" Style="{StaticResource PrimaryButtonStyle}" Click="SaveButton_Click" Width="110"/>
+                        </StackPanel>
+                    </Grid>
                 </Border>
             </Grid>
         </Border>

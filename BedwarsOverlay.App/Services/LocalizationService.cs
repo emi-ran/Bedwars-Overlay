@@ -42,6 +42,7 @@ namespace BedwarsOverlay.App.Services
         public string Tooltip_Settings => GetString("Tooltip_Settings");
         public string Search_Placeholder => GetString("Search_Placeholder");
         public string EditMode_Badge => GetString("EditMode_Badge");
+        public string Shortcuts_Help => GetString("Shortcuts_Help");
         public string Placeholder_Active => GetString("Placeholder_Active");
         public string Placeholder_Waiting => GetString("Placeholder_Waiting");
         public string Diagnostics_Title => GetString("Diagnostics_Title");
@@ -201,10 +202,20 @@ namespace BedwarsOverlay.App.Services
             ["Init_ErrorTitle"] = "Initialization Error",
             ["Init_FailedDb"] = "Failed to initialize database/settings: {0}",
             ["Hotkey_ErrorTitle"] = "Hotkey Registration Error",
-            ["Hotkey_Failed"] = "Failed to register global hotkey Ctrl+Alt+O! Please check if another app is using this shortcut.",
+            ["Hotkey_Failed"] = "Failed to register global hotkeys Ctrl+Alt+O / Ctrl+Alt+H! Please check if another app is using these shortcuts.",
             ["Hotkey_InitError"] = "Error initializing hotkey service: {0}",
             ["Clipboard_Error"] = "Failed to copy to clipboard: {0}",
             ["Plancke_Error"] = "Failed to open Plancke link: {0}",
+            ["OpenUrl_Error"] = "Failed to open link: {0}",
+            ["Shortcuts_Title"] = "Shortcuts",
+            ["Shortcuts_Help"] = "Ctrl+Alt+O toggles edit mode. Ctrl+Alt+H hides or shows the overlay.",
+            ["Onboarding_Title"] = "Welcome to Bedwars Overlay",
+            ["Onboarding_Body"] = "Track players from /who, spot risky stats, and keep the overlay out of your way while playing.",
+            ["Onboarding_EditShortcut"] = "Ctrl+Alt+O: edit / play mode",
+            ["Onboarding_HideShortcut"] = "Ctrl+Alt+H: hide/show overlay",
+            ["Onboarding_Settings"] = "Settings is where you add your Hypixel API key and Minecraft log path.",
+            ["Onboarding_Done"] = "Got it",
+            ["Onboarding_OpenSettings"] = "Open Settings",
 
             // SettingsWindow
             ["Settings_Title"] = "Overlay Settings",
@@ -214,8 +225,18 @@ namespace BedwarsOverlay.App.Services
             ["Checkbox_Diagnostics"] = "Show Log Diagnostics in edit mode",
             ["Button_AutoDetect"] = "Auto-Detect",
             ["Button_Browse"] = "Browse...",
+            ["Button_GetApiKey"] = "Get API Key",
+            ["Button_CheckApiKey"] = "Check",
             ["Button_Cancel"] = "Cancel",
             ["Button_SaveSettings"] = "Save Settings",
+            ["Button_GitHub"] = "GitHub",
+            ["ApiKey_StatusIdle"] = "Use a Hypixel developer API key.",
+            ["ApiKey_StatusChecking"] = "Checking API key...",
+            ["ApiKey_StatusValid"] = "API key is valid.",
+            ["ApiKey_StatusMissing"] = "Enter an API key first.",
+            ["ApiKey_StatusInvalid"] = "API key is invalid.",
+            ["ApiKey_StatusRateLimited"] = "Hypixel rate limited this check. Try again later.",
+            ["ApiKey_StatusError"] = "Could not check API key right now.",
             ["Tooltip_ShowApiKey"] = "Show API key",
             ["Tooltip_HideApiKey"] = "Hide API key",
 
