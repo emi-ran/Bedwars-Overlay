@@ -13,7 +13,7 @@
         WindowStyle="None"
         Background="Transparent"
         Topmost="True"
-        ShowInTaskbar="True">
+        ShowInTaskbar="False">
 
     <WindowChrome.WindowChrome>
         <WindowChrome GlassFrameThickness="0" 
@@ -365,6 +365,84 @@
                                     </Trigger>
                                 </Style.Triggers>
                             </Style>
+
+                            <Style x:Key="RowActionButtonStyle" TargetType="Button">
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="Foreground" Value="#8B94A6"/>
+                                <Setter Property="BorderThickness" Value="0"/>
+                                <Setter Property="Width" Value="24"/>
+                                <Setter Property="Height" Value="22"/>
+                                <Setter Property="Cursor" Value="Hand"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="ButtonBorder" CornerRadius="6" Background="{TemplateBinding Background}">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="ButtonBorder" Property="Background" Value="#1AFFFFFF"/>
+                                                    <Setter Property="Foreground" Value="#E5E7EB"/>
+                                                </Trigger>
+                                                <Trigger Property="IsPressed" Value="True">
+                                                    <Setter TargetName="ButtonBorder" Property="Background" Value="#2A6366F1"/>
+                                                    <Setter Property="Foreground" Value="#FFFFFF"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+
+                            <Style x:Key="RowContextMenuStyle" TargetType="ContextMenu">
+                                <Setter Property="Background" Value="#18181A"/>
+                                <Setter Property="Foreground" Value="#F4F4F5"/>
+                                <Setter Property="BorderBrush" Value="#3F3F46"/>
+                                <Setter Property="BorderThickness" Value="1"/>
+                                <Setter Property="Padding" Value="5"/>
+                                <Setter Property="MinWidth" Value="180"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ContextMenu">
+                                            <Border Background="{TemplateBinding Background}"
+                                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                                    CornerRadius="7"
+                                                    Padding="{TemplateBinding Padding}"
+                                                    SnapsToDevicePixels="True">
+                                                <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+
+                            <Style x:Key="RowMenuItemStyle" TargetType="MenuItem">
+                                <Setter Property="Foreground" Value="#F4F4F5"/>
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="BorderThickness" Value="0"/>
+                                <Setter Property="Padding" Value="0"/>
+                                <Setter Property="FontSize" Value="12"/>
+                                <Setter Property="FontFamily" Value="Segoe UI"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="MenuItem">
+                                            <Border x:Name="ItemBorder" Background="{TemplateBinding Background}" CornerRadius="5" Padding="10,8" SnapsToDevicePixels="True">
+                                                <ContentPresenter ContentSource="Header" RecognizesAccessKey="True"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsHighlighted" Value="True">
+                                                    <Setter TargetName="ItemBorder" Property="Background" Value="#263636F1"/>
+                                                    <Setter Property="Foreground" Value="#FFFFFF"/>
+                                                </Trigger>
+                                                <Trigger Property="IsEnabled" Value="False">
+                                                    <Setter Property="Foreground" Value="#71717A"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
                         </DataGrid.Resources>
                         
                         <DataGrid.RowStyle>
@@ -381,7 +459,7 @@
                         
                         <DataGrid.Columns>
                             <!-- Level Column -->
-                            <DataGridTextColumn Header="Lvl" Binding="{Binding Level}" Width="45" IsReadOnly="True" SortMemberPath="LevelRaw">
+                            <DataGridTextColumn x:Name="LevelColumn" Header="Lvl" Binding="{Binding Level}" Width="45" IsReadOnly="True" SortMemberPath="LevelRaw">
                                 <DataGridTextColumn.HeaderStyle>
                                     <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource DefaultHeaderStyle}">
                                         <Setter Property="HorizontalContentAlignment" Value="Center"/>
@@ -436,7 +514,7 @@
                             </DataGridTemplateColumn>
 
                             <!-- Winstreak Column -->
-                            <DataGridTextColumn Header="WS" Binding="{Binding Winstreak}" Width="45" SortMemberPath="WinstreakRaw">
+                            <DataGridTextColumn x:Name="WinstreakColumn" Header="WS" Binding="{Binding Winstreak}" Width="45" SortMemberPath="WinstreakRaw">
                                 <DataGridTextColumn.HeaderStyle>
                                     <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource DefaultHeaderStyle}">
                                         <Setter Property="HorizontalContentAlignment" Value="Center"/>
@@ -456,7 +534,7 @@
                             </DataGridTextColumn>
 
                             <!-- FKDR Column -->
-                            <DataGridTextColumn Header="FKDR" Binding="{Binding Fkdr}" Width="55" SortMemberPath="FkdrRaw">
+                            <DataGridTextColumn x:Name="FkdrColumn" Header="FKDR" Binding="{Binding Fkdr}" Width="55" SortMemberPath="FkdrRaw">
                                 <DataGridTextColumn.HeaderStyle>
                                     <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource DefaultHeaderStyle}">
                                         <Setter Property="HorizontalContentAlignment" Value="Center"/>
@@ -476,7 +554,7 @@
                             </DataGridTextColumn>
 
                             <!-- WLR Column -->
-                            <DataGridTextColumn Header="WLR" Binding="{Binding Wlr}" Width="55" SortMemberPath="WlrRaw">
+                            <DataGridTextColumn x:Name="WlrColumn" Header="WLR" Binding="{Binding Wlr}" Width="55" SortMemberPath="WlrRaw">
                                 <DataGridTextColumn.HeaderStyle>
                                     <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource DefaultHeaderStyle}">
                                         <Setter Property="HorizontalContentAlignment" Value="Center"/>
@@ -496,7 +574,7 @@
                             </DataGridTextColumn>
 
                             <!-- Final Kills Column -->
-                            <DataGridTextColumn Header="F. Kills" Binding="{Binding FinalKills}" Width="65" SortMemberPath="FinalKillsRaw">
+                            <DataGridTextColumn x:Name="FinalKillsColumn" Header="F. Kills" Binding="{Binding FinalKills}" Width="65" SortMemberPath="FinalKillsRaw">
                                 <DataGridTextColumn.HeaderStyle>
                                     <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource DefaultHeaderStyle}">
                                         <Setter Property="HorizontalContentAlignment" Value="Center"/>
@@ -516,7 +594,7 @@
                             </DataGridTextColumn>
 
                             <!-- Wins Column -->
-                            <DataGridTextColumn Header="Wins" Binding="{Binding Wins}" Width="65" SortMemberPath="WinsRaw">
+                            <DataGridTextColumn x:Name="WinsColumn" Header="Wins" Binding="{Binding Wins}" Width="65" SortMemberPath="WinsRaw">
                                 <DataGridTextColumn.HeaderStyle>
                                     <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource DefaultHeaderStyle}">
                                         <Setter Property="HorizontalContentAlignment" Value="Center"/>
@@ -536,7 +614,7 @@
                             </DataGridTextColumn>
 
                             <!-- Sniper Column -->
-                            <DataGridTextColumn Header="Sniper" Binding="{Binding Sniper}" Width="65" SortMemberPath="SniperRaw">
+                            <DataGridTextColumn x:Name="SniperColumn" Header="Sniper" Binding="{Binding Sniper}" Width="65" SortMemberPath="SniperRaw">
                                 <DataGridTextColumn.HeaderStyle>
                                     <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource DefaultHeaderStyle}">
                                         <Setter Property="HorizontalContentAlignment" Value="Center"/>
@@ -556,7 +634,7 @@
                             </DataGridTextColumn>
 
                             <!-- Action Column (...) -->
-                            <DataGridTemplateColumn Width="35">
+                            <DataGridTemplateColumn Width="30">
                                 <DataGridTemplateColumn.HeaderStyle>
                                     <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource DefaultHeaderStyle}">
                                         <Setter Property="HorizontalContentAlignment" Value="Center"/>
@@ -564,18 +642,25 @@
                                 </DataGridTemplateColumn.HeaderStyle>
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <Button Content="&#xE712;" FontFamily="Segoe MDL2 Assets" Background="Transparent" Foreground="#66FFFFFF" BorderThickness="0" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center" Click="EllipsisButton_Click" Cursor="Hand">
+                                        <Button Style="{StaticResource RowActionButtonStyle}" HorizontalAlignment="Center" VerticalAlignment="Center" Click="EllipsisButton_Click">
+                                            <TextBlock Text="&#xE712;" FontFamily="Segoe MDL2 Assets" FontSize="12" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
                                             <Button.ContextMenu>
-                                                <ContextMenu Background="#1E1E1E" Foreground="White" BorderBrush="#33FFFFFF" BorderThickness="1">
-                                                    <MenuItem x:Name="ContextCopyUsername" Header="{Binding Source={x:Static services:LocalizationService.Instance}, Path=ContextMenu_CopyUsername, Mode=OneWay}" Click="CopyUsername_Click">
-                                                        <MenuItem.Icon>
-                                                            <TextBlock Text="&#xE8C8;" FontFamily="Segoe MDL2 Assets" Foreground="White" FontSize="12" VerticalAlignment="Center"/>
-                                                        </MenuItem.Icon>
+                                                <ContextMenu Style="{StaticResource RowContextMenuStyle}">
+                                                    <MenuItem x:Name="ContextCopyUsername" Style="{StaticResource RowMenuItemStyle}" Click="CopyUsername_Click">
+                                                        <MenuItem.Header>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="&#xE8C8;" FontFamily="Segoe MDL2 Assets" Foreground="#A5B4FC" FontSize="12" Width="18" VerticalAlignment="Center"/>
+                                                                <TextBlock Text="{Binding Source={x:Static services:LocalizationService.Instance}, Path=ContextMenu_CopyUsername, Mode=OneWay}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=MenuItem}}" FontSize="12" FontWeight="SemiBold" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                                            </StackPanel>
+                                                        </MenuItem.Header>
                                                     </MenuItem>
-                                                    <MenuItem x:Name="ContextOpenPlancke" Header="{Binding Source={x:Static services:LocalizationService.Instance}, Path=ContextMenu_OpenPlancke, Mode=OneWay}" Click="OpenPlancke_Click">
-                                                        <MenuItem.Icon>
-                                                            <TextBlock Text="&#xE774;" FontFamily="Segoe MDL2 Assets" Foreground="White" FontSize="12" VerticalAlignment="Center"/>
-                                                        </MenuItem.Icon>
+                                                    <MenuItem x:Name="ContextOpenPlancke" Style="{StaticResource RowMenuItemStyle}" Click="OpenPlancke_Click">
+                                                        <MenuItem.Header>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="&#xE774;" FontFamily="Segoe MDL2 Assets" Foreground="#A5B4FC" FontSize="12" Width="18" VerticalAlignment="Center"/>
+                                                                <TextBlock Text="{Binding Source={x:Static services:LocalizationService.Instance}, Path=ContextMenu_OpenPlancke, Mode=OneWay}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=MenuItem}}" FontSize="12" FontWeight="SemiBold" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                                            </StackPanel>
+                                                        </MenuItem.Header>
                                                     </MenuItem>
                                                 </ContextMenu>
                                             </Button.ContextMenu>

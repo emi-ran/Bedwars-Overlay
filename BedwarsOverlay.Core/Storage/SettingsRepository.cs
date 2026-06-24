@@ -18,6 +18,17 @@ namespace BedwarsOverlay.Core.Storage
         public string SortDirection { get; set; } = string.Empty;
         public string Language { get; set; } = string.Empty;
         public bool HasCompletedOnboarding { get; set; } = false;
+        public bool ShowLevelColumn { get; set; } = true;
+        public bool ShowWinstreakColumn { get; set; } = true;
+        public bool ShowFkdrColumn { get; set; } = true;
+        public bool ShowWlrColumn { get; set; } = true;
+        public bool ShowFinalKillsColumn { get; set; } = true;
+        public bool ShowWinsColumn { get; set; } = true;
+        public bool ShowSniperColumn { get; set; } = true;
+        public double WindowLeft { get; set; } = double.NaN;
+        public double WindowTop { get; set; } = double.NaN;
+        public double WindowWidth { get; set; } = double.NaN;
+        public double WindowHeight { get; set; } = double.NaN;
     }
 
     public class SettingsRepository
@@ -194,6 +205,125 @@ namespace BedwarsOverlay.Core.Storage
                 }
                 Save();
             }
+        }
+
+        public bool ShowLevelColumn
+        {
+            get => _settings.ShowLevelColumn;
+            set
+            {
+                _settings.ShowLevelColumn = value;
+                Save();
+            }
+        }
+
+        public bool ShowWinstreakColumn
+        {
+            get => _settings.ShowWinstreakColumn;
+            set
+            {
+                _settings.ShowWinstreakColumn = value;
+                Save();
+            }
+        }
+
+        public bool ShowFkdrColumn
+        {
+            get => _settings.ShowFkdrColumn;
+            set
+            {
+                _settings.ShowFkdrColumn = value;
+                Save();
+            }
+        }
+
+        public bool ShowWlrColumn
+        {
+            get => _settings.ShowWlrColumn;
+            set
+            {
+                _settings.ShowWlrColumn = value;
+                Save();
+            }
+        }
+
+        public bool ShowFinalKillsColumn
+        {
+            get => _settings.ShowFinalKillsColumn;
+            set
+            {
+                _settings.ShowFinalKillsColumn = value;
+                Save();
+            }
+        }
+
+        public bool ShowWinsColumn
+        {
+            get => _settings.ShowWinsColumn;
+            set
+            {
+                _settings.ShowWinsColumn = value;
+                Save();
+            }
+        }
+
+        public bool ShowSniperColumn
+        {
+            get => _settings.ShowSniperColumn;
+            set
+            {
+                _settings.ShowSniperColumn = value;
+                Save();
+            }
+        }
+
+        public double WindowLeft
+        {
+            get => _settings.WindowLeft;
+            set
+            {
+                _settings.WindowLeft = value;
+                Save();
+            }
+        }
+
+        public double WindowTop
+        {
+            get => _settings.WindowTop;
+            set
+            {
+                _settings.WindowTop = value;
+                Save();
+            }
+        }
+
+        public double WindowWidth
+        {
+            get => _settings.WindowWidth;
+            set
+            {
+                _settings.WindowWidth = value;
+                Save();
+            }
+        }
+
+        public double WindowHeight
+        {
+            get => _settings.WindowHeight;
+            set
+            {
+                _settings.WindowHeight = value;
+                Save();
+            }
+        }
+
+        public void SaveWindowBounds(double left, double top, double width, double height)
+        {
+            _settings.WindowLeft = left;
+            _settings.WindowTop = top;
+            _settings.WindowWidth = width;
+            _settings.WindowHeight = height;
+            Save();
         }
 
         private AppSettings LoadSettings()

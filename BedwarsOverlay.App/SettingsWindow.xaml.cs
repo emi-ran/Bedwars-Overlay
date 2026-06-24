@@ -27,6 +27,13 @@ namespace BedwarsOverlay.App
             LogPathBox.Text = _settingsRepository.LogFilePath;
             LocalPlayerBox.Text = _settingsRepository.LocalPlayerName;
             ShowLogDiagnosticsBox.IsChecked = _settingsRepository.ShowLogDiagnostics;
+            ShowLevelColumnBox.IsChecked = _settingsRepository.ShowLevelColumn;
+            ShowWinstreakColumnBox.IsChecked = _settingsRepository.ShowWinstreakColumn;
+            ShowFkdrColumnBox.IsChecked = _settingsRepository.ShowFkdrColumn;
+            ShowWlrColumnBox.IsChecked = _settingsRepository.ShowWlrColumn;
+            ShowFinalKillsColumnBox.IsChecked = _settingsRepository.ShowFinalKillsColumn;
+            ShowWinsColumnBox.IsChecked = _settingsRepository.ShowWinsColumn;
+            ShowSniperColumnBox.IsChecked = _settingsRepository.ShowSniperColumn;
 
             // Set language combo to match saved preference
             string lang = _settingsRepository.Language;
@@ -69,6 +76,7 @@ namespace BedwarsOverlay.App
             LabelLogPath.Text = loc["Label_LogPath"];
             LabelLocalPlayer.Text = loc["Label_LocalPlayer"];
             LabelLanguage.Text = loc["Lang_Label"];
+            LabelVisibleColumns.Text = loc["Label_VisibleColumns"];
             ShortcutsTitleText.Text = loc["Shortcuts_Title"];
             ShortcutsHelpText.Text = loc["Shortcuts_Help"];
             ShowLogDiagnosticsBox.Content = loc["Checkbox_Diagnostics"];
@@ -263,6 +271,13 @@ namespace BedwarsOverlay.App
             _settingsRepository.LocalPlayerName = localName;
             _settingsRepository.ShowLogDiagnostics = showLogDiagnostics;
             _settingsRepository.Language = lang;
+            _settingsRepository.ShowLevelColumn = ShowLevelColumnBox.IsChecked == true;
+            _settingsRepository.ShowWinstreakColumn = ShowWinstreakColumnBox.IsChecked == true;
+            _settingsRepository.ShowFkdrColumn = ShowFkdrColumnBox.IsChecked == true;
+            _settingsRepository.ShowWlrColumn = ShowWlrColumnBox.IsChecked == true;
+            _settingsRepository.ShowFinalKillsColumn = ShowFinalKillsColumnBox.IsChecked == true;
+            _settingsRepository.ShowWinsColumn = ShowWinsColumnBox.IsChecked == true;
+            _settingsRepository.ShowSniperColumn = ShowSniperColumnBox.IsChecked == true;
 
             this.DialogResult = true;
         }

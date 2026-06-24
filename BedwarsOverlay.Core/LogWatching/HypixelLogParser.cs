@@ -20,6 +20,10 @@ namespace BedwarsOverlay.Core.LogWatching
             new Regex(@"ONLINE:\s*(?<names>[a-zA-Z0-9_, ]+)", RegexOptions.Compiled | RegexOptions.IgnoreCase)
         };
 
+        private static readonly Regex FinalKillPattern = new(
+            @"(?:^|\[CHAT\]\s+)(?<victim>[a-zA-Z0-9_]{3,16})\b.*\bFINAL\s+KILL!",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
         private readonly List<Regex> _patterns;
 
         public HypixelLogParser(IEnumerable<string>? customPatterns = null)
@@ -85,6 +89,24 @@ namespace BedwarsOverlay.Core.LogWatching
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Parses Hypixel final kill messages and returns the eliminated player name.
+        /// </summary>
+        public string? ParseFinalKillVictim(string logLine)
+        {
+            if (string.IsNullOrWhiteSpace(logLine)) return null;
+
+            string cleanLine = Regex.Replace(logLine, "§.", "");
+            var match = FinalKillPattern.Match(cleanLine);
+            if (!match.Success)
+            {
+                return null;
+            }
+
+            string victim = match.Groups["victim"].Value;
+            return Regex.IsMatch(victim, "^[a-zA-Z0-9_]{3,16}$") ? victim : null;
         }
     }
 }

@@ -46,16 +46,24 @@ namespace BedwarsOverlay.App
         private MojangClient? _mojangClient;
         private HypixelClient? _hypixelClient;
         private PlayerLookupService? _playerLookupService;
+        private TrayIconService? _trayIconService;
         private bool _showingConfigNeeded;
         private bool _isSettingsOpen;
         private bool _isHiddenMode;
         private bool _needsConfigPrompt;
+        private bool _isExiting;
 
         public MainWindow()
         {
             InitializeComponent();
+            this.SourceInitialized += MainWindow_SourceInitialized;
             this.Loaded += MainWindow_Loaded;
             this.SizeChanged += MainWindow_SizeChanged;
+        }
+
+        private void MainWindow_SourceInitialized(object? sender, EventArgs e)
+        {
+            ClickThroughService.HideFromAltTab(this);
         }
 
         private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -70,6 +78,7 @@ namespace BedwarsOverlay.App
             {
                 _database = new AppDatabase();
                 _settingsRepository = new SettingsRepository();
+                RestoreWindowBounds();
                 _mojangClient = new MojangClient(_httpClient, _database);
                 _hypixelClient = new HypixelClient(_httpClient, _database, _settingsRepository);
             }
@@ -89,6 +98,8 @@ namespace BedwarsOverlay.App
 
             _playerLookupService = new PlayerLookupService(_mojangClient, _hypixelClient, _settingsRepository, AddDiagnosticLine);
             GridLocalizer.ApplyLocalization(PlayersGrid);
+            ApplyColumnVisibility();
+            _trayIconService = new TrayIconService(this, ShowOverlayFromTray, HideOverlayToTray, OpenSettings, ExitFromTray);
 
             // Bind UI Elements
             LogDiagnosticsList.ItemsSource = _diagnosticLines;
@@ -318,13 +329,32 @@ namespace BedwarsOverlay.App
 
             if (_isHiddenMode)
             {
-                _isHiddenMode = false;
-                Show();
+                ShowOverlayFromTray();
                 return;
             }
 
+            HideOverlayToTray();
+        }
+
+        private void ShowOverlayFromTray()
+        {
+            _isHiddenMode = false;
+            Show();
+            Activate();
+            _trayIconService?.RefreshText();
+        }
+
+        private void HideOverlayToTray()
+        {
             _isHiddenMode = true;
             Hide();
+            _trayIconService?.RefreshText();
+        }
+
+        private void ExitFromTray()
+        {
+            _isExiting = true;
+            Close();
         }
 
         private void ApplyPlayMode()
@@ -403,7 +433,7 @@ namespace BedwarsOverlay.App
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
-            this.Close();
+            HideOverlayToTray();
         }
 
         private void SettingsButton_Click(object sender, RoutedEventArgs e)
@@ -460,6 +490,69 @@ namespace BedwarsOverlay.App
             _diagnosticLines.Add(line);
         }
 
+        private void ApplyColumnVisibility()
+        {
+            if (_settingsRepository == null)
+            {
+                return;
+            }
+
+            LevelColumn.Visibility = _settingsRepository.ShowLevelColumn ? Visibility.Visible : Visibility.Collapsed;
+            WinstreakColumn.Visibility = _settingsRepository.ShowWinstreakColumn ? Visibility.Visible : Visibility.Collapsed;
+            FkdrColumn.Visibility = _settingsRepository.ShowFkdrColumn ? Visibility.Visible : Visibility.Collapsed;
+            WlrColumn.Visibility = _settingsRepository.ShowWlrColumn ? Visibility.Visible : Visibility.Collapsed;
+            FinalKillsColumn.Visibility = _settingsRepository.ShowFinalKillsColumn ? Visibility.Visible : Visibility.Collapsed;
+            WinsColumn.Visibility = _settingsRepository.ShowWinsColumn ? Visibility.Visible : Visibility.Collapsed;
+            SniperColumn.Visibility = _settingsRepository.ShowSniperColumn ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private void RestoreWindowBounds()
+        {
+            if (_settingsRepository == null)
+            {
+                return;
+            }
+
+            double left = _settingsRepository.WindowLeft;
+            double top = _settingsRepository.WindowTop;
+            double width = _settingsRepository.WindowWidth;
+            double height = _settingsRepository.WindowHeight;
+            if (double.IsNaN(left) || double.IsNaN(top) || double.IsNaN(width) || double.IsNaN(height))
+            {
+                return;
+            }
+
+            width = Math.Max(MinWidth, width);
+            height = Math.Max(MinHeight, height);
+            var savedBounds = new Rect(left, top, width, height);
+            var screenBounds = new Rect(
+                SystemParameters.VirtualScreenLeft,
+                SystemParameters.VirtualScreenTop,
+                SystemParameters.VirtualScreenWidth,
+                SystemParameters.VirtualScreenHeight);
+
+            if (!screenBounds.IntersectsWith(savedBounds))
+            {
+                return;
+            }
+
+            WindowStartupLocation = WindowStartupLocation.Manual;
+            Left = left;
+            Top = top;
+            Width = width;
+            Height = height;
+        }
+
+        private void SaveWindowBounds()
+        {
+            if (_settingsRepository == null || WindowState == WindowState.Minimized)
+            {
+                return;
+            }
+
+            _settingsRepository.SaveWindowBounds(Left, Top, ActualWidth, ActualHeight);
+        }
+
         private void OpenSettings()
         {
             if (_settingsRepository == null || _isSettingsOpen) return;
@@ -473,6 +566,8 @@ namespace BedwarsOverlay.App
                     // Re-apply localization after settings (language may have changed)
                     LocalizationService.Instance.Initialize(_settingsRepository.Language);
                     GridLocalizer.ApplyLocalization(PlayersGrid);
+                    ApplyColumnVisibility();
+                    _trayIconService?.RefreshText();
                     UpdateTitleBarLayout();
 
                     if (_mojangClient == null && _database != null)
@@ -607,6 +702,28 @@ namespace BedwarsOverlay.App
                     }
 
                     RestoreSorting();
+                }
+                else
+                {
+                    var finalKillVictim = _logParser?.ParseFinalKillVictim(line);
+                    if (!string.IsNullOrWhiteSpace(finalKillVictim))
+                    {
+                        for (int i = 0; i < _players.Count; i++)
+                        {
+                            if (_players[i].Name.Equals(finalKillVictim, StringComparison.OrdinalIgnoreCase))
+                            {
+                                _players.RemoveAt(i);
+                                AddDiagnosticLine($"Removed final-killed player: {finalKillVictim}");
+
+                                if (_players.Count == 0)
+                                {
+                                    PlaceholderPanel.Visibility = Visibility.Visible;
+                                }
+
+                                break;
+                            }
+                        }
+                    }
                 }
             }));
         }
@@ -749,10 +866,24 @@ namespace BedwarsOverlay.App
 
         protected override void OnClosed(EventArgs e)
         {
+            SaveWindowBounds();
+            _trayIconService?.Dispose();
             _playerLookupService?.Dispose();
             _hotkeyService?.Dispose();
             _logTailer?.Stop();
             base.OnClosed(e);
+        }
+
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            if (!_isExiting)
+            {
+                e.Cancel = true;
+                HideOverlayToTray();
+                return;
+            }
+
+            base.OnClosing(e);
         }
     }
 }

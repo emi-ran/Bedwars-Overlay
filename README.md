@@ -10,15 +10,19 @@ Bedwars Overlay is a small Windows overlay for Hypixel Bed Wars players. It read
 
 - Shows players from your `/who` list.
 - Displays useful Bed Wars stats such as level, winstreak, FKDR, WLR, final kills, wins, and sniper risk.
+- Lets you hide or show individual stat columns from Settings.
 - Helps you quickly notice risky lobbies and unusual stats.
+- Removes players from the table when Hypixel logs a `FINAL KILL!` message for them.
 - Starts in edit mode so you can move and resize the overlay.
+- Remembers the overlay position and size between runs.
 - Switches into transparent play mode so it does not block Minecraft.
+- Runs from the system tray; closing the overlay hides it, and the tray menu can show it again or exit the app.
 - Supports English and Turkish.
 
 ## Shortcuts
 
 - `Ctrl+Alt+O`: switch between edit mode and transparent play mode.
-- `Ctrl+Alt+H`: hide or show the overlay.
+- `Ctrl+Alt+H`: hide or show the overlay. Hidden overlays stay available from the system tray.
 
 ## Setup
 
@@ -28,7 +32,8 @@ Bedwars Overlay is a small Windows overlay for Hypixel Bed Wars players. It read
 4. Open Settings.
 5. Add your Hypixel API key.
 6. Check or select your Minecraft `latest.log` path.
-7. Join a Bed Wars lobby and type `/who` in Minecraft.
+7. Optionally choose which stat columns are visible.
+8. Join a Bed Wars lobby and type `/who` in Minecraft.
 
 ![Settings window](docs/assets/settings-window.png)
 
@@ -65,13 +70,13 @@ Install Inno Setup 6 if you want to build the installer:
 Build release artifacts:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.0.0"
+.\scripts\publish-release.ps1 -Version "1.1.0"
 ```
 
 Build and sign release artifacts with a `.pfx` certificate:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.0.0" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
+.\scripts\publish-release.ps1 -Version "1.1.0" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
 ```
 
 The script prompts for the certificate password. Do not commit `.pfx` or `.p12` files.
@@ -82,6 +87,7 @@ By default it signs the app executable, project DLLs, and installer. Use `-SignA
 - Bedwars Overlay is not affiliated with Hypixel.
 - You are responsible for following Hypixel rules and API policies.
 - Keep your API key private.
+- Use the system tray icon to reopen the overlay or fully exit the app.
 
 ## Contributing
 

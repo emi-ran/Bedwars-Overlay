@@ -37,5 +37,30 @@ namespace BedwarsOverlay.Tests
 
             Assert.Null(players);
         }
+
+        [Theory]
+        [InlineData("[03:37:51] [Client thread/INFO]: [CHAT] big_can was knocked into the void by binibirocha. FINAL KILL!", "big_can")]
+        [InlineData("[03:38:04] [Client thread/INFO]: [CHAT] Jotinha1447 was bzzz'd into the void by Scottyy_. FINAL KILL!", "Jotinha1447")]
+        [InlineData("[03:38:14] [Client thread/INFO]: [CHAT] Veqhz was too shy to meet TryHardnt. FINAL KILL!", "Veqhz")]
+        [InlineData("[03:38:14] [Client thread/INFO]: [CHAT] §cVeqhz §rwas too shy to meet TryHardnt. §bFINAL KILL!", "Veqhz")]
+        public void ParseFinalKillVictim_ValidLines_ExtractsVictim(string line, string expectedVictim)
+        {
+            var parser = new HypixelLogParser();
+            var victim = parser.ParseFinalKillVictim(line);
+
+            Assert.Equal(expectedVictim, victim);
+        }
+
+        [Theory]
+        [InlineData("[03:37:51] [Client thread/INFO]: [CHAT] big_can was knocked into the void by binibirocha.")]
+        [InlineData("[03:37:51] [Client thread/INFO]: [CHAT] ab was knocked into the void by binibirocha. FINAL KILL!")]
+        [InlineData("Some random log line")]
+        public void ParseFinalKillVictim_InvalidLines_ReturnsNull(string line)
+        {
+            var parser = new HypixelLogParser();
+            var victim = parser.ParseFinalKillVictim(line);
+
+            Assert.Null(victim);
+        }
     }
 }

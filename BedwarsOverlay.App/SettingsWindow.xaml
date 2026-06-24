@@ -394,6 +394,19 @@
 
                     <CheckBox x:Name="ShowLogDiagnosticsBox" Style="{StaticResource DarkCheckBoxStyle}" Margin="0,0,0,16"/>
 
+                    <TextBlock x:Name="LabelVisibleColumns" Text="Visible Columns" Style="{StaticResource FormLabelStyle}"/>
+                    <Border Background="#141416" BorderBrush="#2D2D30" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,16">
+                        <UniformGrid Columns="4" Rows="2">
+                            <CheckBox x:Name="ShowLevelColumnBox" Content="LVL" Style="{StaticResource DarkCheckBoxStyle}" Margin="0,0,12,10"/>
+                            <CheckBox x:Name="ShowWinstreakColumnBox" Content="WS" Style="{StaticResource DarkCheckBoxStyle}" Margin="0,0,12,10"/>
+                            <CheckBox x:Name="ShowFkdrColumnBox" Content="FKDR" Style="{StaticResource DarkCheckBoxStyle}" Margin="0,0,12,10"/>
+                            <CheckBox x:Name="ShowWlrColumnBox" Content="WLR" Style="{StaticResource DarkCheckBoxStyle}" Margin="0,0,0,10"/>
+                            <CheckBox x:Name="ShowFinalKillsColumnBox" Content="FKILLS" Style="{StaticResource DarkCheckBoxStyle}" Margin="0,0,12,0"/>
+                            <CheckBox x:Name="ShowWinsColumnBox" Content="WINS" Style="{StaticResource DarkCheckBoxStyle}" Margin="0,0,12,0"/>
+                            <CheckBox x:Name="ShowSniperColumnBox" Content="SNIPER" Style="{StaticResource DarkCheckBoxStyle}" Margin="0,0,12,0"/>
+                        </UniformGrid>
+                    </Border>
+
                     <!-- Language Selection -->
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
                         <TextBlock x:Name="LabelLanguage" Style="{StaticResource FormLabelStyle}" VerticalAlignment="Center" Margin="0,0,12,0"/>

@@ -10,15 +10,19 @@ Bedwars Overlay, Hypixel Bed Wars oyuncuları için küçük bir Windows overlay
 
 - `/who` listesindeki oyuncuları gösterir.
 - Level, winstreak, FKDR, WLR, final kills, wins ve sniper riski gibi Bed Wars statlarını gösterir.
+- Ayarlardan tek tek stat kolonlarını gizleyip gösterebilirsin.
 - Riskli lobbyleri ve normal dışı statları daha hızlı fark etmene yardımcı olur.
+- Hypixel loglarında bir oyuncu için `FINAL KILL!` mesajı gelirse o oyuncuyu tablodan siler.
 - İlk açılışta düzenleme modunda gelir; overlay’i istediğin yere taşıyıp boyutlandırabilirsin.
+- Overlay konumunu ve boyutunu sonraki açılış için hatırlar.
 - Play mode’da saydam çalışır ve Minecraft’ı engellemez.
+- Sistem tepsisinden çalışır; overlay’i kapatmak gizler, tepsi menüsünden tekrar açabilir veya uygulamadan çıkabilirsin.
 - Türkçe ve İngilizce destekler.
 
 ## Kısayollar
 
 - `Ctrl+Alt+O`: düzenleme modu ile saydam play mode arasında geçiş yapar.
-- `Ctrl+Alt+H`: overlay’i gizler veya gösterir.
+- `Ctrl+Alt+H`: overlay’i gizler veya gösterir. Gizlenen overlay sistem tepsisinden tekrar açılabilir.
 
 ## Kurulum
 
@@ -28,7 +32,8 @@ Bedwars Overlay, Hypixel Bed Wars oyuncuları için küçük bir Windows overlay
 4. Ayarlar penceresini aç.
 5. Hypixel API key gir.
 6. Minecraft `latest.log` yolunu kontrol et veya seç.
-7. Bed Wars lobby’sine gir ve Minecraft içinde `/who` yaz.
+7. İstersen görünür stat kolonlarını seç.
+8. Bed Wars lobby’sine gir ve Minecraft içinde `/who` yaz.
 
 ![Ayarlar penceresi](docs/assets/settings-window.png)
 
@@ -65,13 +70,13 @@ Installer oluşturmak için Inno Setup 6 kur:
 Release dosyalarını oluştur:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.0.0"
+.\scripts\publish-release.ps1 -Version "1.1.0"
 ```
 
 `.pfx` sertifika ile release dosyalarını imzala:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.0.0" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
+.\scripts\publish-release.ps1 -Version "1.1.0" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
 ```
 
 Script sertifika şifresini sorar. `.pfx` veya `.p12` dosyalarını commit etme.
@@ -82,6 +87,7 @@ Varsayılan olarak uygulama exe dosyasını, proje DLL dosyalarını ve installe
 - Bedwars Overlay, Hypixel ile bağlı veya resmi bir uygulama değildir.
 - Hypixel kurallarına ve API politikalarına uymak senin sorumluluğundadır.
 - API key’ini gizli tut.
+- Overlay’i tekrar açmak veya uygulamadan tamamen çıkmak için sistem tepsisi ikonunu kullan.
 
 ## Katkı
 
