@@ -5,7 +5,10 @@ param(
     [switch]$Sign,
     [switch]$SignAllBinaries,
     [switch]$SkipInstaller,
-    [string]$InnoSetupCompiler
+    [string]$InnoSetupCompiler,
+    [switch]$Help,
+    [Parameter(ValueFromRemainingArguments = $true)]
+    [string[]]$RemainingArguments
 )
 
 $ErrorActionPreference = "Stop"
@@ -17,6 +20,47 @@ $PublishDir = Join-Path $PublishRoot "BedwarsOverlay-$Runtime"
 $ZipPath = Join-Path $PublishRoot "BedwarsOverlay-$Version-$Runtime.zip"
 $InstallerScript = Join-Path $RepoRoot "installer\BedwarsOverlay.iss"
 $InstallerPath = Join-Path $PublishRoot "BedwarsOverlaySetup-$Version-$Runtime.exe"
+
+function Show-Help {
+    @"
+Build BedwarsOverlay release artifacts.
+
+Usage:
+  .\scripts\publish-release.ps1 [options]
+  .\scripts\publish-release.ps1 -Help
+  .\scripts\publish-release.ps1 --help
+
+Options:
+  -Version <value>              Release version. Default: 1.1.0
+  -Runtime <value>              .NET runtime identifier. Default: win-x64
+  -CertificatePath <path>       PFX certificate path. Required with -Sign.
+  -Sign                         Sign published app files and installer.
+  -SignAllBinaries              Sign every .exe and .dll in publish output.
+  -SkipInstaller                Skip Inno Setup installer build.
+  -InnoSetupCompiler <path>     Explicit ISCC.exe path.
+  -Help, --help, -h             Show this help.
+
+Examples:
+  .\scripts\publish-release.ps1 -Version "1.1.0"
+  .\scripts\publish-release.ps1 -Version "1.1.0" -SkipInstaller
+  .\scripts\publish-release.ps1 -Version "1.1.0" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
+  .\scripts\publish-release.ps1 -Version "1.1.0" -Runtime "win-x64" -Sign -SignAllBinaries -CertificatePath ".\Bedwars-Overlay.pfx"
+
+Notes:
+  - With -Sign, certificate password is requested at script start.
+  - Wrong certificate password is rejected immediately and asked again.
+  - Release artifacts are written to .\publish.
+"@
+}
+
+if ($Help -or ($RemainingArguments | Where-Object { $_ -in @("--help", "-h", "/?") }) -or ($MyInvocation.Line -match '(^|\s)--help(\s|$)')) {
+    Show-Help
+    exit 0
+}
+
+if ($RemainingArguments) {
+    throw "Unknown argument(s): $($RemainingArguments -join ', '). Use -Help or --help."
+}
 
 function Find-SignTool {
     $command = Get-Command signtool.exe -ErrorAction SilentlyContinue
@@ -68,6 +112,38 @@ function ConvertTo-PlainText {
     }
 }
 
+function Test-CertificatePassword {
+    param(
+        [string]$CertPath,
+        [string]$Password
+    )
+
+    try {
+        $certificate = New-Object Security.Cryptography.X509Certificates.X509Certificate2($CertPath, $Password)
+        $certificate.Reset()
+        return $true
+    }
+    catch {
+        return $false
+    }
+}
+
+function Read-CertificatePassword {
+    param([string]$CertPath)
+
+    while ($true) {
+        $securePassword = Read-Host "Certificate password" -AsSecureString
+        $password = ConvertTo-PlainText $securePassword
+
+        if (Test-CertificatePassword -CertPath $CertPath -Password $password) {
+            return $password
+        }
+
+        if ($password) { $password = $null }
+        "Certificate password is incorrect. Try again."
+    }
+}
+
 function Sign-Files {
     param(
         [string[]]$FilePaths,
@@ -88,6 +164,14 @@ if (-not (Test-Path -LiteralPath $ProjectPath)) {
 
 New-Item -ItemType Directory -Force -Path $PublishRoot | Out-Null
 
+$signPassword = $null
+if ($Sign) {
+    if (-not $CertificatePath) { throw "Use -CertificatePath when -Sign is set." }
+    if (-not (Test-Path -LiteralPath $CertificatePath)) { throw "Certificate not found: $CertificatePath" }
+
+    $signPassword = Read-CertificatePassword -CertPath $CertificatePath
+}
+
 if (Test-Path -LiteralPath $PublishDir) {
     Remove-Item -LiteralPath $PublishDir -Recurse -Force
 }
@@ -98,15 +182,8 @@ if ($LASTEXITCODE -ne 0) { throw "Tests failed." }
 dotnet publish $ProjectPath -c Release -r $Runtime --self-contained true -o $PublishDir
 if ($LASTEXITCODE -ne 0) { throw "Publish failed." }
 
-$signPassword = $null
-if ($Sign) {
-    if (-not $CertificatePath) { throw "Use -CertificatePath when -Sign is set." }
-    if (-not (Test-Path -LiteralPath $CertificatePath)) { throw "Certificate not found: $CertificatePath" }
-
-    $securePassword = Read-Host "Certificate password" -AsSecureString
-    $signPassword = ConvertTo-PlainText $securePassword
-
-    try {
+try {
+    if ($Sign) {
         if ($SignAllBinaries) {
             $filesToSign = Get-ChildItem -LiteralPath $PublishDir -Recurse -File |
                 Where-Object { $_.Extension -in @(".exe", ".dll") } |
@@ -122,32 +199,25 @@ if ($Sign) {
 
         Sign-Files -FilePaths $filesToSign -CertPath $CertificatePath -Password $signPassword
     }
-    finally {
-        if ($signPassword) { $signPassword = $null }
+
+    if (Test-Path -LiteralPath $ZipPath) {
+        Remove-Item -LiteralPath $ZipPath -Force
     }
-}
+    Compress-Archive -Path (Join-Path $PublishDir "*") -DestinationPath $ZipPath -Force
 
-if (Test-Path -LiteralPath $ZipPath) {
-    Remove-Item -LiteralPath $ZipPath -Force
-}
-Compress-Archive -Path (Join-Path $PublishDir "*") -DestinationPath $ZipPath -Force
+    if (-not $SkipInstaller) {
+        $iscc = Find-InnoSetupCompiler -ExplicitPath $InnoSetupCompiler
+        $env:BEDWARS_OVERLAY_VERSION = $Version
+        & $iscc $InstallerScript
+        if ($LASTEXITCODE -ne 0) { throw "Installer build failed." }
 
-if (-not $SkipInstaller) {
-    $iscc = Find-InnoSetupCompiler -ExplicitPath $InnoSetupCompiler
-    $env:BEDWARS_OVERLAY_VERSION = $Version
-    & $iscc $InstallerScript
-    if ($LASTEXITCODE -ne 0) { throw "Installer build failed." }
-
-    if ($Sign) {
-        $securePassword = Read-Host "Certificate password for installer" -AsSecureString
-        $installerPassword = ConvertTo-PlainText $securePassword
-        try {
-            Sign-Files -FilePaths @($InstallerPath) -CertPath $CertificatePath -Password $installerPassword
-        }
-        finally {
-            if ($installerPassword) { $installerPassword = $null }
+        if ($Sign) {
+            Sign-Files -FilePaths @($InstallerPath) -CertPath $CertificatePath -Password $signPassword
         }
     }
+}
+finally {
+    if ($signPassword) { $signPassword = $null }
 }
 
 "Release artifacts:"
