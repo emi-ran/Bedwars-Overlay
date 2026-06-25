@@ -119,11 +119,16 @@ function Test-CertificatePassword {
     )
 
     try {
-        $certificate = New-Object Security.Cryptography.X509Certificates.X509Certificate2($CertPath, $Password)
+        $certificate = New-Object Security.Cryptography.X509Certificates.X509Certificate2(
+            $CertPath,
+            $Password,
+            [Security.Cryptography.X509Certificates.X509KeyStorageFlags]::UserKeySet
+        )
         $certificate.Reset()
         return $true
     }
     catch {
+        Write-Host "Certificate password rejected: $($_.Exception.Message)" -ForegroundColor Yellow
         return $false
     }
 }
@@ -169,6 +174,7 @@ if ($Sign) {
     if (-not $CertificatePath) { throw "Use -CertificatePath when -Sign is set." }
     if (-not (Test-Path -LiteralPath $CertificatePath)) { throw "Certificate not found: $CertificatePath" }
 
+    $CertificatePath = (Resolve-Path -LiteralPath $CertificatePath).Path
     $signPassword = Read-CertificatePassword -CertPath $CertificatePath
 }
 
