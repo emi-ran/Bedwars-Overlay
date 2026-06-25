@@ -65,6 +65,38 @@ public class UnitTest1
     }
 
     [Fact]
+    public void TestSettingsRepositoryDoesNotOverwriteNewerSettingsFromOtherInstances()
+    {
+        var staleRepo = new BedwarsOverlay.Core.Storage.SettingsRepository();
+        var newerRepo = new BedwarsOverlay.Core.Storage.SettingsRepository();
+
+        string originalLocalPlayerName = staleRepo.LocalPlayerName;
+        double originalLeft = staleRepo.WindowLeft;
+        double originalTop = staleRepo.WindowTop;
+        double originalWidth = staleRepo.WindowWidth;
+        double originalHeight = staleRepo.WindowHeight;
+
+        try
+        {
+            newerRepo.LocalPlayerName = "RepoMergeTest";
+            staleRepo.SaveWindowBounds(11, 22, 333, 444);
+
+            var repoAfterSave = new BedwarsOverlay.Core.Storage.SettingsRepository();
+            Assert.Equal("RepoMergeTest", repoAfterSave.LocalPlayerName);
+            Assert.Equal(11, repoAfterSave.WindowLeft);
+            Assert.Equal(22, repoAfterSave.WindowTop);
+            Assert.Equal(333, repoAfterSave.WindowWidth);
+            Assert.Equal(444, repoAfterSave.WindowHeight);
+        }
+        finally
+        {
+            var restoreRepo = new BedwarsOverlay.Core.Storage.SettingsRepository();
+            restoreRepo.LocalPlayerName = originalLocalPlayerName;
+            restoreRepo.SaveWindowBounds(originalLeft, originalTop, originalWidth, originalHeight);
+        }
+    }
+
+    [Fact]
     public void TestPlayerRowPropertyChangedNotification()
     {
         var row = PlayerRow.CreateLoading("Test", false);

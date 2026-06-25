@@ -85,13 +85,13 @@ Install Inno Setup 6 if you want to build the installer:
 Build release artifacts:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.2.0"
+.\scripts\publish-release.ps1 -Version "1.3.0"
 ```
 
 Build and sign release artifacts with a `.pfx` certificate:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.2.0" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
+.\scripts\publish-release.ps1 -Version "1.3.0" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
 ```
 
 The script prompts for the certificate password. Do not commit `.pfx` or `.p12` files.

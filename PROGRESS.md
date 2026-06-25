@@ -23,6 +23,7 @@ Develop a **Windows-only external stats overlay** for Minecraft BedWars. The app
 - **Target framework:** all projects target `net8.0-windows`.
 - **Storage:** settings and cache data are stored under `%LOCALAPPDATA%\BedwarsOverlay`.
 - **Security:** Hypixel API key is encrypted locally with Windows DPAPI before being saved to JSON settings.
+- **Main window organization:** `MainWindow` is split into partial code-behind files by concern: startup/lifecycle, window state, grid/search, log handling, player commands, settings, updates, and onboarding.
 
 ---
 
@@ -52,7 +53,11 @@ Develop a **Windows-only external stats overlay** for Minecraft BedWars. The app
 - Saves and restores window position and size between runs.
 - Hides from taskbar and Alt-Tab in play mode, appears there in edit mode, and keeps a system tray icon.
 - Closing the overlay hides it to tray; tray menu can show/hide, open settings, or exit the app.
+- Uses a named mutex so a second launch exits before opening another overlay process.
+- Checks GitHub latest release for updates, shows localized update prompts, supports skipping a specific version, and exposes an edit-mode update button when an update is available.
+- Shows the current app version in Settings.
 - Disables maximize/Aero snap behavior for the overlay window.
+- Merges settings writes with the latest on-disk settings so stale repository instances do not overwrite newer saved fields.
 - Includes release packaging script and Inno Setup installer script.
 
 ---
@@ -85,6 +90,13 @@ BedwarsOverlay/
 │  ├─ AssemblyInfo.cs
 │  ├─ MainWindow.xaml
 │  ├─ MainWindow.xaml.cs
+│  ├─ MainWindow.Grid.cs
+│  ├─ MainWindow.Log.cs
+│  ├─ MainWindow.Onboarding.cs
+│  ├─ MainWindow.PlayerCommands.cs
+│  ├─ MainWindow.Settings.cs
+│  ├─ MainWindow.Update.cs
+│  ├─ MainWindow.WindowState.cs
 │  ├─ SettingsWindow.xaml
 │  ├─ SettingsWindow.xaml.cs
 │  ├─ Assets/
@@ -97,7 +109,8 @@ BedwarsOverlay/
 │     ├─ HotkeyService.cs
 │     ├─ LocalizationService.cs
 │     ├─ PlayerLookupService.cs
-│     └─ TrayIconService.cs
+│     ├─ TrayIconService.cs
+│     └─ UpdateCheckService.cs
 ├─ BedwarsOverlay.Core/
 │  ├─ BedwarsOverlay.Core.csproj
 │  ├─ Api/

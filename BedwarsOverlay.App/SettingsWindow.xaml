@@ -456,7 +456,11 @@
                                 <TextBlock x:Name="GitHubButtonText" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <TextBlock Grid.Column="1" x:Name="LicenseText" Foreground="#71717A" FontSize="11" FontFamily="Segoe UI" VerticalAlignment="Center" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="12,0"/>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="12,0">
+                            <TextBlock x:Name="AppVersionText" Foreground="#A1A1AA" FontSize="11" FontFamily="Segoe UI" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Text="  •  " Foreground="#52525B" FontSize="11" FontFamily="Segoe UI" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="LicenseText" Foreground="#71717A" FontSize="11" FontFamily="Segoe UI" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                        </StackPanel>
                         <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                             <Button x:Name="BtnCancel" Style="{StaticResource SecondaryButtonStyle}" Click="CancelButton_Click" Width="80" Margin="0,0,10,0"/>
                             <Button x:Name="BtnSaveSettings" Style="{StaticResource PrimaryButtonStyle}" Click="SaveButton_Click" Width="110"/>

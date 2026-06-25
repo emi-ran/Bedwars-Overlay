@@ -33,12 +33,14 @@ namespace BedwarsOverlay.Core.Storage
         public double WindowTop { get; set; } = double.NaN;
         public double WindowWidth { get; set; } = double.NaN;
         public double WindowHeight { get; set; } = double.NaN;
+        public string SkippedUpdateVersion { get; set; } = string.Empty;
     }
 
     public class SettingsRepository
     {
         private readonly string _settingsFilePath;
         private AppSettings _settings;
+        private readonly HashSet<string> _dirtyProperties = new();
 
         public SettingsRepository()
         {
@@ -68,6 +70,7 @@ namespace BedwarsOverlay.Core.Storage
             set
             {
                 _settings.LogFilePath = value;
+                _dirtyProperties.Add(nameof(AppSettings.LogFilePath));
                 Save();
             }
         }
@@ -81,6 +84,7 @@ namespace BedwarsOverlay.Core.Storage
             set
             {
                 _settings.CacheTtlMinutes = value;
+                _dirtyProperties.Add(nameof(AppSettings.CacheTtlMinutes));
                 Save();
             }
         }
@@ -94,6 +98,7 @@ namespace BedwarsOverlay.Core.Storage
             set
             {
                 _settings.LocalPlayerName = value;
+                _dirtyProperties.Add(nameof(AppSettings.LocalPlayerName));
                 Save();
             }
         }
@@ -107,6 +112,7 @@ namespace BedwarsOverlay.Core.Storage
             set
             {
                 _settings.ShowLogDiagnostics = value;
+                _dirtyProperties.Add(nameof(AppSettings.ShowLogDiagnostics));
                 Save();
             }
         }
@@ -117,6 +123,7 @@ namespace BedwarsOverlay.Core.Storage
             set
             {
                 _settings.IgnorePartyPlayers = value;
+                _dirtyProperties.Add(nameof(AppSettings.IgnorePartyPlayers));
                 Save();
             }
         }
@@ -127,6 +134,7 @@ namespace BedwarsOverlay.Core.Storage
             set
             {
                 _settings.IgnoreLocalPlayer = value;
+                _dirtyProperties.Add(nameof(AppSettings.IgnoreLocalPlayer));
                 Save();
             }
         }
@@ -137,6 +145,7 @@ namespace BedwarsOverlay.Core.Storage
             set
             {
                 _settings.IgnoredPlayers = value;
+                _dirtyProperties.Add(nameof(AppSettings.IgnoredPlayers));
                 Save();
             }
         }
@@ -181,6 +190,7 @@ namespace BedwarsOverlay.Core.Storage
             set
             {
                 _settings.SortColumn = value;
+                _dirtyProperties.Add(nameof(AppSettings.SortColumn));
                 Save();
             }
         }
@@ -194,6 +204,7 @@ namespace BedwarsOverlay.Core.Storage
             set
             {
                 _settings.SortDirection = value;
+                _dirtyProperties.Add(nameof(AppSettings.SortDirection));
                 Save();
             }
         }
@@ -208,6 +219,7 @@ namespace BedwarsOverlay.Core.Storage
             set
             {
                 _settings.Language = value;
+                _dirtyProperties.Add(nameof(AppSettings.Language));
                 Save();
             }
         }
@@ -221,6 +233,7 @@ namespace BedwarsOverlay.Core.Storage
             set
             {
                 _settings.HasCompletedOnboarding = value;
+                _dirtyProperties.Add(nameof(AppSettings.HasCompletedOnboarding));
                 Save();
             }
         }
@@ -268,6 +281,7 @@ namespace BedwarsOverlay.Core.Storage
                         _settings.HypixelApiKeyEncrypted = string.Empty;
                     }
                 }
+                _dirtyProperties.Add(nameof(AppSettings.HypixelApiKeyEncrypted));
                 Save();
             }
         }
@@ -278,6 +292,7 @@ namespace BedwarsOverlay.Core.Storage
             set
             {
                 _settings.ShowLevelColumn = value;
+                _dirtyProperties.Add(nameof(AppSettings.ShowLevelColumn));
                 Save();
             }
         }
@@ -288,6 +303,7 @@ namespace BedwarsOverlay.Core.Storage
             set
             {
                 _settings.ShowWinstreakColumn = value;
+                _dirtyProperties.Add(nameof(AppSettings.ShowWinstreakColumn));
                 Save();
             }
         }
@@ -298,6 +314,7 @@ namespace BedwarsOverlay.Core.Storage
             set
             {
                 _settings.ShowFkdrColumn = value;
+                _dirtyProperties.Add(nameof(AppSettings.ShowFkdrColumn));
                 Save();
             }
         }
@@ -308,6 +325,7 @@ namespace BedwarsOverlay.Core.Storage
             set
             {
                 _settings.ShowWlrColumn = value;
+                _dirtyProperties.Add(nameof(AppSettings.ShowWlrColumn));
                 Save();
             }
         }
@@ -318,6 +336,7 @@ namespace BedwarsOverlay.Core.Storage
             set
             {
                 _settings.ShowFinalKillsColumn = value;
+                _dirtyProperties.Add(nameof(AppSettings.ShowFinalKillsColumn));
                 Save();
             }
         }
@@ -328,6 +347,7 @@ namespace BedwarsOverlay.Core.Storage
             set
             {
                 _settings.ShowWinsColumn = value;
+                _dirtyProperties.Add(nameof(AppSettings.ShowWinsColumn));
                 Save();
             }
         }
@@ -338,6 +358,7 @@ namespace BedwarsOverlay.Core.Storage
             set
             {
                 _settings.ShowSniperColumn = value;
+                _dirtyProperties.Add(nameof(AppSettings.ShowSniperColumn));
                 Save();
             }
         }
@@ -348,6 +369,7 @@ namespace BedwarsOverlay.Core.Storage
             set
             {
                 _settings.WindowLeft = value;
+                _dirtyProperties.Add(nameof(AppSettings.WindowLeft));
                 Save();
             }
         }
@@ -358,6 +380,7 @@ namespace BedwarsOverlay.Core.Storage
             set
             {
                 _settings.WindowTop = value;
+                _dirtyProperties.Add(nameof(AppSettings.WindowTop));
                 Save();
             }
         }
@@ -368,6 +391,7 @@ namespace BedwarsOverlay.Core.Storage
             set
             {
                 _settings.WindowWidth = value;
+                _dirtyProperties.Add(nameof(AppSettings.WindowWidth));
                 Save();
             }
         }
@@ -378,6 +402,7 @@ namespace BedwarsOverlay.Core.Storage
             set
             {
                 _settings.WindowHeight = value;
+                _dirtyProperties.Add(nameof(AppSettings.WindowHeight));
                 Save();
             }
         }
@@ -388,7 +413,22 @@ namespace BedwarsOverlay.Core.Storage
             _settings.WindowTop = top;
             _settings.WindowWidth = width;
             _settings.WindowHeight = height;
+            _dirtyProperties.Add(nameof(AppSettings.WindowLeft));
+            _dirtyProperties.Add(nameof(AppSettings.WindowTop));
+            _dirtyProperties.Add(nameof(AppSettings.WindowWidth));
+            _dirtyProperties.Add(nameof(AppSettings.WindowHeight));
             Save();
+        }
+
+        public string SkippedUpdateVersion
+        {
+            get => _settings.SkippedUpdateVersion;
+            set
+            {
+                _settings.SkippedUpdateVersion = value;
+                _dirtyProperties.Add(nameof(AppSettings.SkippedUpdateVersion));
+                Save();
+            }
         }
 
         private AppSettings LoadSettings()
@@ -417,12 +457,98 @@ namespace BedwarsOverlay.Core.Storage
         {
             try
             {
-                string json = JsonSerializer.Serialize(_settings, new JsonSerializerOptions { WriteIndented = true });
+                AppSettings latestSettings = LoadSettings();
+                ApplyDirtySettings(latestSettings);
+                string json = JsonSerializer.Serialize(latestSettings, new JsonSerializerOptions { WriteIndented = true });
                 File.WriteAllText(_settingsFilePath, json);
+                _settings = latestSettings;
+                _dirtyProperties.Clear();
             }
             catch
             {
                 // Suppress save issues for reliability
+            }
+        }
+
+        private void ApplyDirtySettings(AppSettings target)
+        {
+            foreach (string propertyName in _dirtyProperties)
+            {
+                switch (propertyName)
+                {
+                    case nameof(AppSettings.HypixelApiKeyEncrypted):
+                        target.HypixelApiKeyEncrypted = _settings.HypixelApiKeyEncrypted;
+                        break;
+                    case nameof(AppSettings.LogFilePath):
+                        target.LogFilePath = _settings.LogFilePath;
+                        break;
+                    case nameof(AppSettings.CacheTtlMinutes):
+                        target.CacheTtlMinutes = _settings.CacheTtlMinutes;
+                        break;
+                    case nameof(AppSettings.LocalPlayerName):
+                        target.LocalPlayerName = _settings.LocalPlayerName;
+                        break;
+                    case nameof(AppSettings.ShowLogDiagnostics):
+                        target.ShowLogDiagnostics = _settings.ShowLogDiagnostics;
+                        break;
+                    case nameof(AppSettings.IgnorePartyPlayers):
+                        target.IgnorePartyPlayers = _settings.IgnorePartyPlayers;
+                        break;
+                    case nameof(AppSettings.IgnoreLocalPlayer):
+                        target.IgnoreLocalPlayer = _settings.IgnoreLocalPlayer;
+                        break;
+                    case nameof(AppSettings.IgnoredPlayers):
+                        target.IgnoredPlayers = _settings.IgnoredPlayers;
+                        break;
+                    case nameof(AppSettings.SortColumn):
+                        target.SortColumn = _settings.SortColumn;
+                        break;
+                    case nameof(AppSettings.SortDirection):
+                        target.SortDirection = _settings.SortDirection;
+                        break;
+                    case nameof(AppSettings.Language):
+                        target.Language = _settings.Language;
+                        break;
+                    case nameof(AppSettings.HasCompletedOnboarding):
+                        target.HasCompletedOnboarding = _settings.HasCompletedOnboarding;
+                        break;
+                    case nameof(AppSettings.ShowLevelColumn):
+                        target.ShowLevelColumn = _settings.ShowLevelColumn;
+                        break;
+                    case nameof(AppSettings.ShowWinstreakColumn):
+                        target.ShowWinstreakColumn = _settings.ShowWinstreakColumn;
+                        break;
+                    case nameof(AppSettings.ShowFkdrColumn):
+                        target.ShowFkdrColumn = _settings.ShowFkdrColumn;
+                        break;
+                    case nameof(AppSettings.ShowWlrColumn):
+                        target.ShowWlrColumn = _settings.ShowWlrColumn;
+                        break;
+                    case nameof(AppSettings.ShowFinalKillsColumn):
+                        target.ShowFinalKillsColumn = _settings.ShowFinalKillsColumn;
+                        break;
+                    case nameof(AppSettings.ShowWinsColumn):
+                        target.ShowWinsColumn = _settings.ShowWinsColumn;
+                        break;
+                    case nameof(AppSettings.ShowSniperColumn):
+                        target.ShowSniperColumn = _settings.ShowSniperColumn;
+                        break;
+                    case nameof(AppSettings.WindowLeft):
+                        target.WindowLeft = _settings.WindowLeft;
+                        break;
+                    case nameof(AppSettings.WindowTop):
+                        target.WindowTop = _settings.WindowTop;
+                        break;
+                    case nameof(AppSettings.WindowWidth):
+                        target.WindowWidth = _settings.WindowWidth;
+                        break;
+                    case nameof(AppSettings.WindowHeight):
+                        target.WindowHeight = _settings.WindowHeight;
+                        break;
+                    case nameof(AppSettings.SkippedUpdateVersion):
+                        target.SkippedUpdateVersion = _settings.SkippedUpdateVersion;
+                        break;
+                }
             }
         }
     }

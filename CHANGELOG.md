@@ -2,6 +2,14 @@
 
 All notable user-facing changes to Bedwars Overlay are tracked here.
 
+## 1.3.0 - 2026-06-25
+
+- Added single-instance startup guard so launching the app twice does not open a second overlay process.
+- Added GitHub latest-release update checks with localized prompts, skip-version support, and an edit-mode update button.
+- Added app version display to Settings.
+- Refactored `MainWindow` code-behind into focused partial files for startup, window state, grid behavior, log handling, player commands, settings, updates, and onboarding.
+- Fixed settings persistence so stale app instances cannot overwrite newer saved settings when saving another field such as window bounds.
+
 ## 1.2.0 - 2026-06-25
 
 - Added overlay chat commands read from Minecraft log output: `/bwstats`, `/bwignore`, `/bwclear`, and `/bwhelp`.

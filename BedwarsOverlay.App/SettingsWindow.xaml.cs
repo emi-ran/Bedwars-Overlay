@@ -93,6 +93,7 @@ namespace BedwarsOverlay.App
             BtnCancel.Content = loc["Button_Cancel"];
             BtnSaveSettings.Content = loc["Button_SaveSettings"];
             GitHubButtonText.Text = loc["Button_GitHub"];
+            AppVersionText.Text = loc["App_Version"].Replace("{0}", UpdateCheckService.CurrentVersion);
             LicenseText.Text = loc["Footer_License"];
             ApiKeyStatusText.Text = loc["ApiKey_StatusIdle"];
 

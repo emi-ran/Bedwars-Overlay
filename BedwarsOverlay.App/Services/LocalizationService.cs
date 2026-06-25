@@ -152,6 +152,7 @@ namespace BedwarsOverlay.App.Services
             // MainWindow - Tooltips
             ["Tooltip_ClearPlayers"] = "Clear current player list",
             ["Tooltip_Settings"] = "Settings",
+            ["Update_Button"] = "Update available: {0}",
 
             // MainWindow - Search
             ["Search_Placeholder"] = "Search player(s)",
@@ -208,6 +209,8 @@ namespace BedwarsOverlay.App.Services
             ["Clipboard_Error"] = "Failed to copy to clipboard: {0}",
             ["Plancke_Error"] = "Failed to open Plancke link: {0}",
             ["OpenUrl_Error"] = "Failed to open link: {0}",
+            ["Update_Title"] = "Update Available",
+            ["Update_Prompt"] = "A new Bedwars Overlay version is available.\n\nCurrent version: {0}\nLatest version: {1}\n\nYes: open download page\nNo: remind me later\nCancel: skip this version",
             ["Shortcuts_Title"] = "Shortcuts",
             ["Shortcuts_Help"] = "Ctrl+Alt+O toggles edit mode. Ctrl+Alt+H hides or shows the overlay. Use /bwstats name(s) to load specific players and /bwignore name(s) to hide players.",
             ["Onboarding_Title"] = "Welcome to Bedwars Overlay",
@@ -234,6 +237,7 @@ namespace BedwarsOverlay.App.Services
             ["Button_Cancel"] = "Cancel",
             ["Button_SaveSettings"] = "Save Settings",
             ["Button_GitHub"] = "GitHub",
+            ["App_Version"] = "Version {0}",
             ["ApiKey_StatusIdle"] = "Use a Hypixel developer API key.",
             ["ApiKey_StatusChecking"] = "Checking API key...",
             ["ApiKey_StatusValid"] = "API key is valid.",

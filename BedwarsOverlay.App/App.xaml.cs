@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
@@ -9,8 +10,20 @@ namespace BedwarsOverlay.App
 {
     public partial class App : System.Windows.Application
     {
+        private const string SingleInstanceMutexName = "Local\\BedwarsOverlay.App.SingleInstance";
+        private Mutex? _singleInstanceMutex;
+
         protected override void OnStartup(StartupEventArgs e)
         {
+            _singleInstanceMutex = new Mutex(true, SingleInstanceMutexName, out bool createdNew);
+            if (!createdNew)
+            {
+                _singleInstanceMutex.Dispose();
+                _singleInstanceMutex = null;
+                Shutdown();
+                return;
+            }
+
             base.OnStartup(e);
 
             // Handle UI thread exceptions
@@ -23,6 +36,14 @@ namespace BedwarsOverlay.App
             TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
             EventManager.RegisterClassHandler(typeof(Window), Window.LoadedEvent, new RoutedEventHandler(Window_Loaded));
+        }
+
+        protected override void OnExit(ExitEventArgs e)
+        {
+            _singleInstanceMutex?.ReleaseMutex();
+            _singleInstanceMutex?.Dispose();
+            _singleInstanceMutex = null;
+            base.OnExit(e);
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
