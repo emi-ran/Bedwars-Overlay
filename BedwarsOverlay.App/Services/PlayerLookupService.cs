@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -11,7 +12,19 @@ using BedwarsOverlay.Core.Storage;
 namespace BedwarsOverlay.App.Services
 {
     /// <summary>
-    /// Handles async player resolution (Mojang UUID lookup → Hypixel stats → row update).
+    /// Repeat-opponent data for the batch of players currently being resolved.
+    /// </summary>
+    public sealed class EncounterContext
+    {
+        public long? MatchId { get; init; }
+        public IReadOnlyDictionary<string, int> RepeatCounts { get; init; } = new Dictionary<string, int>();
+        public int MinCount { get; init; } = 2;
+        public int Lookback { get; init; } = 10;
+    }
+
+    /// <summary>
+    /// Handles async player resolution (Mojang UUID lookup → Hypixel stats → row update) and
+    /// records the players of the running match for repeat-opponent detection.
     /// Owns cancellation token source for stale lookup cancellation.
     /// </summary>
     public sealed class PlayerLookupService : IDisposable
@@ -19,19 +32,23 @@ namespace BedwarsOverlay.App.Services
         private readonly MojangClient _mojangClient;
         private readonly HypixelClient _hypixelClient;
         private readonly SettingsRepository _settingsRepository;
+        private readonly EncounterRepository? _encounterRepository;
         private readonly Action<string> _addDiagnosticLine;
         private CancellationTokenSource? _cts;
+        private EncounterContext? _encounterContext;
 
         public PlayerLookupService(
             MojangClient mojangClient,
             HypixelClient hypixelClient,
             SettingsRepository settingsRepository,
-            Action<string> addDiagnosticLine)
+            Action<string> addDiagnosticLine,
+            EncounterRepository? encounterRepository = null)
         {
             _mojangClient = mojangClient;
             _hypixelClient = hypixelClient;
             _settingsRepository = settingsRepository;
             _addDiagnosticLine = addDiagnosticLine;
+            _encounterRepository = encounterRepository;
         }
 
         /// <summary>Cancel any in-flight lookups and return a fresh cancellation token.</summary>
@@ -48,6 +65,12 @@ namespace BedwarsOverlay.App.Services
             _cts?.Cancel();
             _cts?.Dispose();
             _cts = null;
+        }
+
+        /// <summary>Repeat-opponent data applied to the rows of the next resolution batch.</summary>
+        public void SetEncounterContext(EncounterContext? context)
+        {
+            _encounterContext = context;
         }
 
         public async Task ResolvePlayerAsync(string name, PlayerRow row, CancellationToken cancellationToken)
@@ -71,6 +94,15 @@ namespace BedwarsOverlay.App.Services
                         _ => "NICKED_OR_UNKNOWN"
                     };
                     _addDiagnosticLine($"{name}: {statusText}");
+
+                    // Nicks are random per game, so a nicked name is never remembered; a real name that
+                    // Mojang temporarily cannot resolve still is.
+                    if (mojangResult.Status != MojangLookupStatus.NickedOrUnknown)
+                    {
+                        RecordEncounter(null, name);
+                    }
+
+                    int repeatCount = GetRepeatCount(name, null);
                     Application.Current.Dispatcher.Invoke(() =>
                     {
                         row.StatusText = statusText;
@@ -81,10 +113,15 @@ namespace BedwarsOverlay.App.Services
                         row.Wlr = "?";
                         row.FinalKills = "?";
                         row.Wins = "?";
-                        row.Sniper = "?";
+                        row.Threat = "?";
+                        ApplyRepeatInfo(row, repeatCount);
                     });
                     return;
                 }
+
+                // The player was in this match even if Hypixel cannot answer right now.
+                RecordEncounter(mojangResult.Uuid, name);
+                int resolvedRepeatCount = GetRepeatCount(name, mojangResult.Uuid);
 
                 // 2. Fetch Hypixel stats JSON (with automatic DB caching and rate limit check)
                 var hypixelResult = await _hypixelClient.GetPlayerAsync(mojangResult.Uuid);
@@ -111,7 +148,8 @@ namespace BedwarsOverlay.App.Services
                         row.Wlr = "-";
                         row.FinalKills = "-";
                         row.Wins = "-";
-                        row.Sniper = "-";
+                        row.Threat = "-";
+                        ApplyRepeatInfo(row, resolvedRepeatCount);
                     });
                     return;
                 }
@@ -131,7 +169,7 @@ namespace BedwarsOverlay.App.Services
                 string localName = _settingsRepository.LocalPlayerName;
                 bool isLocalPlayer = !string.IsNullOrEmpty(localName) && name.Equals(localName, StringComparison.OrdinalIgnoreCase);
 
-                string sniperStr = $"{CalculateThreatPercentage(stats):F1}%";
+                var threat = ThreatScorer.Score(stats, resolvedRepeatCount, _encounterContext?.Lookback ?? 0);
 
                 Application.Current.Dispatcher.Invoke(() =>
                 {
@@ -143,11 +181,13 @@ namespace BedwarsOverlay.App.Services
                         stats.Wlr,
                         stats.FinalKills,
                         stats.Wins,
-                        sniperStr,
+                        threat,
                         isLocalPlayer,
                         rankBrush,
                         stats.GetRankTag()
                     );
+
+                    ApplyRepeatInfo(row, resolvedRepeatCount);
                 });
             }
             catch (OperationCanceledException)
@@ -164,20 +204,60 @@ namespace BedwarsOverlay.App.Services
             }
         }
 
-        public static double CalculateThreatPercentage(BedwarsStats stats)
+        private void RecordEncounter(string? uuid, string name)
         {
-            double threatPct;
-            if (stats.Fkdr >= 10.0) threatPct = stats.Fkdr * 1.5;
-            else if (stats.Fkdr >= 5.0) threatPct = stats.Fkdr;
-            else if (stats.Fkdr >= 1.0) threatPct = stats.Fkdr * 0.5;
-            else threatPct = stats.Fkdr * 0.2;
-
-            if (stats.HasWinstreak && stats.Winstreak > 5)
+            var context = _encounterContext;
+            if (_encounterRepository == null || context?.MatchId == null)
             {
-                threatPct += stats.Winstreak * 0.8;
+                return;
             }
 
-            return Math.Min(threatPct, 100.0);
+            try
+            {
+                _encounterRepository.RecordPlayers(context.MatchId.Value, new[] { (uuid, name) });
+            }
+            catch (Exception ex)
+            {
+                _addDiagnosticLine($"{name}: encounter not stored ({ex.Message})");
+            }
+        }
+
+        private int GetRepeatCount(string name, string? uuid)
+        {
+            var counts = _encounterContext?.RepeatCounts;
+            if (counts == null)
+            {
+                return 0;
+            }
+
+            int best = 0;
+            if (!string.IsNullOrWhiteSpace(name) && counts.TryGetValue(name.ToLowerInvariant(), out int byName))
+            {
+                best = byName;
+            }
+
+            if (!string.IsNullOrWhiteSpace(uuid) && counts.TryGetValue(uuid.ToLowerInvariant(), out int byUuid))
+            {
+                best = Math.Max(best, byUuid);
+            }
+
+            return best;
+        }
+
+        private void ApplyRepeatInfo(PlayerRow row, int repeatCount)
+        {
+            var context = _encounterContext;
+            if (_settingsRepository?.HighlightRepeatOpponents != true || context == null || repeatCount <= 0)
+            {
+                row.ApplyEncounterInfo(0, 1, string.Empty);
+                return;
+            }
+
+            string tooltip = LocalizationService.Instance["Repeat_Tooltip"]
+                .Replace("{0}", repeatCount.ToString())
+                .Replace("{1}", context.Lookback.ToString());
+
+            row.ApplyEncounterInfo(repeatCount, context.MinCount, tooltip);
         }
     }
 }

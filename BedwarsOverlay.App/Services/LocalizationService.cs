@@ -53,7 +53,7 @@ namespace BedwarsOverlay.App.Services
         public string Column_WLR => GetString("Column_WLR");
         public string Column_FKills => GetString("Column_FKills");
         public string Column_Wins => GetString("Column_Wins");
-        public string Column_Sniper => GetString("Column_Sniper");
+        public string Column_Threat => GetString("Column_Threat");
         public string Tooltip_Lvl => GetString("Tooltip_Lvl");
         public string Tooltip_Name => GetString("Tooltip_Name");
         public string Tooltip_WS => GetString("Tooltip_WS");
@@ -61,7 +61,7 @@ namespace BedwarsOverlay.App.Services
         public string Tooltip_WLR => GetString("Tooltip_WLR");
         public string Tooltip_FKills => GetString("Tooltip_FKills");
         public string Tooltip_Wins => GetString("Tooltip_Wins");
-        public string Tooltip_Sniper => GetString("Tooltip_Sniper");
+        public string Tooltip_Threat => GetString("Tooltip_Threat");
         public string ContextMenu_CopyUsername => GetString("ContextMenu_CopyUsername");
         public string ContextMenu_OpenPlancke => GetString("ContextMenu_OpenPlancke");
 
@@ -169,7 +169,7 @@ namespace BedwarsOverlay.App.Services
             ["Column_WLR"] = "WLR",
             ["Column_FKills"] = "F. Kills",
             ["Column_Wins"] = "Wins",
-            ["Column_Sniper"] = "Sniper",
+            ["Column_Threat"] = "Threat",
 
             // MainWindow - Column Tooltips
             ["Tooltip_Lvl"] = "BedWars Level (Stars & Prestige)",
@@ -179,7 +179,7 @@ namespace BedwarsOverlay.App.Services
             ["Tooltip_WLR"] = "Win / Loss Ratio (WLR)",
             ["Tooltip_FKills"] = "Total BedWars Final Kills",
             ["Tooltip_Wins"] = "Total BedWars Wins",
-            ["Tooltip_Sniper"] = "Threat Score / Sniper Chance",
+            ["Tooltip_Threat"] = "Threat Score (0-100) from FKDR, WLR, KDR, bed ratio, level, winstreak, alt-account and repeat-opponent signals",
 
             // MainWindow - Context Menu
             ["ContextMenu_CopyUsername"] = "Copy Username",
@@ -189,13 +189,15 @@ namespace BedwarsOverlay.App.Services
             ["Diagnostics_Title"] = "LOG DIAGNOSTICS (Last 20 Log Lines):",
 
             // MainWindow - DataTemplate Tooltip
-            ["WarningTooltip"] = "High Threat: Player has extreme stats (FKDR >= 5.0)!",
+            ["WarningTooltip"] = "High Threat: this player scores in the extreme threat band.",
+            ["Repeat_Tooltip"] = "Repeat opponent: seen in {0} of the last {1} tracked matches.",
 
             // Status messages
             ["Status_ConfigureApi"] = "Configure Hypixel API key in Settings.",
             ["Status_WaitingWho"] = "Waiting for /who in Minecraft...",
             ["Status_LogNotFound"] = "Minecraft log file not found. Check Settings.",
             ["Status_Cleared"] = "Current player list cleared.",
+            ["Status_MatchEnded"] = "Game ended. Current player list cleared.",
             ["Status_CommandHelp"] = "Bedwars Overlay commands shown below.",
             ["Status_CannotWatchLog"] = "Could not start Minecraft log watcher. Check Settings.",
 
@@ -227,6 +229,10 @@ namespace BedwarsOverlay.App.Services
             ["Label_LogPath"] = "Minecraft Client Log Path (latest.log)",
             ["Label_LocalPlayer"] = "Local Player Username (Optional, highlights yourself in blue)",
             ["Label_IgnoredPlayers"] = "Ignored Players (one name per line, or comma-separated)",
+            ["Label_EncounterMemory"] = "Repeat opponents",
+            ["Checkbox_HighlightRepeat"] = "Mark players seen in earlier matches with a \u00d7N badge",
+            ["Label_EncounterLookback"] = "Matches to look back:",
+            ["Label_EncounterMinCount"] = "Min. matches:",
             ["Checkbox_IgnorePartyPlayers"] = "Ignore party players from /p list",
             ["Checkbox_IgnoreLocalPlayer"] = "Ignore yourself",
             ["Checkbox_Diagnostics"] = "Show Log Diagnostics in edit mode",

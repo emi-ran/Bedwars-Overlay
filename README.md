@@ -11,11 +11,13 @@ Bedwars Overlay is a small Windows overlay for Hypixel Bed Wars players. It read
 - Shows players from your `/who` list.
 - Lets you load specific players with `/bwstats`.
 - Lets you hide players with `/bwignore`, Settings ignored players, `/p list` party ignore, and self ignore.
-- Displays useful Bed Wars stats such as level, winstreak, FKDR, WLR, final kills, wins, and sniper risk.
+- Displays useful Bed Wars stats such as level, winstreak, FKDR, WLR, final kills, wins, and a 0-100 threat score.
+- Band the threat score as Low / Medium / High / Extreme, with a per-row tooltip listing the signals behind it (FKDR, WLR, KDR, bed ratio, level, winstreak, alt-account suspicion, repeat opponents).
+- Remembers which players were in which game and flags repeat opponents with a `×N` badge on the name column.
 - Lets you hide or show individual stat columns from Settings.
 - Helps you quickly notice risky lobbies and unusual stats.
 - Marks final-killed players with a short red `FINAL KILL` effect, then removes them from the table.
-- Clears the current list when Hypixel prints the Bed Wars end-of-game summary.
+- Clears the current list when a Bed Wars game ends, on both wins and losses.
 - Starts in edit mode so you can move and resize the overlay.
 - Remembers the overlay position and size between runs.
 - Switches into transparent play mode so it does not block Minecraft.
@@ -47,7 +49,7 @@ Type these in Minecraft chat. Hypixel will report them as unknown commands, and 
 4. Open Settings.
 5. Add your Hypixel API key.
 6. Check or select your Minecraft `latest.log` path.
-7. Optionally choose which stat columns are visible and configure ignored players.
+7. Optionally choose which stat columns are visible, configure ignored players, and tune repeat-opponent highlighting.
 8. Join a Bed Wars lobby and type `/who` in Minecraft.
 
 ![Settings window](docs/assets/settings-window.png)
@@ -85,13 +87,13 @@ Install Inno Setup 6 if you want to build the installer:
 Build release artifacts:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.3.0"
+.\scripts\publish-release.ps1 -Version "1.4.0"
 ```
 
 Build and sign release artifacts with a `.pfx` certificate:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.3.0" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
+.\scripts\publish-release.ps1 -Version "1.4.0" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
 ```
 
 The script prompts for the certificate password. Do not commit `.pfx` or `.p12` files.

@@ -1,8 +1,10 @@
 using System;
 using System.ComponentModel;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Media;
+using BedwarsOverlay.Core.Stats;
 
 namespace BedwarsOverlay.Core.Models
 {
@@ -29,6 +31,13 @@ namespace BedwarsOverlay.Core.Models
             OnPropertyChanged(propertyName);
             return true;
         }
+
+        private static readonly Brush GrayBrush = new SolidColorBrush(Color.FromRgb(0x94, 0xA3, 0xB8));
+        private static readonly Brush WhiteBrush = Brushes.White;
+        private static readonly Brush GreenBrush = new SolidColorBrush(Color.FromRgb(0x22, 0xC5, 0x5E));
+        private static readonly Brush GoldBrush = new SolidColorBrush(Color.FromRgb(0xFB, 0xBF, 0x24));
+        private static readonly Brush RedBrush = new SolidColorBrush(Color.FromRgb(0xEF, 0x44, 0x44));
+        private static readonly Brush OrangeBrush = new SolidColorBrush(Color.FromRgb(0xFB, 0x92, 0x3C));
 
         private string _rankTag = string.Empty;
         public string RankTag
@@ -107,11 +116,47 @@ namespace BedwarsOverlay.Core.Models
             set => SetProperty(ref _wins, value);
         }
 
-        private string _sniper = "0%";
-        public string Sniper
+        private string _threat = "-";
+        public string Threat
         {
-            get => _sniper;
-            set => SetProperty(ref _sniper, value);
+            get => _threat;
+            set => SetProperty(ref _threat, value);
+        }
+
+        /// <summary>Signals behind the threat score, shown as a per-cell tooltip.</summary>
+        private string _threatDetail = string.Empty;
+        public string ThreatDetail
+        {
+            get => _threatDetail;
+            set => SetProperty(ref _threatDetail, value);
+        }
+
+        private string _repeatBadgeText = string.Empty;
+        public string RepeatBadgeText
+        {
+            get => _repeatBadgeText;
+            set => SetProperty(ref _repeatBadgeText, value);
+        }
+
+        private string _repeatTooltip = string.Empty;
+        public string RepeatTooltip
+        {
+            get => _repeatTooltip;
+            set => SetProperty(ref _repeatTooltip, value);
+        }
+
+        private Visibility _repeatBadgeVisibility = Visibility.Collapsed;
+        public Visibility RepeatBadgeVisibility
+        {
+            get => _repeatBadgeVisibility;
+            set => SetProperty(ref _repeatBadgeVisibility, value);
+        }
+
+        private Brush _repeatBadgeColor = GoldBrush;
+        public Brush RepeatBadgeColor
+        {
+            get => _repeatBadgeColor;
+            set => SetProperty(ref _repeatBadgeColor, value);
         }
 
         private string _riskScore = "LOW";
@@ -177,11 +222,11 @@ namespace BedwarsOverlay.Core.Models
             set => SetProperty(ref _winsRaw, value);
         }
 
-        private double _sniperRaw = 0.0;
-        public double SniperRaw
+        private double _threatRaw = 0.0;
+        public double ThreatRaw
         {
-            get => _sniperRaw;
-            set => SetProperty(ref _sniperRaw, value);
+            get => _threatRaw;
+            set => SetProperty(ref _threatRaw, value);
         }
 
         private bool _isLocalPlayer = false;
@@ -213,7 +258,7 @@ namespace BedwarsOverlay.Core.Models
             set => SetProperty(ref _levelColor, value);
         }
 
-        public Brush WinstreakColor => Winstreak == "?" ? new SolidColorBrush(Color.FromRgb(0xEF, 0x44, 0x44)) : new SolidColorBrush(Color.FromRgb(0x94, 0xA3, 0xB8));
+        public Brush WinstreakColor => Winstreak == "?" ? RedBrush : GrayBrush;
 
         private Brush _fkdrColor = Brushes.White;
         public Brush FkdrColor
@@ -229,28 +274,28 @@ namespace BedwarsOverlay.Core.Models
             set => SetProperty(ref _wlrColor, value);
         }
 
-        private Brush _finalsColor = new SolidColorBrush(Color.FromRgb(0x94, 0xA3, 0xB8));
+        private Brush _finalsColor = GrayBrush;
         public Brush FinalsColor
         {
             get => _finalsColor;
             set => SetProperty(ref _finalsColor, value);
         }
 
-        private Brush _winsColor = new SolidColorBrush(Color.FromRgb(0x94, 0xA3, 0xB8));
+        private Brush _winsColor = GrayBrush;
         public Brush WinsColor
         {
             get => _winsColor;
             set => SetProperty(ref _winsColor, value);
         }
 
-        private Brush _sniperColor = new SolidColorBrush(Color.FromRgb(0x94, 0xA3, 0xB8));
-        public Brush SniperColor
+        private Brush _threatColor = GrayBrush;
+        public Brush ThreatColor
         {
-            get => _sniperColor;
-            set => SetProperty(ref _sniperColor, value);
+            get => _threatColor;
+            set => SetProperty(ref _threatColor, value);
         }
 
-        private Brush _riskColor = new SolidColorBrush(Color.FromRgb(0x94, 0xA3, 0xB8));
+        private Brush _riskColor = GrayBrush;
         public Brush RiskColor
         {
             get => _riskColor;
@@ -306,6 +351,18 @@ namespace BedwarsOverlay.Core.Models
             return new SolidColorBrush(Color.FromRgb(0xFB, 0x71, 0x85)); // rose/rainbow
         }
 
+        /// <summary>Color used for a threat band. Single source of truth for the threat column.</summary>
+        public static Brush GetThreatColor(ThreatLevel level)
+        {
+            return level switch
+            {
+                ThreatLevel.Extreme => RedBrush,
+                ThreatLevel.High => OrangeBrush,
+                ThreatLevel.Medium => GoldBrush,
+                _ => GrayBrush
+            };
+        }
+
         /// <summary>
         /// Creates a placeholder PlayerRow showing loading status.
         /// </summary>
@@ -320,10 +377,10 @@ namespace BedwarsOverlay.Core.Models
                 Wlr = "-",
                 FinalKills = "-",
                 Wins = "-",
-                Sniper = "-",
+                Threat = "-",
                 NameColor = Brushes.Gray,
-                RowBackground = isEvenRow ? 
-                    new SolidColorBrush(Color.FromArgb(0x35, 0x0E, 0x0E, 0x10)) : 
+                RowBackground = isEvenRow ?
+                    new SolidColorBrush(Color.FromArgb(0x35, 0x0E, 0x0E, 0x10)) :
                     new SolidColorBrush(Color.FromArgb(0x35, 0x16, 0x16, 0x18)),
                 LevelRaw = 0,
                 WinstreakRaw = 0,
@@ -331,7 +388,7 @@ namespace BedwarsOverlay.Core.Models
                 WlrRaw = 0.0,
                 FinalKillsRaw = 0,
                 WinsRaw = 0,
-                SniperRaw = 0.0
+                ThreatRaw = 0.0
             };
         }
 
@@ -339,33 +396,20 @@ namespace BedwarsOverlay.Core.Models
         /// Creates a styled PlayerRow from stats data.
         /// </summary>
         public static PlayerRow Create(
-            string name, 
-            int level, 
-            bool hasWinstreak, 
-            int winstreak, 
-            double fkdr, 
-            double wlr, 
-            int finals, 
-            int wins, 
-            string sniper, 
-            bool isLocalPlayer, 
-            Brush nameBrush, 
+            string name,
+            int level,
+            bool hasWinstreak,
+            int winstreak,
+            double fkdr,
+            double wlr,
+            int finals,
+            int wins,
+            ThreatResult threat,
+            bool isLocalPlayer,
+            Brush nameBrush,
             bool isEvenRow,
             string rankTag = "")
         {
-            var greenBrush = new SolidColorBrush(Color.FromRgb(0x22, 0xC5, 0x5E)); // bright green
-            var goldBrush = new SolidColorBrush(Color.FromRgb(0xFB, 0xBF, 0x24));  // warm gold
-            var redBrush = new SolidColorBrush(Color.FromRgb(0xEF, 0x44, 0x44));   // soft red
-            var whiteBrush = Brushes.White;
-            var grayBrush = new SolidColorBrush(Color.FromRgb(0x94, 0xA3, 0xB8));
-
-            // Parse sniper percentage to determine its color
-            Brush currentSniperColor = grayBrush;
-            if (double.TryParse(sniper.Replace("%", "", StringComparison.OrdinalIgnoreCase), out double sniperPct) && sniperPct >= 10.0)
-            {
-                currentSniperColor = redBrush;
-            }
-
             // Row background logic
             Brush currentBg;
             if (isLocalPlayer)
@@ -374,17 +418,12 @@ namespace BedwarsOverlay.Core.Models
             }
             else
             {
-                currentBg = isEvenRow ? 
-                    new SolidColorBrush(Color.FromArgb(0x35, 0x0E, 0x0E, 0x10)) : 
+                currentBg = isEvenRow ?
+                    new SolidColorBrush(Color.FromArgb(0x35, 0x0E, 0x0E, 0x10)) :
                     new SolidColorBrush(Color.FromArgb(0x35, 0x16, 0x16, 0x18));
             }
 
-            // Threat evaluation
-            string risk = "LOW";
-            if (fkdr >= 5.0) risk = "EXTREME";
-            else if (fkdr >= 2.0) risk = "HIGH";
-
-            return new PlayerRow
+            var row = new PlayerRow
             {
                 Name = name,
                 Level = level.ToString(),
@@ -393,19 +432,13 @@ namespace BedwarsOverlay.Core.Models
                 Wlr = wlr.ToString("N2"),
                 FinalKills = finals.ToString("N0"),
                 Wins = wins.ToString("N0"),
-                Sniper = sniper,
-                RiskScore = risk,
                 IsLocalPlayer = isLocalPlayer,
-                Tag = (risk == "EXTREME") ? "WARNING" : "",
-                TagVisibility = (risk == "EXTREME") ? Visibility.Visible : Visibility.Collapsed,
                 NameColor = nameBrush,
                 LevelColor = GetLevelColor(level),
-                FkdrColor = fkdr >= 5.0 ? greenBrush : (fkdr >= 1.0 ? whiteBrush : grayBrush),
-                WlrColor = wlr >= 1.0 ? greenBrush : (wlr >= 0.3 ? whiteBrush : grayBrush),
-                FinalsColor = finals >= 5000 ? goldBrush : (finals >= 1000 ? greenBrush : grayBrush),
-                WinsColor = wins >= 1000 ? goldBrush : (wins >= 300 ? greenBrush : (wins >= 150 ? whiteBrush : grayBrush)),
-                SniperColor = currentSniperColor,
-                RiskColor = risk == "EXTREME" ? redBrush : (risk == "HIGH" ? new SolidColorBrush(Color.FromRgb(0xFB, 0x92, 0x3C)) : grayBrush),
+                FkdrColor = fkdr >= 5.0 ? GreenBrush : (fkdr >= 1.0 ? WhiteBrush : GrayBrush),
+                WlrColor = wlr >= 1.0 ? GreenBrush : (wlr >= 0.3 ? WhiteBrush : GrayBrush),
+                FinalsColor = finals >= 5000 ? GoldBrush : (finals >= 1000 ? GreenBrush : GrayBrush),
+                WinsColor = wins >= 1000 ? GoldBrush : (wins >= 300 ? GreenBrush : (wins >= 150 ? WhiteBrush : GrayBrush)),
                 RowBackground = currentBg,
                 LevelRaw = level,
                 WinstreakRaw = hasWinstreak ? winstreak : (isLocalPlayer ? -1 : 0),
@@ -413,43 +446,32 @@ namespace BedwarsOverlay.Core.Models
                 WlrRaw = wlr,
                 FinalKillsRaw = finals,
                 WinsRaw = wins,
-                SniperRaw = sniperPct,
                 RankTag = rankTag
             };
+
+            row.ApplyThreat(threat);
+            return row;
         }
 
         /// <summary>
         /// Updates the properties of this instance using stats data.
         /// </summary>
         public void Update(
-            int level, 
-            bool hasWinstreak, 
-            int winstreak, 
-            double fkdr, 
-            double wlr, 
-            int finals, 
-            int wins, 
-            string sniper, 
-            bool isLocalPlayer, 
+            int level,
+            bool hasWinstreak,
+            int winstreak,
+            double fkdr,
+            double wlr,
+            int finals,
+            int wins,
+            ThreatResult threat,
+            bool isLocalPlayer,
             Brush nameBrush,
             string rankTag = "")
         {
             if (IsEliminated)
             {
                 return;
-            }
-
-            var greenBrush = new SolidColorBrush(Color.FromRgb(0x22, 0xC5, 0x5E)); // bright green
-            var goldBrush = new SolidColorBrush(Color.FromRgb(0xFB, 0xBF, 0x24));  // warm gold
-            var redBrush = new SolidColorBrush(Color.FromRgb(0xEF, 0x44, 0x44));   // soft red
-            var whiteBrush = Brushes.White;
-            var grayBrush = new SolidColorBrush(Color.FromRgb(0x94, 0xA3, 0xB8));
-
-            // Parse sniper percentage to determine its color
-            Brush currentSniperColor = grayBrush;
-            if (double.TryParse(sniper.Replace("%", "", StringComparison.OrdinalIgnoreCase), out double sniperPct) && sniperPct >= 10.0)
-            {
-                currentSniperColor = redBrush;
             }
 
             // Row background logic
@@ -463,30 +485,19 @@ namespace BedwarsOverlay.Core.Models
                 currentBg = RowBackground;
             }
 
-            // Threat evaluation
-            string risk = "LOW";
-            if (fkdr >= 5.0) risk = "EXTREME";
-            else if (fkdr >= 2.0) risk = "HIGH";
-
             Level = level.ToString();
             Winstreak = hasWinstreak ? winstreak.ToString() : (isLocalPlayer ? "?" : "0");
             Fkdr = fkdr.ToString("N2");
             Wlr = wlr.ToString("N2");
             FinalKills = finals.ToString("N0");
             Wins = wins.ToString("N0");
-            Sniper = sniper;
-            RiskScore = risk;
             IsLocalPlayer = isLocalPlayer;
-            Tag = (risk == "EXTREME") ? "WARNING" : "";
-            TagVisibility = (risk == "EXTREME") ? Visibility.Visible : Visibility.Collapsed;
             NameColor = nameBrush;
             LevelColor = GetLevelColor(level);
-            FkdrColor = fkdr >= 5.0 ? greenBrush : (fkdr >= 1.0 ? whiteBrush : grayBrush);
-            WlrColor = wlr >= 1.0 ? greenBrush : (wlr >= 0.3 ? whiteBrush : grayBrush);
-            FinalsColor = finals >= 5000 ? goldBrush : (finals >= 1000 ? greenBrush : grayBrush);
-            WinsColor = wins >= 1000 ? goldBrush : (wins >= 300 ? greenBrush : (wins >= 150 ? whiteBrush : grayBrush));
-            SniperColor = currentSniperColor;
-            RiskColor = risk == "EXTREME" ? redBrush : (risk == "HIGH" ? new SolidColorBrush(Color.FromRgb(0xFB, 0x92, 0x3C)) : grayBrush);
+            FkdrColor = fkdr >= 5.0 ? GreenBrush : (fkdr >= 1.0 ? WhiteBrush : GrayBrush);
+            WlrColor = wlr >= 1.0 ? GreenBrush : (wlr >= 0.3 ? WhiteBrush : GrayBrush);
+            FinalsColor = finals >= 5000 ? GoldBrush : (finals >= 1000 ? GreenBrush : GrayBrush);
+            WinsColor = wins >= 1000 ? GoldBrush : (wins >= 300 ? GreenBrush : (wins >= 150 ? WhiteBrush : GrayBrush));
             RowBackground = currentBg;
             LevelRaw = level;
             WinstreakRaw = hasWinstreak ? winstreak : (isLocalPlayer ? -1 : 0);
@@ -494,8 +505,49 @@ namespace BedwarsOverlay.Core.Models
             WlrRaw = wlr;
             FinalKillsRaw = finals;
             WinsRaw = wins;
-            SniperRaw = sniperPct;
             RankTag = rankTag;
+
+            ApplyThreat(threat);
+        }
+
+        /// <summary>
+        /// Applies a threat score. The band drives the column color, the risk label and the warning
+        /// badge, so all of those can no longer disagree with each other.
+        /// </summary>
+        public void ApplyThreat(ThreatResult threat)
+        {
+            threat ??= ThreatResult.Empty;
+
+            Threat = threat.Display;
+            ThreatRaw = threat.Score;
+            ThreatColor = GetThreatColor(threat.Level);
+            RiskScore = threat.Level.ToString().ToUpperInvariant();
+            RiskColor = GetThreatColor(threat.Level);
+            ThreatDetail = threat.Signals.Count > 0 ? string.Join(" · ", threat.Signals) : string.Empty;
+
+            bool warn = threat.Level == ThreatLevel.Extreme;
+            Tag = warn ? "WARNING" : string.Empty;
+            TagVisibility = warn ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        /// <summary>
+        /// Shows how often this player was seen in earlier matches. <paramref name="count"/> is the
+        /// number of previous matches the player appeared in.
+        /// </summary>
+        public void ApplyEncounterInfo(int count, int minCount, string tooltip, string badgeFormat = "×{0}")
+        {
+            if (count < minCount || count <= 0)
+            {
+                RepeatBadgeText = string.Empty;
+                RepeatTooltip = string.Empty;
+                RepeatBadgeVisibility = Visibility.Collapsed;
+                return;
+            }
+
+            RepeatBadgeText = string.Format(CultureInfo.InvariantCulture, badgeFormat, count);
+            RepeatTooltip = tooltip ?? string.Empty;
+            RepeatBadgeColor = count >= 3 ? RedBrush : GoldBrush;
+            RepeatBadgeVisibility = Visibility.Visible;
         }
     }
 }

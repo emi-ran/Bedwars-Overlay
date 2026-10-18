@@ -534,6 +534,14 @@
                                                 <TextBlock Text="{Binding Tag}" Foreground="#FECACA" FontSize="9" FontWeight="Bold" FontFamily="Segoe UI"/>
                                             </Border>
                                              
+                                            <!-- Repeat opponent badge (seen in earlier matches) -->
+                                            <Border Background="#33FBBF24" BorderBrush="#FBBF24" BorderThickness="1" CornerRadius="4" Padding="4,1" Margin="0,0,6,0"
+                                                    VerticalAlignment="Center"
+                                                    Visibility="{Binding RepeatBadgeVisibility}"
+                                                    ToolTip="{Binding RepeatTooltip}">
+                                                <TextBlock Text="{Binding RepeatBadgeText}" Foreground="{Binding RepeatBadgeColor}" FontSize="9" FontWeight="Bold" FontFamily="Segoe UI"/>
+                                            </Border>
+
                                             <!-- Rank Tag (e.g. [MVP+]) -->
                                             <TextBlock Text="{Binding RankTag}" Foreground="{Binding NameColor}" FontWeight="Bold" Margin="0,0,5,0" VerticalAlignment="Center" 
                                                        Visibility="{Binding RankTagVisibility}" FontFamily="Segoe UI" FontSize="11"/>
@@ -644,22 +652,28 @@
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
 
-                            <!-- Sniper Column -->
-                            <DataGridTextColumn x:Name="SniperColumn" Header="Sniper" Binding="{Binding Sniper}" Width="65" SortMemberPath="SniperRaw">
+                            <!-- Threat Column -->
+                            <DataGridTextColumn x:Name="ThreatColumn" Header="Threat" Binding="{Binding Threat}" Width="65" SortMemberPath="ThreatRaw">
                                 <DataGridTextColumn.HeaderStyle>
                                     <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource DefaultHeaderStyle}">
                                         <Setter Property="HorizontalContentAlignment" Value="Center"/>
                                         <Setter Property="ToolTipService.IsEnabled" Value="{Binding IsEditMode, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"/>
-                                        <Setter Property="ToolTip" Value="Tehdit Skoru / Sniper Olasılığı (Threat Score / Sniper Chance)"/>
+                                        <Setter Property="ToolTip" Value="Threat Score (0-100)"/>
                                     </Style>
                                 </DataGridTextColumn.HeaderStyle>
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock">
                                         <Setter Property="FontWeight" Value="SemiBold"/>
-                                        <Setter Property="Foreground" Value="{Binding SniperColor}"/>
+                                        <Setter Property="Foreground" Value="{Binding ThreatColor}"/>
                                         <Setter Property="HorizontalAlignment" Value="Center"/>
                                         <Setter Property="FontFamily" Value="Segoe UI"/>
                                         <Setter Property="FontSize" Value="11"/>
+                                        <Setter Property="ToolTip" Value="{Binding ThreatDetail}"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ThreatDetail}" Value="">
+                                                <Setter Property="ToolTipService.IsEnabled" Value="False"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
                                     </Style>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>

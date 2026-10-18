@@ -28,7 +28,21 @@ namespace BedwarsOverlay.Core.Storage
         public bool ShowWlrColumn { get; set; } = true;
         public bool ShowFinalKillsColumn { get; set; } = true;
         public bool ShowWinsColumn { get; set; } = true;
+
+        /// <summary>
+        /// Whether the threat column is visible. The JSON name is kept as "ShowSniperColumn" on
+        /// purpose so existing settings.json files keep the user's choice; the UI calls it "Threat".
+        /// </summary>
         public bool ShowSniperColumn { get; set; } = true;
+
+        /// <summary>Highlights players that were already seen in earlier matches with a "×N" badge.</summary>
+        public bool HighlightRepeatOpponents { get; set; } = true;
+
+        /// <summary>How many previous matches are searched for repeat opponents.</summary>
+        public int EncounterLookbackMatches { get; set; } = 10;
+
+        /// <summary>Minimum number of earlier matches needed before the repeat badge appears.</summary>
+        public int EncounterMinCount { get; set; } = 2;
         public double WindowLeft { get; set; } = double.NaN;
         public double WindowTop { get; set; } = double.NaN;
         public double WindowWidth { get; set; } = double.NaN;
@@ -352,13 +366,55 @@ namespace BedwarsOverlay.Core.Storage
             }
         }
 
-        public bool ShowSniperColumn
+        public bool ShowThreatColumn
         {
             get => _settings.ShowSniperColumn;
             set
             {
                 _settings.ShowSniperColumn = value;
                 _dirtyProperties.Add(nameof(AppSettings.ShowSniperColumn));
+                Save();
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether repeated opponents are marked with a badge on the name column.
+        /// </summary>
+        public bool HighlightRepeatOpponents
+        {
+            get => _settings.HighlightRepeatOpponents;
+            set
+            {
+                _settings.HighlightRepeatOpponents = value;
+                _dirtyProperties.Add(nameof(AppSettings.HighlightRepeatOpponents));
+                Save();
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets how many previous matches are searched for repeat opponents (Default: 10).
+        /// </summary>
+        public int EncounterLookbackMatches
+        {
+            get => _settings.EncounterLookbackMatches <= 0 ? 10 : _settings.EncounterLookbackMatches;
+            set
+            {
+                _settings.EncounterLookbackMatches = value;
+                _dirtyProperties.Add(nameof(AppSettings.EncounterLookbackMatches));
+                Save();
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the minimum number of earlier matches before a repeat badge is shown (Default: 2).
+        /// </summary>
+        public int EncounterMinCount
+        {
+            get => _settings.EncounterMinCount < 2 ? 2 : _settings.EncounterMinCount;
+            set
+            {
+                _settings.EncounterMinCount = value;
+                _dirtyProperties.Add(nameof(AppSettings.EncounterMinCount));
                 Save();
             }
         }
@@ -532,6 +588,15 @@ namespace BedwarsOverlay.Core.Storage
                         break;
                     case nameof(AppSettings.ShowSniperColumn):
                         target.ShowSniperColumn = _settings.ShowSniperColumn;
+                        break;
+                    case nameof(AppSettings.HighlightRepeatOpponents):
+                        target.HighlightRepeatOpponents = _settings.HighlightRepeatOpponents;
+                        break;
+                    case nameof(AppSettings.EncounterLookbackMatches):
+                        target.EncounterLookbackMatches = _settings.EncounterLookbackMatches;
+                        break;
+                    case nameof(AppSettings.EncounterMinCount):
+                        target.EncounterMinCount = _settings.EncounterMinCount;
                         break;
                     case nameof(AppSettings.WindowLeft):
                         target.WindowLeft = _settings.WindowLeft;

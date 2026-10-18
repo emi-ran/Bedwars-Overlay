@@ -19,7 +19,7 @@ Thanks for wanting to improve Bedwars Overlay.
 
 ```powershell
 dotnet build "BedwarsOverlay.App\BedwarsOverlay.App.csproj"
-dotnet test "BedwarsOverlay.slnx"
+dotnet test "BedwarsOverlay.Tests\BedwarsOverlay.Tests.csproj"
 ```
 
 If the running app locks build outputs, close Bedwars Overlay before building or build with a temporary `OutputPath`.
@@ -30,6 +30,8 @@ If the running app locks build outputs, close Bedwars Overlay before building or
 - Keep the overlay lightweight and easy to use.
 - User-facing text should be added to both English and Turkish localization files.
 - If a change affects setup or usage, update both README files.
+- Player-facing behavior changes belong in `CHANGELOG.md`, the handover state belongs in `PROGRESS.md`, and future work belongs in `PLAN.md`.
+- Schema changes must go through `AppDatabase`'s versioned migration (`PRAGMA user_version`) and must keep existing user data in `%LOCALAPPDATA%\BedwarsOverlay\data.db`.
 
 ## Security
 

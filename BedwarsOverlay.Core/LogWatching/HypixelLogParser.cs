@@ -4,6 +4,29 @@ using System.Text.RegularExpressions;
 
 namespace BedwarsOverlay.Core.LogWatching
 {
+    /// <summary>Kind of Bed Wars chat block detected in the client log.</summary>
+    public enum GameBlockKind
+    {
+        None,
+        MatchStart,
+        MatchEnd
+    }
+
+    /// <summary>Outcome of a finished Bed Wars match.</summary>
+    public enum GameOutcome
+    {
+        Unknown,
+        Win,
+        Loss
+    }
+
+    /// <summary>Result of <see cref="HypixelLogParser.ParseGameBlock"/>.</summary>
+    public sealed record GameBlockEvent(GameBlockKind Kind, GameOutcome Outcome)
+    {
+        public static readonly GameBlockEvent None = new(GameBlockKind.None, GameOutcome.Unknown);
+        public static readonly GameBlockEvent MatchStart = new(GameBlockKind.MatchStart, GameOutcome.Unknown);
+    }
+
     public class HypixelLogParser
     {
         // Default regex patterns to match the /who output in client logs.
@@ -31,6 +54,25 @@ namespace BedwarsOverlay.Core.LogWatching
         private static readonly Regex GameEndWinRewardPattern = new(
             @"^\+\d+\s+(?:tokens!|Slumber\s+Tickets)\s+\(Win\)$",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        private static readonly Regex GameEndTimePlayedPattern = new(
+            @"^\+\d+\s+.*\(Time\s+Played\)$",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        private static readonly Regex BedWarsHeaderPattern = new(
+            @"^Bed\s+Wars$",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        private static readonly Regex GameBlockIntroPattern = new(
+            @"Protect your bed",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        // Both the game start and the game end block are wrapped by a separator line. Real clients
+        // write the separator glyph as literal '?' (the client log charset cannot encode it), but we
+        // also accept other symbol-only separators so a properly encoded log keeps working.
+        private static readonly Regex SeparatorPattern = new(
+            @"^[^a-zA-Z0-9\s]{20,}$",
+            RegexOptions.Compiled);
 
         private static readonly Regex PartyLinePattern = new(
             @"\[CHAT\]\s+Party\s+(?:Leader|Members):\s*(?<names>.*)$",
@@ -61,8 +103,16 @@ namespace BedwarsOverlay.Core.LogWatching
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         private readonly List<Regex> _patterns;
-        private bool _sawGameEndSeparator;
-        private int _gameEndSummaryLinesRemaining;
+
+        // Bed Wars block state. Counting is done in chat lines only, because long Hypixel messages
+        // wrap onto continuation lines without a [CHAT] prefix and those must not reset the block.
+        private const int HeaderWindowChatLines = 3;
+        private const int BlockChatLineBudget = 40;
+
+        private int _headerWindow;
+        private int _blockLinesRemaining;
+        private bool _endReported;
+        private GameOutcome _lastEndOutcome = GameOutcome.Unknown;
 
         public HypixelLogParser(IEnumerable<string>? customPatterns = null)
         {
@@ -148,49 +198,92 @@ namespace BedwarsOverlay.Core.LogWatching
         }
 
         /// <summary>
-        /// Detects Hypixel's Bed Wars end-of-game summary block.
+        /// Classifies Hypixel's Bed Wars start / end chat blocks.
+        /// Verified against real client logs: both blocks are wrapped by a separator line followed by
+        /// a "Bed Wars" header. The start block contains the "Protect your bed" intro, the end block
+        /// contains a killer table and reward lines ("+N tokens! (Win)", "+N ... (Time Played)").
+        /// A win block prints "(Time Played)" before the "(Win)" line, so the win line upgrades the
+        /// previously reported loss outcome.
         /// </summary>
-        public bool IsGameEndSummary(string logLine)
+        public GameBlockEvent ParseGameBlock(string logLine)
         {
-            if (string.IsNullOrWhiteSpace(logLine)) return false;
+            if (string.IsNullOrWhiteSpace(logLine)) return GameBlockEvent.None;
 
             string cleanLine = Regex.Replace(logLine, "§.", "");
             var chatMatch = ChatMessagePattern.Match(cleanLine);
             if (!chatMatch.Success)
             {
-                _sawGameEndSeparator = false;
-                _gameEndSummaryLinesRemaining = 0;
-                return false;
+                // Wrapped chat continuations and unrelated non-chat log lines must not reset the block.
+                return GameBlockEvent.None;
             }
 
             string message = chatMatch.Groups["message"].Value.Trim();
-            if (message.Length >= 20 && message.Trim('?').Length == 0)
+
+            if (SeparatorPattern.IsMatch(message))
             {
-                _sawGameEndSeparator = true;
-                _gameEndSummaryLinesRemaining = 0;
-                return false;
+                _headerWindow = HeaderWindowChatLines;
+                return GameBlockEvent.None;
             }
 
-            if (message.Equals("Bed Wars", StringComparison.OrdinalIgnoreCase))
+            bool headerConsumed = false;
+            if (_headerWindow > 0)
             {
-                _gameEndSummaryLinesRemaining = _sawGameEndSeparator ? 20 : 0;
-                _sawGameEndSeparator = false;
-                return false;
+                if (BedWarsHeaderPattern.IsMatch(message))
+                {
+                    _headerWindow = 0;
+                    _blockLinesRemaining = BlockChatLineBudget;
+                    _endReported = false;
+                    _lastEndOutcome = GameOutcome.Unknown;
+                    headerConsumed = true;
+                }
+                else
+                {
+                    _headerWindow--;
+                }
             }
 
-            if (_gameEndSummaryLinesRemaining <= 0)
+            if (headerConsumed || _blockLinesRemaining <= 0)
             {
-                return false;
+                return GameBlockEvent.None;
             }
 
-            _gameEndSummaryLinesRemaining--;
+            _blockLinesRemaining--;
+
+            if (GameBlockIntroPattern.IsMatch(message))
+            {
+                _blockLinesRemaining = 0;
+                return GameBlockEvent.MatchStart;
+            }
+
             if (GameEndWinRewardPattern.IsMatch(message))
             {
-                _gameEndSummaryLinesRemaining = 0;
-                return true;
+                bool isNewEnd = !_endReported;
+                bool isUpgrade = _lastEndOutcome != GameOutcome.Win;
+                _endReported = true;
+                _lastEndOutcome = GameOutcome.Win;
+
+                return (isNewEnd || isUpgrade)
+                    ? new GameBlockEvent(GameBlockKind.MatchEnd, GameOutcome.Win)
+                    : GameBlockEvent.None;
             }
 
-            return false;
+            if (GameEndTimePlayedPattern.IsMatch(message) && !_endReported)
+            {
+                _endReported = true;
+                _lastEndOutcome = GameOutcome.Loss;
+                return new GameBlockEvent(GameBlockKind.MatchEnd, GameOutcome.Loss);
+            }
+
+            return GameBlockEvent.None;
+        }
+
+        /// <summary>
+        /// Detects Hypixel's Bed Wars end-of-game summary block.
+        /// Kept as a convenience wrapper over <see cref="ParseGameBlock"/>.
+        /// </summary>
+        public bool IsGameEndSummary(string logLine)
+        {
+            return ParseGameBlock(logLine).Kind == GameBlockKind.MatchEnd;
         }
 
         public List<string>? ParsePartyPlayers(string logLine)

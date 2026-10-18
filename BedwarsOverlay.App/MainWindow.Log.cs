@@ -66,6 +66,25 @@ namespace BedwarsOverlay.App
             {
                 AddDiagnosticLine(line);
 
+                var gameBlock = _logParser?.ParseGameBlock(line) ?? GameBlockEvent.None;
+                if (gameBlock.Kind == GameBlockKind.MatchStart)
+                {
+                    StartTrackedMatch();
+                }
+                else if (gameBlock.Kind == GameBlockKind.MatchEnd)
+                {
+                    bool closedRunningMatch = EndTrackedMatch(gameBlock.Outcome);
+                    if (closedRunningMatch)
+                    {
+                        _playerLookupService?.CancelAndReset();
+                        _players.Clear();
+                        PlaceholderPanel.Visibility = Visibility.Visible;
+                        AddDiagnosticLine(LocalizationService.Instance["Status_MatchEnded"]);
+                    }
+
+                    return;
+                }
+
                 if (_logParser?.IsPartyListHeader(line) == true)
                 {
                     _partyPlayers.Clear();
@@ -125,15 +144,6 @@ namespace BedwarsOverlay.App
                 }
                 else
                 {
-                    if (_logParser?.IsGameEndSummary(line) == true)
-                    {
-                        _playerLookupService?.CancelAndReset();
-                        _players.Clear();
-                        PlaceholderPanel.Visibility = Visibility.Visible;
-                        AddDiagnosticLine("Game ended. Current player list cleared.");
-                        return;
-                    }
-
                     var finalKillVictim = _logParser?.ParseFinalKillVictim(line);
                     if (!string.IsNullOrWhiteSpace(finalKillVictim))
                     {
@@ -155,6 +165,75 @@ namespace BedwarsOverlay.App
                     }
                 }
             }));
+        }
+
+        /// <summary>
+        /// Opens a tracked match when the Bed Wars start block is seen. Matches are only tracked from
+        /// the start block, so /who calls in the lobby never create phantom encounters.
+        /// </summary>
+        private void StartTrackedMatch()
+        {
+            _lastEndedMatchId = null;
+
+            if (_encounterRepository == null)
+            {
+                return;
+            }
+
+            try
+            {
+                _currentMatchId = _encounterRepository.StartMatch();
+                AddDiagnosticLine($"Match #{_currentMatchId} started. Tracking player encounters.");
+            }
+            catch (Exception ex)
+            {
+                _currentMatchId = null;
+                AddDiagnosticLine($"[ERROR] Could not open match: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Closes the tracked match. Hypixel prints "Slumber Tickets (Time Played)" before the
+        /// "(Win)" line, so the same match can be reported twice; the second report only upgrades
+        /// the outcome from loss to win.
+        /// </summary>
+        /// <returns><c>true</c> when a running match was closed by this report.</returns>
+        private bool EndTrackedMatch(GameOutcome outcome)
+        {
+            // The first report closes the running match; a later "(Win)" line for the same block
+            // updates the outcome of the match that was just closed.
+            long? matchId = _currentMatchId ?? _lastEndedMatchId;
+            bool closedRunningMatch = _currentMatchId != null;
+
+            if (closedRunningMatch)
+            {
+                _lastEndedMatchId = _currentMatchId;
+                _currentMatchId = null;
+            }
+
+            if (matchId == null || _encounterRepository == null)
+            {
+                return false;
+            }
+
+            string outcomeText = outcome switch
+            {
+                GameOutcome.Win => "win",
+                GameOutcome.Loss => "loss",
+                _ => "unknown"
+            };
+
+            try
+            {
+                _encounterRepository.EndMatch(matchId.Value, outcomeText);
+                AddDiagnosticLine($"Match #{matchId} finished ({outcomeText}).");
+            }
+            catch (Exception ex)
+            {
+                AddDiagnosticLine($"[ERROR] Could not close match: {ex.Message}");
+            }
+
+            return closedRunningMatch;
         }
 
         private void OnLogTailerError(string error)

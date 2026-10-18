@@ -71,7 +71,7 @@ namespace BedwarsOverlay.App
             WlrColumn.Visibility = _settingsRepository.ShowWlrColumn ? Visibility.Visible : Visibility.Collapsed;
             FinalKillsColumn.Visibility = _settingsRepository.ShowFinalKillsColumn ? Visibility.Visible : Visibility.Collapsed;
             WinsColumn.Visibility = _settingsRepository.ShowWinsColumn ? Visibility.Visible : Visibility.Collapsed;
-            SniperColumn.Visibility = _settingsRepository.ShowSniperColumn ? Visibility.Visible : Visibility.Collapsed;
+            ThreatColumn.Visibility = _settingsRepository.ShowThreatColumn ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void RefreshButton_Click(object sender, RoutedEventArgs e)
@@ -148,6 +148,12 @@ namespace BedwarsOverlay.App
             {
                 sortCol = "FkdrRaw";
                 sortDirStr = "Descending";
+            }
+
+            // "Sniper" was renamed to "Threat"; migrate the sorting saved by older versions.
+            if (sortCol == "SniperRaw")
+            {
+                sortCol = "ThreatRaw";
             }
 
             if (Enum.TryParse<ListSortDirection>(sortDirStr, out var direction))

@@ -8,40 +8,55 @@ namespace BedwarsOverlay.App.Services
     /// Applies localized column headers and tooltips to the player DataGrid.
     /// DataGrid column headers cannot use DynamicResource easily, so this runs
     /// programmatically after language changes.
+    /// Columns are resolved by their <see cref="DataGridColumn.SortMemberPath"/> instead of a
+    /// hard-coded index, so hiding/reordering columns cannot shift the wrong header.
     /// </summary>
     public static class GridLocalizer
     {
+        private static readonly (string SortMemberPath, string HeaderKey, string TooltipKey)[] ColumnMap =
+        {
+            ("LevelRaw", "Column_Lvl", "Tooltip_Lvl"),
+            ("Name", "Column_Name", "Tooltip_Name"),
+            ("WinstreakRaw", "Column_WS", "Tooltip_WS"),
+            ("FkdrRaw", "Column_FKDR", "Tooltip_FKDR"),
+            ("WlrRaw", "Column_WLR", "Tooltip_WLR"),
+            ("FinalKillsRaw", "Column_FKills", "Tooltip_FKills"),
+            ("WinsRaw", "Column_Wins", "Tooltip_Wins"),
+            ("ThreatRaw", "Column_Threat", "Tooltip_Threat"),
+        };
+
         public static void ApplyLocalization(DataGrid playersGrid)
         {
             var loc = LocalizationService.Instance;
 
-            // Column headers
-            playersGrid.Columns[0].Header = loc["Column_Lvl"];
-            playersGrid.Columns[1].Header = loc["Column_Name"];
-            playersGrid.Columns[2].Header = loc["Column_WS"];
-            playersGrid.Columns[3].Header = loc["Column_FKDR"];
-            playersGrid.Columns[4].Header = loc["Column_WLR"];
-            playersGrid.Columns[5].Header = loc["Column_FKills"];
-            playersGrid.Columns[6].Header = loc["Column_Wins"];
-            playersGrid.Columns[7].Header = loc["Column_Sniper"];
+            foreach (var (sortMemberPath, headerKey, tooltipKey) in ColumnMap)
+            {
+                var column = FindColumn(playersGrid, sortMemberPath);
+                if (column == null)
+                {
+                    continue;
+                }
 
-            // Column header tooltips
-            SetColumnTooltip(playersGrid, 0, loc["Tooltip_Lvl"]);
-            SetColumnTooltip(playersGrid, 1, loc["Tooltip_Name"]);
-            SetColumnTooltip(playersGrid, 2, loc["Tooltip_WS"]);
-            SetColumnTooltip(playersGrid, 3, loc["Tooltip_FKDR"]);
-            SetColumnTooltip(playersGrid, 4, loc["Tooltip_WLR"]);
-            SetColumnTooltip(playersGrid, 5, loc["Tooltip_FKills"]);
-            SetColumnTooltip(playersGrid, 6, loc["Tooltip_Wins"]);
-            SetColumnTooltip(playersGrid, 7, loc["Tooltip_Sniper"]);
+                column.Header = loc[headerKey];
+                SetColumnTooltip(column, loc[tooltipKey]);
+            }
         }
 
-        private static void SetColumnTooltip(DataGrid playersGrid, int columnIndex, string tooltipText)
+        private static DataGridColumn? FindColumn(DataGrid playersGrid, string sortMemberPath)
         {
-            if (columnIndex < 0 || columnIndex >= playersGrid.Columns.Count)
-                return;
+            foreach (var column in playersGrid.Columns)
+            {
+                if (string.Equals(column.SortMemberPath, sortMemberPath, System.StringComparison.Ordinal))
+                {
+                    return column;
+                }
+            }
 
-            var column = playersGrid.Columns[columnIndex];
+            return null;
+        }
+
+        private static void SetColumnTooltip(DataGridColumn column, string tooltipText)
+        {
             if (column.HeaderStyle != null)
             {
                 var newStyle = new Style(typeof(DataGridColumnHeader), column.HeaderStyle.BasedOn);

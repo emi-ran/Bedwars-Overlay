@@ -2,6 +2,20 @@
 
 All notable user-facing changes to Bedwars Overlay are tracked here.
 
+## 1.4.0 - 2026-10-18
+
+- Added per-match player memory: the overlay now records which players were in which game and marks repeat opponents with a `×N` badge in the name column.
+- Added Settings controls for repeat opponents: enable/disable the badge, how many previous matches to search, and the minimum number of matches before the badge appears.
+- Replaced the `Sniper` column with a `Threat` score (0-100) built from FKDR, WLR, KDR, bed ratio, level, winstreak, alt-account suspicion, and repeat-opponent signals, banded as Low / Medium / High / Extreme.
+- Added a per-row threat tooltip listing the signals behind the score.
+- Added schema versioning and migration for `%LOCALAPPDATA%\BedwarsOverlay\data.db` through `PRAGMA user_version`; v2 adds `matches` and rewrites `encounters` with a match id.
+- Fixed Bed Wars game-end detection. Long team rosters wrap onto a continuation line without the `[CHAT]` prefix, which reset the parser state, so the end of a game was effectively never detected in real matches and the previous player list stayed on screen.
+- Fixed the loss path: a game that ends with `(Time Played)` and no `(Win)` line is now recognized as the end of a match.
+- Fixed the threat column, risk label, and warning badge disagreeing with each other because they used separate FKDR thresholds.
+- Renamed the `Sniper` column to `Threat`; saved sorting and the column visibility setting are migrated (`SniperRaw` → `ThreatRaw`, keeping existing `settings.json` values).
+- Changed the grid localizer to resolve columns by `SortMemberPath` instead of hard-coded positions, so hiding or reordering columns cannot move a localized header.
+- Expanded the test suite from 74 to 113 tests, including real client log fixtures for the start, win, and loss blocks, threat scoring, encounter storage, and schema migration.
+
 ## 1.3.0 - 2026-06-25
 
 - Added single-instance startup guard so launching the app twice does not open a second overlay process.

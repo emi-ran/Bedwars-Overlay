@@ -36,7 +36,10 @@ namespace BedwarsOverlay.App
             ShowWlrColumnBox.IsChecked = _settingsRepository.ShowWlrColumn;
             ShowFinalKillsColumnBox.IsChecked = _settingsRepository.ShowFinalKillsColumn;
             ShowWinsColumnBox.IsChecked = _settingsRepository.ShowWinsColumn;
-            ShowSniperColumnBox.IsChecked = _settingsRepository.ShowSniperColumn;
+            ShowThreatColumnBox.IsChecked = _settingsRepository.ShowThreatColumn;
+            HighlightRepeatOpponentsBox.IsChecked = _settingsRepository.HighlightRepeatOpponents;
+            EncounterLookbackBox.Text = _settingsRepository.EncounterLookbackMatches.ToString();
+            EncounterMinCountBox.Text = _settingsRepository.EncounterMinCount.ToString();
 
             // Set language combo to match saved preference
             string lang = _settingsRepository.Language;
@@ -80,6 +83,10 @@ namespace BedwarsOverlay.App
             LabelLocalPlayer.Text = loc["Label_LocalPlayer"];
             LabelLanguage.Text = loc["Lang_Label"];
             LabelVisibleColumns.Text = loc["Label_VisibleColumns"];
+            LabelEncounterMemory.Text = loc["Label_EncounterMemory"];
+            LabelEncounterLookback.Text = loc["Label_EncounterLookback"];
+            LabelEncounterMinCount.Text = loc["Label_EncounterMinCount"];
+            HighlightRepeatOpponentsBox.Content = loc["Checkbox_HighlightRepeat"];
             LabelIgnoredPlayers.Text = loc["Label_IgnoredPlayers"];
             ShortcutsTitleText.Text = loc["Shortcuts_Title"];
             ShortcutsHelpText.Text = loc["Shortcuts_Help"];
@@ -290,7 +297,10 @@ namespace BedwarsOverlay.App
             _settingsRepository.ShowWlrColumn = ShowWlrColumnBox.IsChecked == true;
             _settingsRepository.ShowFinalKillsColumn = ShowFinalKillsColumnBox.IsChecked == true;
             _settingsRepository.ShowWinsColumn = ShowWinsColumnBox.IsChecked == true;
-            _settingsRepository.ShowSniperColumn = ShowSniperColumnBox.IsChecked == true;
+            _settingsRepository.ShowThreatColumn = ShowThreatColumnBox.IsChecked == true;
+            _settingsRepository.HighlightRepeatOpponents = HighlightRepeatOpponentsBox.IsChecked == true;
+            _settingsRepository.EncounterLookbackMatches = ParseClamped(EncounterLookbackBox.Text, 1, 200, 10);
+            _settingsRepository.EncounterMinCount = ParseClamped(EncounterMinCountBox.Text, 2, 20, 2);
 
             this.DialogResult = true;
         }
@@ -298,6 +308,17 @@ namespace BedwarsOverlay.App
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
             this.DialogResult = false;
+        }
+
+        /// <summary>Parses a numeric setting, falling back to <paramref name="fallback"/> outside the range.</summary>
+        private static int ParseClamped(string text, int min, int max, int fallback)
+        {
+            if (!int.TryParse(text?.Trim(), out int value))
+            {
+                return fallback;
+            }
+
+            return Math.Clamp(value, min, max);
         }
     }
 }

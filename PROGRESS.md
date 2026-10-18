@@ -37,13 +37,18 @@ Develop a **Windows-only external stats overlay** for Minecraft BedWars. The app
 - Supports `/p list` parsing for party-member detection and optional party ignore.
 - Supports optional self ignore based on the configured local player name.
 - Supports `/bwclear` to clear the current overlay list and `/bwhelp` to show localized command help.
-- Detects Bed Wars end-of-game summary output and clears the current player list.
+- Detects Bed Wars start and end blocks (win and loss) and clears the current player list when a game ends.
 - Marks players with a red `FINAL KILL` row state before removing them when a matching Hypixel `FINAL KILL!` log line appears.
 - Resolves usernames through Mojang API with local SQLite cache.
 - Fetches Hypixel Bed Wars stats with API-key authentication and local SQLite cache.
-- Calculates level, FKDR, WLR, wins, final kills, winstreak, and sniper risk display values.
+- Calculates level, FKDR, WLR, wins, final kills, and winstreak display values.
+- Shows a 0-100 threat score (`ThreatScorer`) built from FKDR, WLR, KDR, bed ratio, level, winstreak, alt-account suspicion, and repeat-opponent signals, with Low / Medium / High / Extreme bands and a per-row signal tooltip.
+- Tracks which player was in which match (`matches` + `encounters`) and marks repeat opponents with a `×N` badge on the name column.
+- Detects the Bed Wars start block and the end block (win and loss) from the client log; the current player list is cleared on game end for both outcomes.
+- Applies versioned schema migrations to `%LOCALAPPDATA%\BedwarsOverlay\data.db` through `PRAGMA user_version` (v1 = caches, v2 = match tracking).
 - Renders a styled WPF overlay table with sorting and search.
-- Supports visible column settings for `LVL`, `WS`, `FKDR`, `WLR`, `FKILLS`, `WINS`, and `SNIPER`.
+- Supports visible column settings for `LVL`, `WS`, `FKDR`, `WLR`, `FKILLS`, `WINS`, and `THREAT`.
+- Supports repeat-opponent highlighting settings: lookback match count, minimum match count, and on/off.
 - Supports English and Turkish localization through JSON files.
 - Provides Settings UI for API key, log path, local player name, diagnostics, language, visible columns, ignored players, party ignore, and self ignore.
 - Supports global hotkeys:
@@ -124,14 +129,19 @@ BedwarsOverlay/
 │  │  └─ PlayerRow.cs
 │  ├─ Stats/
 │  │  ├─ BedwarsStats.cs
-│  │  └─ StatsCalculator.cs
+│  │  ├─ StatsCalculator.cs
+│  │  └─ ThreatScorer.cs
 │  └─ Storage/
 │     ├─ AppDatabase.cs
+│     ├─ EncounterRepository.cs
 │     └─ SettingsRepository.cs
 └─ BedwarsOverlay.Tests/
    ├─ BedwarsOverlay.Tests.csproj
+   ├─ GameBlockParserTests.cs
    ├─ ParserTests.cs
    ├─ StatsTests.cs
+   ├─ StorageTests.cs
+   ├─ ThreatScorerTests.cs
    └─ UnitTest1.cs
 ```
 
@@ -143,10 +153,12 @@ From the root workspace folder:
 
 ```powershell
 dotnet build "BedwarsOverlay.App\BedwarsOverlay.App.csproj"
-dotnet test "BedwarsOverlay.slnx"
+dotnet test "BedwarsOverlay.Tests\BedwarsOverlay.Tests.csproj"
 ```
 
-Current expected state: build succeeds with 0 errors, tests pass. If the running app locks `BedwarsOverlay.App\bin\Debug\net8.0-windows\BedwarsOverlay.Core.dll`, close the app or build the app project with a temporary `OutputPath`.
+`dotnet test` does not accept `BedwarsOverlay.slnx` directly, so point it at the test project.
+
+Current expected state: build succeeds with 0 errors and 0 warnings, and all 113 tests pass. If the running app locks `BedwarsOverlay.App\bin\Debug\net8.0-windows\BedwarsOverlay.Core.dll`, close the app or build the app project with a temporary `OutputPath`.
 
 ---
 
@@ -155,3 +167,8 @@ Current expected state: build succeeds with 0 errors, tests pass. If the running
 - Keep user-facing text in both `BedwarsOverlay.App/Localization/en.json` and `BedwarsOverlay.App/Localization/tr.json`.
 - Update both README files when setup, usage, or user-facing behavior changes.
 - `PLAN.md` is now reserved for forward-looking work. `PROGRESS.md` is the current-state handover.
+- Match tracking is anchored to the Bed Wars start block: a match only opens when the `Protect your bed...` intro is seen, so a `/who` typed in the lobby never records encounters. If the overlay starts mid-game, the current game is not tracked; the next game is.
+- `HypixelLogParser.ParseGameBlock` counts only `[CHAT]` lines. Long Hypixel messages wrap onto continuation lines without the `[CHAT]` prefix, and those lines must never reset the block state.
+- The threat weights, half-life constants, and band thresholds live in `BedwarsOverlay.Core/Stats/ThreatScorer.cs` and are still the first-draft values. They are intended to be tuned with real match data.
+- Current threat calibration: a strong regular player (FKDR 6.0, level 300, winstreak 20, established account) scores ~55 → High, while a 35-game FKDR 15.0 account seen in 5 of the last 10 matches scores ~79 → Extreme. `ThreatScorerTests.Score_Calibration_*` pins these two profiles so a future tweak has to be deliberate.
+- Verified against a real Badlion client log: all 6 matches in the log produced both a start and an end event (wins report `(Time Played)` first and upgrade to win on the `(Win)` line). Before the fix, a wrapped team roster line reset the parser state and no game end was detected at all.

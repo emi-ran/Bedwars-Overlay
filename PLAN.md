@@ -7,9 +7,9 @@ This file tracks forward-looking work only. Current implemented state belongs in
 ## High Priority
 
 - Add safer error reporting for settings save/load failures instead of silently suppressing all failures.
-- Add schema versioning or migration support for `%LOCALAPPDATA%\BedwarsOverlay\data.db`.
 - Expand parser fixtures with more real Hypixel Bed Wars game-end, party, and command log messages.
-- Review and update screenshots in `docs/assets/` after ignored-player settings, command help, final-kill row state, and taskbar/Alt-Tab mode behavior changes.
+- Join wrapped Hypixel chat continuation lines (no `[CHAT]` prefix) into the message they belong to so long team rosters, reward summaries, and multi-line messages parse as one entry.
+- Review and update screenshots in `docs/assets/` after the Threat column, repeat-opponent badge, ignored-player settings, command help, final-kill row state, and taskbar/Alt-Tab mode behavior changes.
 
 ---
 
@@ -32,5 +32,7 @@ This file tracks forward-looking work only. Current implemented state belongs in
 
 ## Deferred / Not Implemented
 
-- Encounter frequency scoring.
-- Dedicated `RiskScorer.cs` with LOW / MEDIUM / HIGH / EXTREME badges.
+- Tuning the threat weights and band thresholds with real match data (the current values are a first draft).
+- Predicting a specific "sniper" player by name; the overlay only scores statistical danger and repeat encounters.
+- Match history UI (past matches, win/loss record, per-player history view). The data is stored, but nothing renders it yet.
+- Identifying a nicked player's real account.

@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Data;
 using BedwarsOverlay.Core.Models;
+using BedwarsOverlay.Core.Stats;
 using Xunit;
 
 namespace BedwarsOverlay.Tests;
@@ -21,8 +22,8 @@ public class UnitTest1
         view.SortDescriptions.Add(new SortDescription("LevelRaw", ListSortDirection.Ascending));
 
         // Update levels: row1 is lvl 106, row2 is lvl 12
-        row1.Update(106, false, 0, 0, 0, 0, 0, "0%", false, System.Windows.Media.Brushes.White);
-        row2.Update(12, false, 0, 0, 0, 0, 0, "0%", false, System.Windows.Media.Brushes.White);
+        row1.Update(106, false, 0, 0, 0, 0, 0, ThreatResult.Empty, false, System.Windows.Media.Brushes.White);
+        row2.Update(12, false, 0, 0, 0, 0, 0, ThreatResult.Empty, false, System.Windows.Media.Brushes.White);
 
         view.Refresh();
 
@@ -110,12 +111,56 @@ public class UnitTest1
             if (e.PropertyName == nameof(PlayerRow.LevelRaw)) levelRawChanged = true;
         };
         
-        row.Update(106, false, 0, 0, 0, 0, 0, "0%", false, System.Windows.Media.Brushes.White);
+        row.Update(106, false, 0, 0, 0, 0, 0, ThreatResult.Empty, false, System.Windows.Media.Brushes.White);
         
         Assert.True(levelChanged);
         Assert.True(levelRawChanged);
         Assert.Equal("106", row.Level);
         Assert.Equal(106, row.LevelRaw);
+    }
+
+    [Fact]
+    public void TestPlayerRowRepeatBadge_RespectsMinimumCount()
+    {
+        var row = PlayerRow.CreateLoading("Notch", false);
+
+        row.ApplyEncounterInfo(1, 2, "seen once");
+        Assert.Equal(System.Windows.Visibility.Collapsed, row.RepeatBadgeVisibility);
+
+        row.ApplyEncounterInfo(2, 2, "seen twice");
+        Assert.Equal(System.Windows.Visibility.Visible, row.RepeatBadgeVisibility);
+        Assert.Equal("×2", row.RepeatBadgeText);
+        Assert.Equal("seen twice", row.RepeatTooltip);
+
+        row.ApplyEncounterInfo(5, 2, "seen a lot");
+        Assert.Equal("×5", row.RepeatBadgeText);
+    }
+
+    [Fact]
+    public void TestPlayerRowThreat_ComesFromScorer()
+    {
+        var row = PlayerRow.CreateLoading("Notch", false);
+        var threat = BedwarsOverlay.Core.Stats.ThreatScorer.Score(new BedwarsStats
+        {
+            Level = 3000,
+            HasWinstreak = true,
+            Winstreak = 500,
+            FinalKills = 200000,
+            FinalDeaths = 100,
+            Wins = 50000,
+            Losses = 100,
+            Kills = 400000,
+            Deaths = 10,
+            BedsBroken = 50000,
+            BedsLost = 1
+        });
+
+        row.ApplyThreat(threat);
+
+        Assert.Equal(threat.Score, row.ThreatRaw);
+        Assert.Equal(ThreatLevel.Extreme.ToString().ToUpperInvariant(), row.RiskScore);
+        Assert.Equal(System.Windows.Visibility.Visible, row.TagVisibility);
+        Assert.Contains("%", row.Threat);
     }
 
     [Fact]

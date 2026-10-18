@@ -51,10 +51,15 @@ namespace BedwarsOverlay.App
             var token = _playerLookupService.CancelAndReset();
             _players.Clear();
             PlaceholderPanel.Visibility = players.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+
+            var encounterContext = BuildEncounterContext();
+            _playerLookupService.SetEncounterContext(encounterContext);
+
             int index = 0;
             foreach (var name in players)
             {
                 var placeholder = PlayerRow.CreateLoading(name, index % 2 == 0);
+                ApplyRepeatBadge(placeholder, name, encounterContext);
                 _players.Add(placeholder);
 
                 _ = _playerLookupService.ResolvePlayerAsync(name, placeholder, token);
@@ -62,6 +67,57 @@ namespace BedwarsOverlay.App
             }
 
             RestoreSorting();
+        }
+
+        /// <summary>
+        /// Collects the repeat-opponent information for the current /who batch. The running match is
+        /// excluded, so a player seen twice inside the same game is not flagged.
+        /// </summary>
+        private EncounterContext BuildEncounterContext()
+        {
+            int lookback = _settingsRepository?.EncounterLookbackMatches ?? 10;
+            int minCount = _settingsRepository?.EncounterMinCount ?? 2;
+
+            var counts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            if (_encounterRepository != null)
+            {
+                try
+                {
+                    counts = _encounterRepository.GetRepeatCounts(lookback, _currentMatchId);
+                }
+                catch (Exception ex)
+                {
+                    AddDiagnosticLine($"[ERROR] Could not read encounters: {ex.Message}");
+                }
+            }
+
+            return new EncounterContext
+            {
+                MatchId = _currentMatchId,
+                RepeatCounts = counts,
+                MinCount = minCount,
+                Lookback = lookback
+            };
+        }
+
+        /// <summary>Shows the repeat badge immediately, before the UUID lookup resolves.</summary>
+        private void ApplyRepeatBadge(PlayerRow row, string name, EncounterContext context)
+        {
+            if (_settingsRepository?.HighlightRepeatOpponents != true || string.IsNullOrWhiteSpace(name))
+            {
+                return;
+            }
+
+            if (!context.RepeatCounts.TryGetValue(name.ToLowerInvariant(), out int count) || count <= 0)
+            {
+                return;
+            }
+
+            string tooltip = LocalizationService.Instance["Repeat_Tooltip"]
+                .Replace("{0}", count.ToString())
+                .Replace("{1}", context.Lookback.ToString());
+
+            row.ApplyEncounterInfo(count, context.MinCount, tooltip);
         }
 
         private async Task RemoveFinalKilledPlayerAfterDelayAsync(PlayerRow player)

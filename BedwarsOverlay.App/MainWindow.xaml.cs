@@ -52,6 +52,9 @@ namespace BedwarsOverlay.App
         private MojangClient? _mojangClient;
         private HypixelClient? _hypixelClient;
         private PlayerLookupService? _playerLookupService;
+        private EncounterRepository? _encounterRepository;
+        private long? _currentMatchId;
+        private long? _lastEndedMatchId;
         private UpdateCheckService? _updateCheckService;
         private UpdateCheckResult? _availableUpdate;
         private TrayIconService? _trayIconService;
@@ -84,6 +87,7 @@ namespace BedwarsOverlay.App
                 _mojangClient = new MojangClient(_httpClient, _database);
                 _hypixelClient = new HypixelClient(_httpClient, _database, _settingsRepository);
                 _updateCheckService = new UpdateCheckService(_httpClient);
+                _encounterRepository = new EncounterRepository(_database);
             }
             catch (Exception ex)
             {
@@ -99,7 +103,7 @@ namespace BedwarsOverlay.App
             LocalizationService.Instance.Initialize(_settingsRepository.Language);
             UpdateTitleBarLayout();
 
-            _playerLookupService = new PlayerLookupService(_mojangClient, _hypixelClient, _settingsRepository, AddDiagnosticLine);
+            _playerLookupService = new PlayerLookupService(_mojangClient, _hypixelClient, _settingsRepository, AddDiagnosticLine, _encounterRepository);
             GridLocalizer.ApplyLocalization(PlayersGrid);
             ApplyColumnVisibility();
             _trayIconService = new TrayIconService(this, ShowOverlayFromTray, HideOverlayToTray, OpenSettings, ExitFromTray);
@@ -124,7 +128,7 @@ namespace BedwarsOverlay.App
                 listColView.LiveSortingProperties.Add("WlrRaw");
                 listColView.LiveSortingProperties.Add("FinalKillsRaw");
                 listColView.LiveSortingProperties.Add("WinsRaw");
-                listColView.LiveSortingProperties.Add("SniperRaw");
+                listColView.LiveSortingProperties.Add("ThreatRaw");
             }
 
             RestoreSorting();

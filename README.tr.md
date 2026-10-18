@@ -11,11 +11,13 @@ Bedwars Overlay, Hypixel Bed Wars oyuncuları için küçük bir Windows overlay
 - `/who` listesindeki oyuncuları gösterir.
 - `/bwstats` ile belirli oyuncuları yükleyebilirsin.
 - `/bwignore`, Ayarlar'daki gizlenen oyuncular, `/p list` parti gizleme ve kendini gizleme seçenekleriyle oyuncuları gizleyebilirsin.
-- Level, winstreak, FKDR, WLR, final kills, wins ve sniper riski gibi Bed Wars statlarını gösterir.
+- Level, winstreak, FKDR, WLR, final kills, wins ve 0-100 arası tehdit (threat) skoru gibi Bed Wars statlarını gösterir.
+- Tehdit skorunu Low / Medium / High / Extreme olarak sınıflar; satır tooltip'inde skoru oluşturan sinyalleri (FKDR, WLR, KDR, yatak oranı, seviye, winstreak, alt hesap şüphesi, tekrar karşılaşma) listeler.
+- Hangi oyuncunun hangi maçta olduğunu hatırlar ve tekrar karşılaştığın oyuncuları isim kolonunda `×N` rozetiyle işaretler.
 - Ayarlardan tek tek stat kolonlarını gizleyip gösterebilirsin.
 - Riskli lobbyleri ve normal dışı statları daha hızlı fark etmene yardımcı olur.
 - Hypixel loglarında bir oyuncu için `FINAL KILL!` mesajı gelirse satırı kısa süre kırmızı `FINAL KILL` efektiyle gösterir, sonra tablodan siler.
-- Hypixel Bed Wars oyun sonu özetini yazınca mevcut listeyi temizler.
+- Bed Wars oyunu bittiğinde (kazanma veya kaybetme) mevcut listeyi temizler.
 - İlk açılışta düzenleme modunda gelir; overlay’i istediğin yere taşıyıp boyutlandırabilirsin.
 - Overlay konumunu ve boyutunu sonraki açılış için hatırlar.
 - Play mode’da saydam çalışır ve Minecraft’ı engellemez.
@@ -47,7 +49,7 @@ Bu komutları Minecraft chat’e yaz. Hypixel bunları bilinmeyen komut olarak l
 4. Ayarlar penceresini aç.
 5. Hypixel API key gir.
 6. Minecraft `latest.log` yolunu kontrol et veya seç.
-7. İstersen görünür stat kolonlarını seç ve gizlenen oyuncuları ayarla.
+7. İstersen görünür stat kolonlarını seç, gizlenen oyuncuları ayarla ve tekrar karşılaşma rozeti ayarlarını düzenle.
 8. Bed Wars lobby’sine gir ve Minecraft içinde `/who` yaz.
 
 ![Ayarlar penceresi](docs/assets/settings-window.png)
@@ -85,13 +87,13 @@ Installer oluşturmak için Inno Setup 6 kur:
 Release dosyalarını oluştur:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.3.0"
+.\scripts\publish-release.ps1 -Version "1.4.0"
 ```
 
 `.pfx` sertifika ile release dosyalarını imzala:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.3.0" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
+.\scripts\publish-release.ps1 -Version "1.4.0" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
 ```
 
 Script sertifika şifresini sorar. `.pfx` veya `.p12` dosyalarını commit etme.
