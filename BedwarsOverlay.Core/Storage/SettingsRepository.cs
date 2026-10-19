@@ -4,6 +4,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using BedwarsOverlay.Core.LogWatching;
 
 namespace BedwarsOverlay.Core.Storage
@@ -52,6 +53,12 @@ namespace BedwarsOverlay.Core.Storage
 
     public class SettingsRepository
     {
+        private static readonly JsonSerializerOptions SettingsJsonOptions = new()
+        {
+            WriteIndented = true,
+            NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals
+        };
+
         private readonly string _settingsFilePath;
         private AppSettings _settings;
         private readonly HashSet<string> _dirtyProperties = new();
@@ -494,7 +501,7 @@ namespace BedwarsOverlay.Core.Storage
                 if (File.Exists(_settingsFilePath))
                 {
                     string json = File.ReadAllText(_settingsFilePath);
-                    var settings = JsonSerializer.Deserialize<AppSettings>(json);
+                    var settings = JsonSerializer.Deserialize<AppSettings>(json, SettingsJsonOptions);
                     if (settings != null)
                     {
                         return settings;
@@ -515,7 +522,7 @@ namespace BedwarsOverlay.Core.Storage
             {
                 AppSettings latestSettings = LoadSettings();
                 ApplyDirtySettings(latestSettings);
-                string json = JsonSerializer.Serialize(latestSettings, new JsonSerializerOptions { WriteIndented = true });
+                string json = JsonSerializer.Serialize(latestSettings, SettingsJsonOptions);
                 File.WriteAllText(_settingsFilePath, json);
                 _settings = latestSettings;
                 _dirtyProperties.Clear();

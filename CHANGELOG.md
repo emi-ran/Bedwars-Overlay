@@ -4,6 +4,10 @@ All notable user-facing changes to Bedwars Overlay are tracked here.
 
 ## Unreleased
 
+## 1.4.1 - 2026-10-20
+
+- Fixed first-run settings saves: unset window bounds are now serialized and restored as named floating-point values, so other settings are not lost before the window is positioned.
+
 ## 1.4.0 - 2026-10-20
 
 - Added offline team recognition from the visible Minecraft player list. Hold `TAB` and press `END`; the Team column can be sorted.
