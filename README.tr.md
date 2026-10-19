@@ -88,6 +88,24 @@ Installer veya portable release oluşturmak için Inno Setup 6 ve x64 C++ yenide
 
 [https://jrsoftware.org/isinfo.php](https://jrsoftware.org/isinfo.php)
 
+GitHub Release yayımlandığında `.github/workflows/release.yml` imzalı installer ve portable ZIP dosyasını oluşturup aynı release'e ekler. Önce repository Actions secrets bölümünde `WINDOWS_SIGNING_CERTIFICATE_BASE64` ve `WINDOWS_SIGNING_CERTIFICATE_PASSWORD` secret'larını tanımla. PFX'ten Base64 secret'ı PowerShell'de şöyle yükle:
+
+```powershell
+[Convert]::ToBase64String([IO.File]::ReadAllBytes((Resolve-Path .\Bedwars-Overlay.pfx))) | gh secret set WINDOWS_SIGNING_CERTIFICATE_BASE64 --repo emi-ran/Bedwars-Overlay
+```
+
+Parola secret'ını shell geçmişine yazmadan yükle:
+
+```powershell
+$secure = Read-Host "PFX parolası" -AsSecureString
+$ptr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
+try {
+    [Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr) | gh secret set WINDOWS_SIGNING_CERTIFICATE_PASSWORD --repo emi-ran/Bedwars-Overlay
+} finally {
+    [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr)
+}
+```
+
 Release dosyalarını oluştur:
 
 ```powershell

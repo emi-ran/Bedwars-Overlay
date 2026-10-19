@@ -88,6 +88,24 @@ Install Inno Setup 6 and Visual Studio Build Tools 2022 with the x64 C++ redistr
 
 [https://jrsoftware.org/isinfo.php](https://jrsoftware.org/isinfo.php)
 
+Publishing a GitHub Release triggers `.github/workflows/release.yml`, which builds the signed installer and portable ZIP and attaches both files to that release. Configure the repository Actions secrets `WINDOWS_SIGNING_CERTIFICATE_BASE64` and `WINDOWS_SIGNING_CERTIFICATE_PASSWORD` first. Create the Base64 secret from the PFX in PowerShell with:
+
+```powershell
+[Convert]::ToBase64String([IO.File]::ReadAllBytes((Resolve-Path .\Bedwars-Overlay.pfx))) | gh secret set WINDOWS_SIGNING_CERTIFICATE_BASE64 --repo emi-ran/Bedwars-Overlay
+```
+
+Set the password secret without putting the password in shell history:
+
+```powershell
+$secure = Read-Host "PFX password" -AsSecureString
+$ptr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
+try {
+    [Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr) | gh secret set WINDOWS_SIGNING_CERTIFICATE_PASSWORD --repo emi-ran/Bedwars-Overlay
+} finally {
+    [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr)
+}
+```
+
 Build release artifacts:
 
 ```powershell

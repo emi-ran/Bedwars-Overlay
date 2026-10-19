@@ -8,6 +8,7 @@ All notable user-facing changes to Bedwars Overlay are tracked here.
 - Improved team capture speed and included left-aligned player lists that were clipped by the old crop.
 - Avoided enlarging the screenshot twice before team OCR, reducing image processing work.
 - Added team recognition from the visible Minecraft player list. Hold `TAB` and press `END` while the list is open; the OCR engine is bundled with the app, and the new Team column can be sorted.
+- Added a Windows GitHub Actions workflow that builds signed installer and portable ZIP assets when a GitHub Release is published.
 
 ## 1.4.0 - 2026-10-18
 

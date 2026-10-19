@@ -173,6 +173,16 @@ function Test-CertificatePassword {
 function Read-CertificatePassword {
     param([string]$CertPath)
 
+    if ($env:SIGNING_CERTIFICATE_PASSWORD) {
+        $environmentPassword = $env:SIGNING_CERTIFICATE_PASSWORD
+        Remove-Item Env:SIGNING_CERTIFICATE_PASSWORD
+        if (Test-CertificatePassword -CertPath $CertPath -Password $environmentPassword) {
+            return $environmentPassword
+        }
+
+        throw "The SIGNING_CERTIFICATE_PASSWORD environment variable is incorrect."
+    }
+
     while ($true) {
         $securePassword = Read-Host "Certificate password" -AsSecureString
         $password = ConvertTo-PlainText $securePassword
