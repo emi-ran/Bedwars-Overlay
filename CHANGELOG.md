@@ -6,6 +6,7 @@ All notable user-facing changes to Bedwars Overlay are tracked here.
 
 ## 1.4.3 - 2026-10-20
 
+- Added manual signed-package builds before publishing and fixed installer asset selection for automatic release uploads.
 - Fixed release builds by using the Visual Studio 2022 runner and selecting a Visual C++ runtime directory that contains the required CRT files.
 - Includes the first-run settings persistence fix from 1.4.1.
 

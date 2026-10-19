@@ -121,6 +121,8 @@ Release dosyalarını oluştur:
 Script sertifika şifresini sorar. `.pfx` veya `.p12` dosyalarını commit etme.
 Varsayılan olarak uygulama exe dosyasını, proje DLL dosyalarını ve installer'ı imzalar. Yayındaki tüm `.exe` ve `.dll` dosyalarını imzalamak istersen `-SignAllBinaries` kullan.
 
+Yayımlamadan önce Actions üzerinden release workflow'unu elle çalıştırabilirsin. Windows 2022 üzerinde proje sürümünü derleyip imzalar; release oluşturmadan installer ve ZIP dosyalarını `signed-windows-packages` artifact'ı olarak saklar.
+
 ## Notlar
 
 - Bedwars Overlay, Hypixel ile bağlı veya resmi bir uygulama değildir.

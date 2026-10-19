@@ -1,6 +1,7 @@
 name: Build and publish Windows release
 
 on:
+  workflow_dispatch:
   release:
     types: [published]
 
@@ -52,7 +53,10 @@ jobs:
             throw "GitHub Actions secret WINDOWS_SIGNING_CERTIFICATE_PASSWORD is not configured."
           }
 
-          $version = $env:RELEASE_TAG -replace '^v', ''
+          [xml]$project = Get-Content .\BedwarsOverlay.App\BedwarsOverlay.App.csproj
+          $projectVersion = [string]$project.Project.PropertyGroup.Version
+          $version = if ($env:RELEASE_TAG) { $env:RELEASE_TAG -replace '^v', '' } else { $projectVersion }
+          if ($version -ne $projectVersion) { throw "Release tag and project version must match." }
           if ($version -notmatch '^\d+\.\d+\.\d+([-.][0-9A-Za-z.-]+)?$') {
             throw "Release tag must use a version such as v1.4.0; received '$env:RELEASE_TAG'."
           }
@@ -66,7 +70,17 @@ jobs:
             exit $LASTEXITCODE
           }
 
+      - name: Save signed packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: signed-windows-packages
+          path: |
+            publish/BedwarsOverlay-*-win-x64.zip
+            publish/BedwarsOverlaySetup-*-win-x64.exe
+          if-no-files-found: error
+
       - name: Attach packages to the GitHub release
+        if: github.event_name == 'release'
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
@@ -74,7 +88,7 @@ jobs:
         run: |
           $artifacts = @(
             Get-ChildItem -LiteralPath .\publish -File |
-              Where-Object { $_.Name -match '^BedwarsOverlay-(\d+\.\d+\.\d+.*-win-x64\.zip|Setup-\d+\.\d+\.\d+.*-win-x64\.exe)$' } |
+              Where-Object { $_.Name -match '^BedwarsOverlay(-\d+\.\d+\.\d+.*-win-x64\.zip|Setup-\d+\.\d+\.\d+.*-win-x64\.exe)$' } |
               ForEach-Object { $_.FullName }
           )
 

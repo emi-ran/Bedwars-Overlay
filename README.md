@@ -121,6 +121,8 @@ Build and sign release artifacts with a `.pfx` certificate:
 The script prompts for the certificate password. Do not commit `.pfx` or `.p12` files.
 By default it signs the app executable, project DLLs, and installer. Use `-SignAllBinaries` only if you want to sign every published `.exe` and `.dll`.
 
+Before publishing, run the release workflow manually from Actions. It builds and signs the project version on Windows 2022 and stores the installer and ZIP as `signed-windows-packages` artifacts without creating a release.
+
 ## Notes
 
 - Bedwars Overlay is not affiliated with Hypixel.
