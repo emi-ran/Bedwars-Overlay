@@ -36,3 +36,5 @@ This file tracks forward-looking work only. Current implemented state belongs in
 - Predicting a specific "sniper" player by name; the overlay only scores statistical danger and repeat encounters.
 - Match history UI (past matches, win/loss record, per-player history view). The data is stored, but nothing renders it yet.
 - Identifying a nicked player's real account.
+- Per-player team assignment. The client log never states which team a player is on: `/who` returns a flat name list, no "you are on the X team" message is printed, and the scoreboard/tab list is not logged. Only the winning team's roster in the end block, `TEAM ELIMINATED > X Team`, and `BED DESTRUCTION > X Bed ... by <name>` mention teams. Requires a client mod that reads the scoreboard, not log parsing.
+- Auto-loading the roster at game start. `X has joined (N/16)!` messages only cover players who join after the client is transferred in (measured: 4 of 16 names recovered), and the overlay cannot send `/who` itself without input injection, which is out of scope.

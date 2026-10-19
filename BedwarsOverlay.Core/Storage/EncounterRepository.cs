@@ -40,10 +40,14 @@ namespace BedwarsOverlay.Core.Storage
             return NameKeyPrefix + (username ?? string.Empty).Trim().ToLowerInvariant();
         }
 
-        /// <summary>Opens a new match and returns its id. Abandoned open matches are closed first.</summary>
+        /// <summary>
+        /// Opens a new match and returns its id. Any match still marked as open is closed first: a new
+        /// game starting means the previous one is over, even when its end summary never reached the
+        /// log (the player left after being eliminated, disconnected, or the client skipped the block).
+        /// </summary>
         public long StartMatch()
         {
-            CloseStaleMatches(DefaultMaxOpenMatchAge);
+            CloseOpenMatches();
 
             using (var conn = _database.GetConnection())
             using (var cmd = new SqliteCommand(
@@ -106,15 +110,14 @@ namespace BedwarsOverlay.Core.Storage
             }
         }
 
-        /// <summary>Closes matches that were left open (application crash, closed mid-game).</summary>
-        public int CloseStaleMatches(TimeSpan maxOpenAge)
+        /// <summary>Closes every match that is still marked as open.</summary>
+        public int CloseOpenMatches()
         {
-            long cutoff = Now() - (long)maxOpenAge.TotalSeconds;
             using (var conn = _database.GetConnection())
             using (var cmd = new SqliteCommand(
-                "UPDATE matches SET ended_at = @cutoff WHERE ended_at IS NULL AND started_at < @cutoff;", conn))
+                "UPDATE matches SET ended_at = @endedAt WHERE ended_at IS NULL;", conn))
             {
-                cmd.Parameters.AddWithValue("@cutoff", cutoff);
+                cmd.Parameters.AddWithValue("@endedAt", Now());
                 return cmd.ExecuteNonQuery();
             }
         }

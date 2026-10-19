@@ -55,8 +55,11 @@ namespace BedwarsOverlay.Core.LogWatching
             @"^\+\d+\s+(?:tokens!|Slumber\s+Tickets)\s+\(Win\)$",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
+        // Only the Slumber Tickets variant marks the end of a game. The per-minute "+12 tokens!
+        // (Time Played)" and "+17 Bed Wars XP (Time Played)" lines are printed while the game is
+        // still running and must never end a match.
         private static readonly Regex GameEndTimePlayedPattern = new(
-            @"^\+\d+\s+.*\(Time\s+Played\)$",
+            @"^\+\d+\s+Slumber\s+Tickets\s+\(Time\s+Played\)$",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         private static readonly Regex BedWarsHeaderPattern = new(

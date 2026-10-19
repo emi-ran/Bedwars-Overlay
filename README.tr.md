@@ -41,6 +41,8 @@ Bu komutları Minecraft chat’e yaz. Hypixel bunları bilinmeyen komut olarak l
 - `/bwhelp`: komut yardımını overlay tanılama/status alanında gösterir.
 - `/p list`: `Ignore party players from /p list` ayarı için parti listesini günceller.
 
+`/who` kadroyu yüklemenin tek güvenilir yolu: Hypixel hiçbir zaman bir oyuncunun hangi takımda olduğunu yazmıyor ve lobiye giriş mesajları oyunda zaten bulunan herkesi kaçırıyor. Oyun başlar başlamaz yaz; durum çubuğu seni uyarıyor.
+
 ## Kurulum
 
 1. [Latest Release](https://github.com/emi-ran/Bedwars-Overlay/releases/latest) kısmından son sürümü indir.

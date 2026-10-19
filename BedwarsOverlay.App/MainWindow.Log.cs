@@ -184,6 +184,7 @@ namespace BedwarsOverlay.App
             {
                 _currentMatchId = _encounterRepository.StartMatch();
                 AddDiagnosticLine($"Match #{_currentMatchId} started. Tracking player encounters.");
+                SetStatus(LocalizationService.Instance["Status_MatchStarted"]);
             }
             catch (Exception ex)
             {

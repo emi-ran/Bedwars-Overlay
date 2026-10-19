@@ -78,6 +78,20 @@ namespace BedwarsOverlay.Tests
         }
 
         [Fact]
+        public void StartMatch_ClosesFreshOpenMatch()
+        {
+            // A player who leaves right after being eliminated never sees the end summary, so the
+            // next game must close the still-open match instead of leaving it open forever.
+            long abandoned = _repository.StartMatch();
+
+            long next = _repository.StartMatch();
+
+            Assert.NotEqual(abandoned, next);
+            Assert.Equal(next, _repository.GetOpenMatchId());
+            Assert.NotNull(GetEndedAt(abandoned));
+        }
+
+        [Fact]
         public void RecordPlayers_IgnoresDuplicateNamesInsideTheSameMatch()
         {
             long id = _repository.StartMatch();

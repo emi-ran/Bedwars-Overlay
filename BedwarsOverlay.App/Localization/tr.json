@@ -33,6 +33,7 @@
   "Status_MatchEnded": "Oyun bitti. Mevcut oyuncu listesi temizlendi.",
   "Status_ConfigureApi": "Ayarlardan Hypixel API anahtarını yapılandırın.",
   "Status_WaitingWho": "Minecraft'ta /who bekleniyor...",
+  "Status_MatchStarted": "Oyun başladı. Oyuncuları yüklemek için /who yaz.",
   "Status_LogNotFound": "Minecraft log dosyası bulunamadı. Ayarları kontrol edin.",
   "Status_Cleared": "Mevcut oyuncu listesi temizlendi.",
   "Status_CommandHelp": "Bedwars Overlay komutları aşağıda gösterildi.",

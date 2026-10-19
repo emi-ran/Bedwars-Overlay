@@ -33,6 +33,7 @@
   "Status_MatchEnded": "Game ended. Current player list cleared.",
   "Status_ConfigureApi": "Configure Hypixel API key in Settings.",
   "Status_WaitingWho": "Waiting for /who in Minecraft...",
+  "Status_MatchStarted": "Game started. Type /who to load the players.",
   "Status_LogNotFound": "Minecraft log file not found. Check Settings.",
   "Status_Cleared": "Current player list cleared.",
   "Status_CommandHelp": "Bedwars Overlay commands shown below.",

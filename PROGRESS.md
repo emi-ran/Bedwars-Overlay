@@ -158,7 +158,7 @@ dotnet test "BedwarsOverlay.Tests\BedwarsOverlay.Tests.csproj"
 
 `dotnet test` does not accept `BedwarsOverlay.slnx` directly, so point it at the test project.
 
-Current expected state: build succeeds with 0 errors and 0 warnings, and all 113 tests pass. If the running app locks `BedwarsOverlay.App\bin\Debug\net8.0-windows\BedwarsOverlay.Core.dll`, close the app or build the app project with a temporary `OutputPath`.
+Current expected state: build succeeds with 0 errors and 0 warnings, and all 115 tests pass. If the running app locks `BedwarsOverlay.App\bin\Debug\net8.0-windows\BedwarsOverlay.Core.dll`, close the app or build the app project with a temporary `OutputPath`.
 
 ---
 
@@ -172,3 +172,7 @@ Current expected state: build succeeds with 0 errors and 0 warnings, and all 113
 - The threat weights, half-life constants, and band thresholds live in `BedwarsOverlay.Core/Stats/ThreatScorer.cs` and are still the first-draft values. They are intended to be tuned with real match data.
 - Current threat calibration: a strong regular player (FKDR 6.0, level 300, winstreak 20, established account) scores ~55 → High, while a 35-game FKDR 15.0 account seen in 5 of the last 10 matches scores ~79 → Extreme. `ThreatScorerTests.Score_Calibration_*` pins these two profiles so a future tweak has to be deliberate.
 - Verified against a real Badlion client log: all 6 matches in the log produced both a start and an end event (wins report `(Time Played)` first and upgrade to win on the `(Win)` line). Before the fix, a wrapped team roster line reset the parser state and no game end was detected at all.
+- `(Time Played)` is **not** a safe end-of-game marker on its own. Hypixel prints `+12 tokens! (Time Played)` and `+17 Bed Wars XP (Time Played)` every minute during a live game; only `+N Slumber Tickets (Time Played)` marks the end of a match. `GameBlockParserTests.ParseGameBlock_PerMinuteTimePlayedRewardsInsideBlock_DoNotEndMatch` pins this.
+- A match can end without any summary block: when the player is eliminated and leaves before the game finishes, the log has no `Bed Wars` end block at all (measured: 8 of 14 games in `2026-10-11-3.log.gz`). `EncounterRepository.StartMatch` therefore closes every still-open match instead of relying on a 30-minute staleness cutoff.
+- Team membership is **not** available from the client log. There is no "you are on the X team" message, `/who` returns a flat name list, and the scoreboard/tab list is never logged. The only team data in chat is the winning team's roster in the end block (`Yellow - name, name, ...`), `TEAM ELIMINATED > X Team`, and `BED DESTRUCTION > X Bed ... by <name>`. Do not build per-player team features on this.
+- Reconstructing the roster from `X has joined (N/16)!` messages does not work: players already in the lobby when the client is transferred in never emit a join message (measured: 4 of 16 names recovered). `/who` remains the only reliable roster source.

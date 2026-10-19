@@ -97,5 +97,20 @@ namespace BedwarsOverlay.Tests
 
             Assert.Equal(GameBlockKind.None, result.Kind);
         }
+
+        [Fact]
+        public void ParseGameBlock_PerMinuteTimePlayedRewardsInsideBlock_DoNotEndMatch()
+        {
+            // Hypixel prints "+12 tokens! (Time Played)" and "+17 Bed Wars XP (Time Played)" every
+            // minute while the game is still running. Only the Slumber Tickets variant ends a match.
+            var parser = new HypixelLogParser();
+
+            parser.ParseGameBlock(Separator);
+            parser.ParseGameBlock(Header);
+
+            Assert.Equal(GameBlockKind.None, parser.ParseGameBlock("[01:24:24] [Client thread/INFO]: [CHAT] +12 tokens! (Time Played)").Kind);
+            Assert.Equal(GameBlockKind.None, parser.ParseGameBlock("[01:24:24] [Client thread/INFO]: [CHAT] +17 Bed Wars XP (Time Played)").Kind);
+            Assert.Equal(GameBlockKind.None, parser.ParseGameBlock("[01:25:24] [Client thread/INFO]: [CHAT] +24 tokens! (Time Played)").Kind);
+        }
     }
 }

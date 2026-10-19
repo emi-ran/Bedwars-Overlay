@@ -41,6 +41,8 @@ Type these in Minecraft chat. Hypixel will report them as unknown commands, and 
 - `/bwhelp`: show the command help in the overlay diagnostics/status area.
 - `/p list`: update the party list used by the `Ignore party players from /p list` setting.
 
+`/who` is the only reliable way to load the roster: Hypixel never states which team a player is on, and lobby join messages miss everyone who was already in the game. Type it right after the game starts; the status bar prompts you.
+
 ## Setup
 
 1. Download the latest version from the [Latest Release](https://github.com/emi-ran/Bedwars-Overlay/releases/latest).

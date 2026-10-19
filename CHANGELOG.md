@@ -10,11 +10,12 @@ All notable user-facing changes to Bedwars Overlay are tracked here.
 - Added a per-row threat tooltip listing the signals behind the score.
 - Added schema versioning and migration for `%LOCALAPPDATA%\BedwarsOverlay\data.db` through `PRAGMA user_version`; v2 adds `matches` and rewrites `encounters` with a match id.
 - Fixed Bed Wars game-end detection. Long team rosters wrap onto a continuation line without the `[CHAT]` prefix, which reset the parser state, so the end of a game was effectively never detected in real matches and the previous player list stayed on screen.
-- Fixed the loss path: a game that ends with `(Time Played)` and no `(Win)` line is now recognized as the end of a match.
+- Fixed the loss path: a game that ends with `(Time Played)` and no `(Win)` line is now recognized as the end of a match. Only the `Slumber Tickets (Time Played)` reward counts, because Hypixel prints `tokens! (Time Played)` and `Bed Wars XP (Time Played)` every minute while the game is still running.
+- Fixed abandoned matches staying open forever: a player who leaves after being eliminated never sees the end summary, so starting a new game now closes the previous match instead of waiting 30 minutes.
 - Fixed the threat column, risk label, and warning badge disagreeing with each other because they used separate FKDR thresholds.
 - Renamed the `Sniper` column to `Threat`; saved sorting and the column visibility setting are migrated (`SniperRaw` → `ThreatRaw`, keeping existing `settings.json` values).
 - Changed the grid localizer to resolve columns by `SortMemberPath` instead of hard-coded positions, so hiding or reordering columns cannot move a localized header.
-- Expanded the test suite from 74 to 113 tests, including real client log fixtures for the start, win, and loss blocks, threat scoring, encounter storage, and schema migration.
+- Expanded the test suite from 74 to 115 tests, including real client log fixtures for the start, win, and loss blocks, threat scoring, encounter storage, and schema migration.
 
 ## 1.3.0 - 2026-06-25
 
