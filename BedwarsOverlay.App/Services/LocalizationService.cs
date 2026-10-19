@@ -170,6 +170,7 @@ namespace BedwarsOverlay.App.Services
             ["Column_FKills"] = "F. Kills",
             ["Column_Wins"] = "Wins",
             ["Column_Threat"] = "Threat",
+            ["Column_Team"] = "Team",
 
             // MainWindow - Column Tooltips
             ["Tooltip_Lvl"] = "BedWars Level (Stars & Prestige)",
@@ -180,6 +181,7 @@ namespace BedwarsOverlay.App.Services
             ["Tooltip_FKills"] = "Total BedWars Final Kills",
             ["Tooltip_Wins"] = "Total BedWars Wins",
             ["Tooltip_Threat"] = "Threat Score (0-100) from FKDR, WLR, KDR, bed ratio, level, winstreak, alt-account and repeat-opponent signals",
+            ["Tooltip_Team"] = "Team read from the visible Minecraft player list",
 
             // MainWindow - Context Menu
             ["ContextMenu_CopyUsername"] = "Copy Username",
@@ -206,7 +208,7 @@ namespace BedwarsOverlay.App.Services
             ["Init_ErrorTitle"] = "Initialization Error",
             ["Init_FailedDb"] = "Failed to initialize database/settings: {0}",
             ["Hotkey_ErrorTitle"] = "Hotkey Registration Error",
-            ["Hotkey_Failed"] = "Failed to register global hotkeys Ctrl+Alt+O / Ctrl+Alt+H! Please check if another app is using these shortcuts.",
+            ["Hotkey_Failed"] = "Failed to register global hotkeys Ctrl+Alt+O / Ctrl+Alt+H / END! Please check if another app is using these shortcuts.",
             ["Hotkey_InitError"] = "Error initializing hotkey service: {0}",
             ["Clipboard_Error"] = "Failed to copy to clipboard: {0}",
             ["Plancke_Error"] = "Failed to open Plancke link: {0}",
@@ -214,7 +216,14 @@ namespace BedwarsOverlay.App.Services
             ["Update_Title"] = "Update Available",
             ["Update_Prompt"] = "A new Bedwars Overlay version is available.\n\nCurrent version: {0}\nLatest version: {1}\n\nYes: open download page\nNo: remind me later\nCancel: skip this version",
             ["Shortcuts_Title"] = "Shortcuts",
-            ["Shortcuts_Help"] = "Ctrl+Alt+O toggles edit mode. Ctrl+Alt+H hides or shows the overlay. Use /bwstats name(s) to load specific players and /bwignore name(s) to hide players.",
+            ["Shortcuts_Help"] = "Ctrl+Alt+O toggles edit mode. Ctrl+Alt+H hides or shows the overlay. Hold TAB to open Minecraft's player list, then press END to read teams. Use /bwstats name(s) to load specific players and /bwignore name(s) to hide players.",
+            ["Teams_LoadPlayersFirst"] = "Load players with /who before reading teams.",
+            ["Teams_FocusMinecraft"] = "Focus Minecraft, hold TAB to keep the player list open, then press END.",
+            ["Teams_HoldTab"] = "Hold TAB to keep the player list open, then press END.",
+            ["Teams_Reading"] = "Reading teams from the visible player list...",
+            ["Teams_NoneFound"] = "No matching team rows found. Keep the player list open and try again.",
+            ["Teams_Updated"] = "Team data updated for {0} player(s).",
+            ["Teams_Failed"] = "Could not read the player list. Keep Minecraft focused and try again.",
             ["Onboarding_Title"] = "Welcome to Bedwars Overlay",
             ["Onboarding_Body"] = "Track players from /who, spot risky stats, and keep the overlay out of your way while playing.",
             ["Onboarding_EditShortcut"] = "Ctrl+Alt+O: edit / play mode",

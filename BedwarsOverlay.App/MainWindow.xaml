@@ -486,6 +486,24 @@
                         </DataGrid.RowStyle>
                         
                         <DataGrid.Columns>
+                            <!-- Team Column -->
+                            <DataGridTextColumn x:Name="TeamColumn" Header="Team" Binding="{Binding Team}" Width="65" SortMemberPath="Team">
+                                <DataGridTextColumn.HeaderStyle>
+                                    <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource DefaultHeaderStyle}">
+                                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                    </Style>
+                                </DataGridTextColumn.HeaderStyle>
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                        <Setter Property="Foreground" Value="{Binding TeamColor}"/>
+                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                        <Setter Property="FontFamily" Value="Segoe UI"/>
+                                        <Setter Property="FontSize" Value="11"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+
                             <!-- Level Column -->
                             <DataGridTextColumn x:Name="LevelColumn" Header="Lvl" Binding="{Binding Level}" Width="45" IsReadOnly="True" SortMemberPath="LevelRaw">
                                 <DataGridTextColumn.HeaderStyle>

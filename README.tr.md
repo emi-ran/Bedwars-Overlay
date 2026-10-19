@@ -9,6 +9,7 @@ Bedwars Overlay, Hypixel Bed Wars oyuncuları için küçük bir Windows overlay
 ## Ne İşe Yarar?
 
 - `/who` listesindeki oyuncuları gösterir.
+- `END` ile (TAB'ı basılı tutup END'e basarak) Minecraft oyuncu listesindeki takım etiketlerini okur ve tabloda takıma göre sıralamayı sağlar. OCR motoru uygulamayla birlikte gelir.
 - `/bwstats` ile belirli oyuncuları yükleyebilirsin.
 - `/bwignore`, Ayarlar'daki gizlenen oyuncular, `/p list` parti gizleme ve kendini gizleme seçenekleriyle oyuncuları gizleyebilirsin.
 - Level, winstreak, FKDR, WLR, final kills, wins ve 0-100 arası tehdit (threat) skoru gibi Bed Wars statlarını gösterir.
@@ -29,6 +30,7 @@ Bedwars Overlay, Hypixel Bed Wars oyuncuları için küçük bir Windows overlay
 
 - `Ctrl+Alt+O`: düzenleme modu ile saydam play mode arasında geçiş yapar.
 - `Ctrl+Alt+H`: overlay’i gizler veya gösterir. Gizlenen overlay sistem tepsisinden tekrar açılabilir.
+- `END`: Minecraft öndeyken TAB'ı basılı tutup END'e basınca takım bilgisini okur. Ekran görüntüsü alırken overlay kısa süreliğine gizlenir.
 
 ## Overlay Komutları
 
@@ -82,7 +84,7 @@ Gereksinimler:
 
 ## Release Oluşturma
 
-Installer oluşturmak için Inno Setup 6 kur:
+Installer veya portable release oluşturmak için Inno Setup 6 ve x64 C++ yeniden dağıtılabilir dosyalarıyla birlikte Visual Studio Build Tools 2022 kur:
 
 [https://jrsoftware.org/isinfo.php](https://jrsoftware.org/isinfo.php)
 

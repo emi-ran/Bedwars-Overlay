@@ -61,6 +61,28 @@ namespace BedwarsOverlay.Core.Models
             set => SetProperty(ref _name, value);
         }
 
+        private string _team = string.Empty;
+        public string Team
+        {
+            get => _team;
+            set
+            {
+                if (SetProperty(ref _team, value ?? string.Empty))
+                {
+                    OnPropertyChanged(nameof(TeamColor));
+                }
+            }
+        }
+
+        public Brush TeamColor => Team switch
+        {
+            "Blue" => new SolidColorBrush(Color.FromRgb(0x55, 0xAA, 0xFF)),
+            "Green" => GreenBrush,
+            "Red" => RedBrush,
+            "Yellow" => GoldBrush,
+            _ => GrayBrush
+        };
+
         private string _statusText = "OK";
         public string StatusText
         {

@@ -76,6 +76,7 @@ namespace BedwarsOverlay.App
                     bool closedRunningMatch = EndTrackedMatch(gameBlock.Outcome);
                     if (closedRunningMatch)
                     {
+                        _currentTeamByPlayer.Clear();
                         _playerLookupService?.CancelAndReset();
                         _players.Clear();
                         PlaceholderPanel.Visibility = Visibility.Visible;
@@ -174,6 +175,7 @@ namespace BedwarsOverlay.App
         private void StartTrackedMatch()
         {
             _lastEndedMatchId = null;
+            _currentTeamByPlayer.Clear();
 
             if (_encounterRepository == null)
             {

@@ -9,6 +9,7 @@ Bedwars Overlay is a small Windows overlay for Hypixel Bed Wars players. It read
 ## What It Does
 
 - Shows players from your `/who` list.
+- Reads team prefixes from the visible Minecraft player list with `END` (hold `TAB` and press `END`) and lets you sort the table by team. The OCR engine is bundled with the app.
 - Lets you load specific players with `/bwstats`.
 - Lets you hide players with `/bwignore`, Settings ignored players, `/p list` party ignore, and self ignore.
 - Displays useful Bed Wars stats such as level, winstreak, FKDR, WLR, final kills, wins, and a 0-100 threat score.
@@ -29,6 +30,7 @@ Bedwars Overlay is a small Windows overlay for Hypixel Bed Wars players. It read
 
 - `Ctrl+Alt+O`: switch between edit mode and transparent play mode.
 - `Ctrl+Alt+H`: hide or show the overlay. Hidden overlays stay available from the system tray.
+- `END`: read teams while Minecraft is focused and its player list is open. Hold `TAB` and press `END`; the overlay briefly hides while it captures the game window.
 
 ## Overlay Commands
 
@@ -82,7 +84,7 @@ Requirements:
 
 ## Building a Release
 
-Install Inno Setup 6 if you want to build the installer:
+Install Inno Setup 6 and Visual Studio Build Tools 2022 with the x64 C++ redistributable files if you want to build the installer or portable release package:
 
 [https://jrsoftware.org/isinfo.php](https://jrsoftware.org/isinfo.php)
 

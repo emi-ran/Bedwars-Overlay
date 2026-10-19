@@ -30,6 +30,8 @@ Develop a **Windows-only external stats overlay** for Minecraft BedWars. The app
 ## 3. Implemented Features
 
 - Reads Minecraft `latest.log` and detects `/who` output.
+- Reads Hypixel team prefixes from a user-triggered capture of the visible Minecraft player list (`END`, while holding `TAB`) and shows the result in a sortable Team column. OCR runs locally using bundled Tesseract; no client mod or separate user installation is required.
+- Team OCR scans the left and center player-list region, crops masks to visible team-colored text, reuses the OCR engine, and leaves ambiguous or uncolored names blank. Captures stay at native resolution until the OCR crop is enlarged once.
 - Parses `/who` player lists, including Minecraft color/formatting codes.
 - Supports overlay chat commands through Hypixel unknown-command log echoes: `/bwstats`, `/bwignore`, `/bwclear`, and `/bwhelp`.
 - Supports `/bwstats <name...>` to load specific players while bypassing ignore filters.
@@ -54,6 +56,7 @@ Develop a **Windows-only external stats overlay** for Minecraft BedWars. The app
 - Supports global hotkeys:
   - `Ctrl+Alt+O`: edit/play mode
   - `Ctrl+Alt+H`: hide/show overlay
+  - `END`: read teams from the visible Minecraft player list (hold `TAB`)
 - Starts in edit mode after onboarding so the overlay can be moved and resized.
 - Saves and restores window position and size between runs.
 - Hides from taskbar and Alt-Tab in play mode, appears there in edit mode, and keeps a system tray icon.
@@ -176,3 +179,4 @@ Current expected state: build succeeds with 0 errors and 0 warnings, and all 115
 - A match can end without any summary block: when the player is eliminated and leaves before the game finishes, the log has no `Bed Wars` end block at all (measured: 8 of 14 games in `2026-10-11-3.log.gz`). `EncounterRepository.StartMatch` therefore closes every still-open match instead of relying on a 30-minute staleness cutoff.
 - Team membership is **not** available from the client log. There is no "you are on the X team" message, `/who` returns a flat name list, and the scoreboard/tab list is never logged. The only team data in chat is the winning team's roster in the end block (`Yellow - name, name, ...`), `TEAM ELIMINATED > X Team`, and `BED DESTRUCTION > X Bed ... by <name>`. Do not build per-player team features on this.
 - Reconstructing the roster from `X has joined (N/16)!` messages does not work: players already in the lobby when the client is transferred in never emit a join message (measured: 4 of 16 names recovered). `/who` remains the only reliable roster source.
+- Team recognition requires `/who` players to be loaded first and the Minecraft player list to be visible when `END` is pressed (hold `TAB`). OCR can miss rows on unusual UI scales or client layouts; unknown assignments remain blank. Release packages bundle the English Tesseract model and x64 Visual C++ runtime files.

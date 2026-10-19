@@ -28,6 +28,7 @@ namespace BedwarsOverlay.App
 
         private const int ToggleEditModeHotkeyId = 9000;
         private const int ToggleVisibilityHotkeyId = 9001;
+        private const int CaptureTeamsHotkeyId = 9002;
 
         public static readonly DependencyProperty IsEditModeProperty =
             DependencyProperty.Register("IsEditMode", typeof(bool), typeof(MainWindow), new PropertyMetadata(false));
@@ -45,6 +46,8 @@ namespace BedwarsOverlay.App
         private readonly ObservableCollection<string> _diagnosticLines = new();
         private readonly ObservableCollection<PlayerRow> _players = new();
         private readonly HashSet<string> _partyPlayers = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, string> _currentTeamByPlayer = new(StringComparer.OrdinalIgnoreCase);
+        private readonly TeamRecognitionService _teamRecognitionService = new(AppDomain.CurrentDomain.BaseDirectory);
         private const int FinalKillRemoveDelayMs = 2500;
 
         private AppDatabase? _database;
@@ -122,6 +125,7 @@ namespace BedwarsOverlay.App
             if (view is ListCollectionView listColView)
             {
                 listColView.IsLiveSorting = true;
+                listColView.LiveSortingProperties.Add("Team");
                 listColView.LiveSortingProperties.Add("LevelRaw");
                 listColView.LiveSortingProperties.Add("WinstreakRaw");
                 listColView.LiveSortingProperties.Add("FkdrRaw");
@@ -163,7 +167,8 @@ namespace BedwarsOverlay.App
 
                 bool success =
                     _hotkeyService.Register(ToggleEditModeHotkeyId, HotkeyService.MOD_CONTROL | HotkeyService.MOD_ALT, 0x4F) && // Ctrl+Alt+O
-                    _hotkeyService.Register(ToggleVisibilityHotkeyId, HotkeyService.MOD_CONTROL | HotkeyService.MOD_ALT, 0x48);  // Ctrl+Alt+H
+                    _hotkeyService.Register(ToggleVisibilityHotkeyId, HotkeyService.MOD_CONTROL | HotkeyService.MOD_ALT, 0x48) &&  // Ctrl+Alt+H
+                    _hotkeyService.Register(CaptureTeamsHotkeyId, 0, 0x23);                                                    // END
                 if (!success)
                 {
                     MessageBox.Show(
@@ -190,6 +195,10 @@ namespace BedwarsOverlay.App
             else if (id == ToggleVisibilityHotkeyId)
             {
                 ToggleVisibilityMode();
+            }
+            else if (id == CaptureTeamsHotkeyId)
+            {
+                _ = CaptureTeamsFromPlayerListAsync();
             }
         }
 
@@ -231,6 +240,7 @@ namespace BedwarsOverlay.App
             SaveWindowBounds();
             _trayIconService?.Dispose();
             _playerLookupService?.Dispose();
+            _teamRecognitionService.Dispose();
             _hotkeyService?.Dispose();
             _logTailer?.Stop();
             base.OnClosed(e);

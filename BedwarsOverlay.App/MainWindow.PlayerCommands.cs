@@ -35,6 +35,7 @@ namespace BedwarsOverlay.App
         private void ClearPlayers()
         {
             _playerLookupService?.CancelAndReset();
+            _currentTeamByPlayer.Clear();
             _players.Clear();
             PlaceholderPanel.Visibility = Visibility.Visible;
             AddDiagnosticLine(LocalizationService.Instance["Status_Cleared"]);
@@ -59,6 +60,10 @@ namespace BedwarsOverlay.App
             foreach (var name in players)
             {
                 var placeholder = PlayerRow.CreateLoading(name, index % 2 == 0);
+                if (_currentTeamByPlayer.TryGetValue(name, out string? team))
+                {
+                    placeholder.Team = team;
+                }
                 ApplyRepeatBadge(placeholder, name, encounterContext);
                 _players.Add(placeholder);
 

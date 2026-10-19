@@ -15,6 +15,7 @@ namespace BedwarsOverlay.App.Services
     {
         private static readonly (string SortMemberPath, string HeaderKey, string TooltipKey)[] ColumnMap =
         {
+            ("Team", "Column_Team", "Tooltip_Team"),
             ("LevelRaw", "Column_Lvl", "Tooltip_Lvl"),
             ("Name", "Column_Name", "Tooltip_Name"),
             ("WinstreakRaw", "Column_WS", "Tooltip_WS"),

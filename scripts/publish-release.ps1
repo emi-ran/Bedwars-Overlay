@@ -77,6 +77,43 @@ function Find-SignTool {
     throw "signtool.exe not found. Install Windows SDK or add signtool.exe to PATH."
 }
 
+function Copy-VisualCppRuntime {
+    param([string]$DestinationDirectory)
+
+    $visualStudioRoots = @()
+    foreach ($programFilesRoot in @(${env:ProgramFiles(x86)}, $env:ProgramFiles)) {
+        if (-not $programFilesRoot) { continue }
+        $visualStudio2022 = Join-Path $programFilesRoot "Microsoft Visual Studio\2022"
+        if (Test-Path -LiteralPath $visualStudio2022) {
+            $visualStudioRoots += Get-ChildItem -LiteralPath $visualStudio2022 -Directory |
+                ForEach-Object { Join-Path $_.FullName "VC\Redist\MSVC" }
+        }
+    }
+
+    $redistRoot = $visualStudioRoots |
+        Where-Object { Test-Path -LiteralPath $_ } |
+        ForEach-Object { Get-ChildItem -LiteralPath $_ -Directory } |
+        Where-Object { $_.Name -match '^\d+\.\d+' } |
+        Sort-Object { [version]$_.Name } -Descending |
+        Select-Object -First 1
+
+    if (-not $redistRoot) {
+        throw "Visual Studio 2022 x64 C++ redistributable files were not found. Install Visual Studio Build Tools with the C++ runtime redistributable component."
+    }
+
+    $crtDirectory = Join-Path $redistRoot.FullName "x64\Microsoft.VC143.CRT"
+    $openMpDirectory = Join-Path $redistRoot.FullName "x64\Microsoft.VC143.OpenMP"
+    if (-not (Test-Path -LiteralPath $crtDirectory)) {
+        throw "Visual C++ CRT files were not found at: $crtDirectory"
+    }
+
+    Copy-Item -Path (Join-Path $crtDirectory "*.dll") -Destination $DestinationDirectory -Force
+    $openMpRuntime = Join-Path $openMpDirectory "vcomp140.dll"
+    if (Test-Path -LiteralPath $openMpRuntime) {
+        Copy-Item -LiteralPath $openMpRuntime -Destination $DestinationDirectory -Force
+    }
+}
+
 function Find-InnoSetupCompiler {
     param([string]$ExplicitPath)
 
@@ -189,6 +226,8 @@ dotnet publish $ProjectPath -c Release -r $Runtime --self-contained true -o $Pub
 if ($LASTEXITCODE -ne 0) { throw "Publish failed." }
 
 try {
+    Copy-VisualCppRuntime -DestinationDirectory $PublishDir
+
     if ($Sign) {
         if ($SignAllBinaries) {
             $filesToSign = Get-ChildItem -LiteralPath $PublishDir -Recurse -File |

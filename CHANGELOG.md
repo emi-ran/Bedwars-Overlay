@@ -2,6 +2,13 @@
 
 All notable user-facing changes to Bedwars Overlay are tracked here.
 
+## Unreleased
+
+- Fixed team OCR masks so Tesseract can read player names from the visible player list.
+- Improved team capture speed and included left-aligned player lists that were clipped by the old crop.
+- Avoided enlarging the screenshot twice before team OCR, reducing image processing work.
+- Added team recognition from the visible Minecraft player list. Hold `TAB` and press `END` while the list is open; the OCR engine is bundled with the app, and the new Team column can be sorted.
+
 ## 1.4.0 - 2026-10-18
 
 - Added per-match player memory: the overlay now records which players were in which game and marks repeat opponents with a `×N` badge in the name column.
