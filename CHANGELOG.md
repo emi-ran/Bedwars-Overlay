@@ -4,6 +4,11 @@ All notable user-facing changes to Bedwars Overlay are tracked here.
 
 ## Unreleased
 
+## 1.4.3 - 2026-10-20
+
+- Fixed release builds by using the Visual Studio 2022 runner and selecting a Visual C++ runtime directory that contains the required CRT files.
+- Includes the first-run settings persistence fix from 1.4.1.
+
 ## 1.4.2 - 2026-10-20
 
 - Fixed Windows release packaging so it finds the Visual C++ runtime files across Visual Studio installation versions.

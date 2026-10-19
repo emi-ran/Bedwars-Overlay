@@ -1,5 +1,5 @@
 param(
-    [string]$Version = "1.4.2",
+    [string]$Version = "1.4.3",
     [string]$Runtime = "win-x64",
     [string]$CertificatePath,
     [switch]$Sign,
@@ -31,7 +31,7 @@ Usage:
   .\scripts\publish-release.ps1 --help
 
 Options:
-  -Version <value>              Release version. Default: 1.4.2
+  -Version <value>              Release version. Default: 1.4.3
   -Runtime <value>              .NET runtime identifier. Default: win-x64
   -CertificatePath <path>       PFX certificate path. Required with -Sign.
   -Sign                         Sign published app files and installer.
@@ -41,10 +41,10 @@ Options:
   -Help, --help, -h             Show this help.
 
 Examples:
-  .\scripts\publish-release.ps1 -Version "1.4.2"
-  .\scripts\publish-release.ps1 -Version "1.4.2" -SkipInstaller
-  .\scripts\publish-release.ps1 -Version "1.4.2" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
-  .\scripts\publish-release.ps1 -Version "1.4.2" -Runtime "win-x64" -Sign -SignAllBinaries -CertificatePath ".\Bedwars-Overlay.pfx"
+  .\scripts\publish-release.ps1 -Version "1.4.3"
+  .\scripts\publish-release.ps1 -Version "1.4.3" -SkipInstaller
+  .\scripts\publish-release.ps1 -Version "1.4.3" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
+  .\scripts\publish-release.ps1 -Version "1.4.3" -Runtime "win-x64" -Sign -SignAllBinaries -CertificatePath ".\Bedwars-Overlay.pfx"
 
 Notes:
   - With -Sign, certificate password is requested at script start.
@@ -96,6 +96,7 @@ function Copy-VisualCppRuntime {
         Where-Object { Test-Path -LiteralPath $_ } |
         ForEach-Object { Get-ChildItem -LiteralPath $_ -Directory } |
         Where-Object { $_.Name -match '^\d+\.\d+' } |
+        Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName "x64\Microsoft.VC143.CRT") } |
         Sort-Object { [version]$_.Name } -Descending |
         Select-Object -First 1
 
