@@ -109,13 +109,13 @@ try {
 Build release artifacts:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.4.1"
+.\scripts\publish-release.ps1 -Version "1.4.2"
 ```
 
 Build and sign release artifacts with a `.pfx` certificate:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.4.1" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
+.\scripts\publish-release.ps1 -Version "1.4.2" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
 ```
 
 The script prompts for the certificate password. Do not commit `.pfx` or `.p12` files.

@@ -109,13 +109,13 @@ try {
 Release dosyalarını oluştur:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.4.1"
+.\scripts\publish-release.ps1 -Version "1.4.2"
 ```
 
 `.pfx` sertifika ile release dosyalarını imzala:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.4.1" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
+.\scripts\publish-release.ps1 -Version "1.4.2" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
 ```
 
 Script sertifika şifresini sorar. `.pfx` veya `.p12` dosyalarını commit etme.

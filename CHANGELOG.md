@@ -4,6 +4,11 @@ All notable user-facing changes to Bedwars Overlay are tracked here.
 
 ## Unreleased
 
+## 1.4.2 - 2026-10-20
+
+- Fixed Windows release packaging so it finds the Visual C++ runtime files across Visual Studio installation versions.
+- Includes the first-run settings persistence fix from 1.4.1.
+
 ## 1.4.1 - 2026-10-20
 
 - Fixed first-run settings saves: unset window bounds are now serialized and restored as named floating-point values, so other settings are not lost before the window is positioned.

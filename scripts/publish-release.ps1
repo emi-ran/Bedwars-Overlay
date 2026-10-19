@@ -1,5 +1,5 @@
 param(
-    [string]$Version = "1.4.1",
+    [string]$Version = "1.4.2",
     [string]$Runtime = "win-x64",
     [string]$CertificatePath,
     [switch]$Sign,
@@ -31,7 +31,7 @@ Usage:
   .\scripts\publish-release.ps1 --help
 
 Options:
-  -Version <value>              Release version. Default: 1.4.1
+  -Version <value>              Release version. Default: 1.4.2
   -Runtime <value>              .NET runtime identifier. Default: win-x64
   -CertificatePath <path>       PFX certificate path. Required with -Sign.
   -Sign                         Sign published app files and installer.
@@ -41,10 +41,10 @@ Options:
   -Help, --help, -h             Show this help.
 
 Examples:
-  .\scripts\publish-release.ps1 -Version "1.4.1"
-  .\scripts\publish-release.ps1 -Version "1.4.1" -SkipInstaller
-  .\scripts\publish-release.ps1 -Version "1.4.1" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
-  .\scripts\publish-release.ps1 -Version "1.4.1" -Runtime "win-x64" -Sign -SignAllBinaries -CertificatePath ".\Bedwars-Overlay.pfx"
+  .\scripts\publish-release.ps1 -Version "1.4.2"
+  .\scripts\publish-release.ps1 -Version "1.4.2" -SkipInstaller
+  .\scripts\publish-release.ps1 -Version "1.4.2" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
+  .\scripts\publish-release.ps1 -Version "1.4.2" -Runtime "win-x64" -Sign -SignAllBinaries -CertificatePath ".\Bedwars-Overlay.pfx"
 
 Notes:
   - With -Sign, certificate password is requested at script start.
@@ -83,9 +83,11 @@ function Copy-VisualCppRuntime {
     $visualStudioRoots = @()
     foreach ($programFilesRoot in @(${env:ProgramFiles(x86)}, $env:ProgramFiles)) {
         if (-not $programFilesRoot) { continue }
-        $visualStudio2022 = Join-Path $programFilesRoot "Microsoft Visual Studio\2022"
-        if (Test-Path -LiteralPath $visualStudio2022) {
-            $visualStudioRoots += Get-ChildItem -LiteralPath $visualStudio2022 -Directory |
+        $visualStudioRoot = Join-Path $programFilesRoot "Microsoft Visual Studio"
+        if (Test-Path -LiteralPath $visualStudioRoot) {
+            $installDirectories = Get-ChildItem -LiteralPath $visualStudioRoot -Directory |
+                ForEach-Object { Get-ChildItem -LiteralPath $_.FullName -Directory -ErrorAction SilentlyContinue }
+            $visualStudioRoots += $installDirectories |
                 ForEach-Object { Join-Path $_.FullName "VC\Redist\MSVC" }
         }
     }
@@ -98,7 +100,7 @@ function Copy-VisualCppRuntime {
         Select-Object -First 1
 
     if (-not $redistRoot) {
-        throw "Visual Studio 2022 x64 C++ redistributable files were not found. Install Visual Studio Build Tools with the C++ runtime redistributable component."
+        throw "Visual Studio x64 C++ redistributable files were not found. Install Visual Studio Build Tools with the C++ runtime redistributable component."
     }
 
     $crtDirectory = Join-Path $redistRoot.FullName "x64\Microsoft.VC143.CRT"
