@@ -123,6 +123,10 @@ By default it signs the app executable, project DLLs, and installer. Use `-SignA
 
 Before publishing, run the release workflow manually from Actions. It builds and signs the project version on Windows 2022 and stores the installer and ZIP as `signed-windows-packages` artifacts without creating a release.
 
+## Product Website
+
+Visit the [Turkish/English product website](https://emi-ran.github.io/Bedwars-Overlay/). Its source is in `docs/`; see [Site maintenance](docs/SITE.md) for local preview and GitHub Pages publishing instructions.
+
 ## Notes
 
 - Bedwars Overlay is not affiliated with Hypixel.

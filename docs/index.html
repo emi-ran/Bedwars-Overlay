@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bedwars Overlay — Lobiyi oku. Oyuna odaklan.</title>
+  <meta id="meta-description" name="description" content="Hypixel Bed Wars için Windows masaüstü overlay'i. /who kadrosunu, takım düzenini, tekrar karşılaştığın oyuncuları ve 0-100 tehdit skorunu tek bakışta gösterir.">
+  <meta name="theme-color" content="#f4efe4">
+  <meta name="color-scheme" content="light">
+  <link rel="canonical" href="https://emi-ran.github.io/Bedwars-Overlay/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Bedwars Overlay">
+  <meta id="og-title" property="og:title" content="Bedwars Overlay — Lobiyi oku. Oyuna odaklan.">
+  <meta id="og-description" property="og:description" content="Hypixel Bed Wars için Windows masaüstü overlay'i. Takım düzeni, temel istatistikler ve tekrar karşılaşmalar; oyunun üstünde sakin bir katman.">
+  <meta id="og-locale" property="og:locale" content="tr_TR">
+  <meta name="twitter:card" content="summary">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/site.css">
+  <script src="assets/site.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main" data-i18n="skip">Ana içeriğe geç</a>
+
+  <header class="site-header">
+    <div class="shell header-inner">
+      <a class="brand" href="#top" aria-label="Bedwars Overlay ana sayfa" data-i18n-aria-label="brand.home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 64 64" role="presentation"><rect width="64" height="64" fill="#181a17"/><rect x="8" y="17" width="7" height="26" fill="#f0b429"/><rect x="15" y="28" width="41" height="15" fill="#f4efe4"/><rect x="36" y="28" width="20" height="15" fill="#f0b429"/><rect x="18" y="30" width="13" height="6" fill="#fffaf0"/><rect x="20" y="43" width="6" height="8" fill="#f4efe4"/><rect x="46" y="43" width="6" height="8" fill="#f4efe4"/><rect x="10" y="54" width="8" height="4" fill="#f0b429"/><rect x="23" y="54" width="8" height="4" fill="#9b9d8d"/><rect x="36" y="54" width="8" height="4" fill="#f0b429"/><rect x="49" y="54" width="8" height="4" fill="#9b9d8d"/></svg>
+        </span>
+        <span class="brand-text"><strong>Bedwars Overlay</strong><small data-i18n="brand.sub">BED WARS / WINDOWS</small></span>
+      </a>
+      <nav class="site-nav" aria-label="Ana gezinme" data-i18n-aria-label="nav.aria">
+        <a href="#demo" data-i18n="nav.demo">Demo</a>
+        <a href="#features" data-i18n="nav.features">Özellikler</a>
+        <a href="#setup" data-i18n="nav.setup">Kurulum</a>
+        <a href="#faq" data-i18n="nav.faq">SSS</a>
+      </nav>
+      <div class="header-actions">
+        <div class="lang-toggle" role="group" aria-label="Dil seçimi" data-i18n-aria-label="lang.group">
+          <button type="button" data-lang-btn="tr" lang="tr" aria-pressed="true" aria-label="Türkçeye geç" data-i18n-aria-label="lang.tr">TR</button>
+          <button type="button" data-lang-btn="en" lang="en" aria-pressed="false" aria-label="İngilizceye geç" data-i18n-aria-label="lang.en">EN</button>
+        </div>
+        <a class="btn btn--small" href="https://github.com/emi-ran/Bedwars-Overlay/releases/latest"><span data-i18n="nav.download">İndir</span><span aria-hidden="true">↗</span></a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="top" aria-labelledby="hero-title">
+      <div class="shell hero-grid">
+        <div class="hero-copy reveal">
+          <p class="eyebrow"><span class="eyebrow-num">01</span><span data-i18n="hero.eyebrow">Windows x64 · Hypixel Bed Wars</span></p>
+          <h1 id="hero-title"><span data-i18n="hero.line1">Lobiyi oku.</span><span class="hero-mark" data-i18n="hero.line2">Oyuna odaklan.</span></h1>
+          <p class="lede" data-i18n="hero.lede">Bedwars Overlay, Minecraft logunu ve TAB listesini okur; takım düzenini, temel Bed Wars istatistiklerini ve tekrar karşına çıkan oyuncuları oyunun üstünde sakin bir katmanda gösterir.</p>
+          <div class="hero-actions">
+            <a class="btn" href="https://github.com/emi-ran/Bedwars-Overlay/releases/latest"><span data-i18n="hero.ctaPrimary">Windows için indir</span><span aria-hidden="true">↓</span></a>
+            <a class="btn btn--ghost" href="https://github.com/emi-ran/Bedwars-Overlay"><span data-i18n="hero.ctaSecondary">Kaynağı gör</span><span aria-hidden="true">↗</span></a>
+          </div>
+          <p class="hero-meta"><span data-i18n="hero.meta1">Kurulum paketi veya portable ZIP</span><span data-i18n="hero.meta2">Windows 10/11 · .NET 8</span><span data-i18n="hero.meta3">AGPL-3.0 kaynak</span></p>
+        </div>
+
+        <aside class="hero-card reveal" style="--d:120ms" aria-label="Örnek oyuncu kartı" data-i18n-aria-label="heroCard.aria">
+          <div class="hero-card-head"><span data-i18n="heroCard.kicker">SAHA NOTU</span><span data-i18n="heroCard.sample">ÖRNEK</span></div>
+          <div class="hero-player">
+            <div>
+              <p class="micro" data-i18n="heroCard.label">SEÇİLİ OYUNCU</p>
+              <p class="hero-name">VerdeVortex</p>
+              <p class="hero-team"><span class="team-swatch team-red" aria-hidden="true"></span><span data-i18n="team.red">Kırmızı</span></p>
+            </div>
+            <p class="hero-score"><strong>82</strong><span>/100</span></p>
+          </div>
+          <dl class="hero-stats"><div><dt>LVL</dt><dd>412</dd></div><div><dt>WS</dt><dd>17</dd></div><div><dt>FKDR</dt><dd>8.4</dd></div><div><dt>WLR</dt><dd>3.1</dd></div></dl>
+          <div class="hero-threat">
+            <div class="hero-threat-head"><span data-i18n="heroCard.threatLabel">Tehdit</span><span><b>82</b> · <span data-i18n="band.extreme">Aşırı</span></span></div>
+            <div class="score-track" aria-hidden="true"><i style="--score:82%"></i><span style="left:82%"></span></div>
+          </div>
+          <p class="hero-note" data-i18n="heroCard.note">Kayıtlı maçlarda 5 tekrar karşılaşma; rozet isim satırında görünür.</p>
+          <div class="hero-bridge" aria-hidden="true">
+            <svg viewBox="0 0 520 82" role="presentation"><g fill="#343a30"><rect x="0" y="58" width="520" height="2"/><rect x="22" y="46" width="54" height="12"/><rect x="100" y="42" width="54" height="16"/><rect x="178" y="48" width="54" height="10"/><rect x="256" y="40" width="54" height="18"/><rect x="334" y="46" width="54" height="12"/><rect x="412" y="42" width="54" height="16"/></g><g fill="#f0b429"><rect x="22" y="46" width="54" height="4"/><rect x="178" y="48" width="54" height="3"/><rect x="334" y="46" width="54" height="4"/></g><g fill="#9b9d8d"><rect x="256" y="40" width="54" height="4"/><rect x="412" y="42" width="54" height="4"/></g><g fill="#f4efe4" opacity=".45"><rect x="0" y="66" width="8" height="2"/><rect x="64" y="70" width="4" height="2"/><rect x="148" y="64" width="6" height="2"/><rect x="306" y="70" width="4" height="2"/><rect x="388" y="64" width="6" height="2"/><rect x="476" y="70" width="4" height="2"/></g></svg>
+            <span data-i18n="heroCard.bridge">TAKIM OCR · YEREL</span>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="stage" id="demo" aria-labelledby="demo-title">
+      <div class="shell">
+        <header class="section-head section-head--dark reveal">
+          <p class="eyebrow"><span class="eyebrow-num">02</span><span data-i18n="demo.eyebrow">ETKİLEŞİMLİ ÖRNEK</span></p>
+          <h2 id="demo-title" data-i18n="demo.title">Takım karmaşasını bir tuşla çöz.</h2>
+          <p data-i18n="demo.lede">Aşağısı gerçek bir maç değil; arayüzün nasıl çalıştığını gösteren bir simülasyon. Ham /who listesiyle başla, sonra TAB + END okumasını tetikle.</p>
+        </header>
+
+        <div class="demo-shell reveal" style="--d:90ms">
+          <div class="demo-topbar"><span class="demo-brand"><i aria-hidden="true"></i> BEDWARS OVERLAY <b>DEMO</b></span><span class="demo-sample" data-i18n="demo.badge">ÖRNEK VERİ</span></div>
+          <div class="demo-tabs" role="tablist" aria-label="Demo görünümü" data-i18n-aria-label="demo.tabsAria">
+            <button type="button" role="tab" id="tab-teams" aria-controls="panel-teams" aria-selected="true" tabindex="0" data-i18n="demo.tabTeams">Takım düzeni</button>
+            <button type="button" role="tab" id="tab-threat" aria-controls="panel-threat" aria-selected="false" tabindex="-1" data-i18n="demo.tabThreat">Tehdit kırılımı</button>
+          </div>
+
+          <div id="panel-teams" role="tabpanel" aria-labelledby="tab-teams" tabindex="0">
+            <div class="roster-toolbar">
+              <p class="roster-status" aria-live="polite"><i aria-hidden="true"></i><span id="status-text" data-i18n="demo.rawStatus">Ham liste · takımlar okunmadı</span></p>
+              <button class="btn btn--amber btn--keys" id="group-btn" type="button" aria-pressed="false" aria-controls="roster-table"><span class="btn-keys" aria-hidden="true"><kbd>TAB</kbd><span>+</span><kbd>END</kbd></span><span id="group-btn-label" data-i18n="demo.groupBtn">Takımları oku</span></button>
+            </div>
+            <div class="roster-wrap">
+              <table class="roster-table" id="roster-table" aria-label="Örnek Bed Wars kadrosu" data-i18n-aria-label="demo.tableAria">
+                <caption class="sr-only" data-i18n="demo.tableCaption">Örnek Bed Wars kadrosu. Takım sütunu başlangıçta boştur.</caption>
+                <thead><tr><th scope="col" data-i18n="demo.thPlayer">Oyuncu</th><th scope="col" data-i18n="demo.thTeam">Takım</th><th scope="col" data-i18n="demo.thLevel">LVL</th><th scope="col" data-i18n="demo.thWs">WS</th><th scope="col" data-i18n="demo.thFkdr">FKDR</th><th scope="col" data-i18n="demo.thWlr">WLR</th><th scope="col" data-i18n="demo.thThreat">Tehdit</th></tr></thead>
+                <tbody>
+                  <tr class="player-row" data-team="blue" data-player="MossyDoor"><th scope="row" class="cell-player" data-label="Oyuncu" data-i18n-label="demo.thPlayer"><span class="player-name">MossyDoor</span></th><td class="cell-team" data-label="Takım" data-i18n-label="demo.thTeam"><span class="team-swatch team-blue" aria-hidden="true"></span><span class="team-name">—</span></td><td class="cell-num" data-label="LVL" data-i18n-label="demo.thLevel">87</td><td class="cell-num" data-label="WS" data-i18n-label="demo.thWs">2</td><td class="cell-num" data-label="FKDR" data-i18n-label="demo.thFkdr">1.9</td><td class="cell-num" data-label="WLR" data-i18n-label="demo.thWlr">1.1</td><td class="cell-threat" data-label="Tehdit" data-i18n-label="demo.thThreat"><b>31</b><span data-i18n="band.low">Düşük</span></td></tr>
+                  <tr class="player-row is-repeat" data-team="red" data-player="VerdeVortex"><th scope="row" class="cell-player" data-label="Oyuncu" data-i18n-label="demo.thPlayer"><span class="player-name">VerdeVortex</span><span class="repeat-badge" hidden aria-label="Kayıtlı maçlarda 5 tekrar karşılaşma" data-i18n-aria-label="demo.repeatAria">×5</span></th><td class="cell-team" data-label="Takım" data-i18n-label="demo.thTeam"><span class="team-swatch team-red" aria-hidden="true"></span><span class="team-name">—</span></td><td class="cell-num" data-label="LVL" data-i18n-label="demo.thLevel">412</td><td class="cell-num" data-label="WS" data-i18n-label="demo.thWs">17</td><td class="cell-num" data-label="FKDR" data-i18n-label="demo.thFkdr">8.4</td><td class="cell-num" data-label="WLR" data-i18n-label="demo.thWlr">3.1</td><td class="cell-threat" data-label="Tehdit" data-i18n-label="demo.thThreat"><b>82</b><span data-i18n="band.extreme">Aşırı</span></td></tr>
+                  <tr class="player-row" data-team="green" data-player="QuietMiner"><th scope="row" class="cell-player" data-label="Oyuncu" data-i18n-label="demo.thPlayer"><span class="player-name">QuietMiner</span></th><td class="cell-team" data-label="Takım" data-i18n-label="demo.thTeam"><span class="team-swatch team-green" aria-hidden="true"></span><span class="team-name">—</span></td><td class="cell-num" data-label="LVL" data-i18n-label="demo.thLevel">154</td><td class="cell-num" data-label="WS" data-i18n-label="demo.thWs">4</td><td class="cell-num" data-label="FKDR" data-i18n-label="demo.thFkdr">3.2</td><td class="cell-num" data-label="WLR" data-i18n-label="demo.thWlr">1.6</td><td class="cell-threat" data-label="Tehdit" data-i18n-label="demo.thThreat"><b>47</b><span data-i18n="band.medium">Orta</span></td></tr>
+                  <tr class="player-row" data-team="yellow" data-player="AsterBloom"><th scope="row" class="cell-player" data-label="Oyuncu" data-i18n-label="demo.thPlayer"><span class="player-name">AsterBloom</span></th><td class="cell-team" data-label="Takım" data-i18n-label="demo.thTeam"><span class="team-swatch team-yellow" aria-hidden="true"></span><span class="team-name">—</span></td><td class="cell-num" data-label="LVL" data-i18n-label="demo.thLevel">76</td><td class="cell-num" data-label="WS" data-i18n-label="demo.thWs">0</td><td class="cell-num" data-label="FKDR" data-i18n-label="demo.thFkdr">0.9</td><td class="cell-num" data-label="WLR" data-i18n-label="demo.thWlr">0.7</td><td class="cell-threat" data-label="Tehdit" data-i18n-label="demo.thThreat"><b>18</b><span data-i18n="band.low">Düşük</span></td></tr>
+                  <tr class="player-row" data-team="blue" data-player="NorthPixel"><th scope="row" class="cell-player" data-label="Oyuncu" data-i18n-label="demo.thPlayer"><span class="player-name">NorthPixel</span></th><td class="cell-team" data-label="Takım" data-i18n-label="demo.thTeam"><span class="team-swatch team-blue" aria-hidden="true"></span><span class="team-name">—</span></td><td class="cell-num" data-label="LVL" data-i18n-label="demo.thLevel">233</td><td class="cell-num" data-label="WS" data-i18n-label="demo.thWs">9</td><td class="cell-num" data-label="FKDR" data-i18n-label="demo.thFkdr">5.7</td><td class="cell-num" data-label="WLR" data-i18n-label="demo.thWlr">2.4</td><td class="cell-threat" data-label="Tehdit" data-i18n-label="demo.thThreat"><b>67</b><span data-i18n="band.high">Yüksek</span></td></tr>
+                  <tr class="player-row" data-team="red" data-player="EmberFuse"><th scope="row" class="cell-player" data-label="Oyuncu" data-i18n-label="demo.thPlayer"><span class="player-name">EmberFuse</span></th><td class="cell-team" data-label="Takım" data-i18n-label="demo.thTeam"><span class="team-swatch team-red" aria-hidden="true"></span><span class="team-name">—</span></td><td class="cell-num" data-label="LVL" data-i18n-label="demo.thLevel">318</td><td class="cell-num" data-label="WS" data-i18n-label="demo.thWs">12</td><td class="cell-num" data-label="FKDR" data-i18n-label="demo.thFkdr">6.8</td><td class="cell-num" data-label="WLR" data-i18n-label="demo.thWlr">2.8</td><td class="cell-threat" data-label="Tehdit" data-i18n-label="demo.thThreat"><b>75</b><span data-i18n="band.high">Yüksek</span></td></tr>
+                  <tr class="player-row" data-team="green" data-player="ClaymoreKid"><th scope="row" class="cell-player" data-label="Oyuncu" data-i18n-label="demo.thPlayer"><span class="player-name">ClaymoreKid</span></th><td class="cell-team" data-label="Takım" data-i18n-label="demo.thTeam"><span class="team-swatch team-green" aria-hidden="true"></span><span class="team-name">—</span></td><td class="cell-num" data-label="LVL" data-i18n-label="demo.thLevel">45</td><td class="cell-num" data-label="WS" data-i18n-label="demo.thWs">1</td><td class="cell-num" data-label="FKDR" data-i18n-label="demo.thFkdr">1.2</td><td class="cell-num" data-label="WLR" data-i18n-label="demo.thWlr">0.9</td><td class="cell-threat" data-label="Tehdit" data-i18n-label="demo.thThreat"><b>22</b><span data-i18n="band.low">Düşük</span></td></tr>
+                  <tr class="player-row" data-team="yellow" data-player="SlateWing"><th scope="row" class="cell-player" data-label="Oyuncu" data-i18n-label="demo.thPlayer"><span class="player-name">SlateWing</span></th><td class="cell-team" data-label="Takım" data-i18n-label="demo.thTeam"><span class="team-swatch team-yellow" aria-hidden="true"></span><span class="team-name">—</span></td><td class="cell-num" data-label="LVL" data-i18n-label="demo.thLevel">199</td><td class="cell-num" data-label="WS" data-i18n-label="demo.thWs">5</td><td class="cell-num" data-label="FKDR" data-i18n-label="demo.thFkdr">4.1</td><td class="cell-num" data-label="WLR" data-i18n-label="demo.thWlr">1.9</td><td class="cell-threat" data-label="Tehdit" data-i18n-label="demo.thThreat"><b>52</b><span data-i18n="band.medium">Orta</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="demo-under">
+              <p class="repeat-note" id="repeat-note" hidden><span class="repeat-badge">×5</span><span data-i18n="demo.repeatNote">Kayıtlı maçlarda 5 karşılaşma. Tekrar karşılaşma rozeti, aynı oyuncuyu yeniden gördüğünde isim satırında belirir.</span></p>
+              <p class="demo-foot" data-i18n="demo.footnote">Simülasyon. Gerçek takım ataması, Minecraft öndeyken TAB basılıyken END'e basılarak yapılan yerel OCR'dan gelir; okunamayan isimler boş kalabilir.</p>
+            </div>
+          </div>
+
+          <div id="panel-threat" role="tabpanel" aria-labelledby="tab-threat" tabindex="0" hidden>
+            <div class="threat-layout">
+              <div class="threat-intro">
+                <p class="micro" data-i18n="demo.threatKicker">TEHDİT KIRILIMI</p>
+                <h3 data-i18n="demo.threatTitle">Skorun arkasındaki sinyalleri gör.</h3>
+                <p data-i18n="demo.threatBody">0-100 arası tehdit skoru; FKDR, WLR, KDR, yatak oranı, seviye, winstreak, alt hesap şüphesi ve tekrar karşılaşmaları birlikte okur.</p>
+                <div class="threat-picker" role="group" aria-label="Örnek oyuncu seç" data-i18n-aria-label="demo.pickerAria">
+                  <button type="button" data-player-chip="VerdeVortex" aria-pressed="true">VerdeVortex <b>82</b></button>
+                  <button type="button" data-player-chip="NorthPixel" aria-pressed="false">NorthPixel <b>67</b></button>
+                  <button type="button" data-player-chip="AsterBloom" aria-pressed="false">AsterBloom <b>18</b></button>
+                </div>
+                <p class="demo-foot" data-i18n="demo.threatFoot">Örnek oyuncular ve örnek değerler.</p>
+              </div>
+              <div class="threat-card">
+                <div class="threat-card-head"><span data-i18n="demo.threatSelected">SEÇİLİ OYUNCU</span><span class="threat-band" id="threat-band" data-band="extreme" data-i18n="band.extreme">Aşırı</span></div>
+                <div class="threat-identity"><strong id="threat-name">VerdeVortex</strong><span class="threat-team"><span class="team-swatch team-red" id="threat-swatch" aria-hidden="true"></span><span id="threat-team-label" data-i18n="team.red">Kırmızı</span></span></div>
+                <p class="threat-scoreline"><strong id="threat-score">82</strong><span>/100</span></p>
+                <div class="threat-meter" aria-hidden="true"><i id="threat-fill" style="width:82%"></i><b class="threat-marker" id="threat-marker" style="left:82%"></b><span class="tick" style="left:25%"></span><span class="tick" style="left:50%"></span><span class="tick" style="left:75%"></span></div>
+                <ul class="signals" id="threat-signals">
+                  <li><span data-i18n="demo.signalFkdr">FKDR</span><i><b style="width:84%"></b></i><em>8.4</em></li>
+                  <li><span data-i18n="demo.signalWlr">WLR</span><i><b style="width:62%"></b></i><em>3.1</em></li>
+                  <li><span data-i18n="demo.signalKdr">KDR</span><i><b style="width:58%"></b></i><em>4.6</em></li>
+                  <li><span data-i18n="demo.signalLevel">Seviye</span><i><b style="width:82%"></b></i><em>412</em></li>
+                  <li><span data-i18n="demo.signalWs">Winstreak</span><i><b style="width:57%"></b></i><em>17</em></li>
+                  <li><span data-i18n="demo.signalRepeat">Tekrar</span><i><b style="width:50%"></b></i><em>×5</em></li>
+                </ul>
+                <p class="threat-note" data-i18n="demo.threatNote">Skor; FKDR, WLR, KDR, seviye, winstreak ve kayıtlı tekrar karşılaşma sinyallerini birlikte okur. Bant, lobiyi hızlıca taramana yardım eder.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="features" id="features" aria-labelledby="features-title">
+      <div class="shell">
+        <header class="section-head reveal"><p class="eyebrow"><span class="eyebrow-num">03</span><span data-i18n="features.eyebrow">SAHADA NE VAR</span></p><h2 id="features-title" data-i18n="features.title">Az gürültü, doğru sinyal.</h2><p data-i18n="features.lede">Üç net iş: takımı düzenle, tekrar karşılaşmaları işaretle ve bilgiyi oyunun üstünde tut.</p></header>
+
+        <article class="feature reveal">
+          <div class="feature-copy"><p class="feature-index">01 / <span data-i18n="f1.kicker">TAKIM DÜZENİ</span></p><h3 data-i18n="f1.title">Dağınık isimler, dört net satır.</h3><p data-i18n="f1.body">TAB listesini aç, END'e bas. Uygulamayla gelen Tesseract OCR, ekrandaki takım renklerini yerelde okur ve /who kadrosunu takıma göre sıralar. Ayrı bir OCR kurulumu veya client modu yok; kullanıcı tetiklemeli çalışır ve belirsiz ya da renksiz isimler boş kalabilir.</p></div>
+          <div class="feature-visual capture-visual reveal" style="--d:90ms" aria-hidden="true">
+            <div class="capture-window"><div class="capture-bar"><kbd>TAB</kbd><span data-i18n="f1.captureLabel">Oyuncu listesi</span><span>12/16</span></div><div class="capture-list"><span class="cap-row"><i class="team-red"></i><b style="width:52%"></b></span><span class="cap-row"><i class="team-blue"></i><b style="width:68%"></b></span><span class="cap-row"><i class="team-green"></i><b style="width:43%"></b></span><span class="cap-row"><i class="team-yellow"></i><b style="width:61%"></b></span><span class="cap-row"><i class="team-red"></i><b style="width:47%"></b></span><span class="cap-row"><i class="team-blue"></i><b style="width:57%"></b></span></div><span class="capture-corner"></span></div>
+            <p class="capture-flow"><span data-i18n="f1.raw">Ham liste</span><span aria-hidden="true">→</span><em data-i18n="f1.local">Yerel OCR</em><span aria-hidden="true">→</span><span data-i18n="f1.grouped">Takıma göre</span></p>
+            <div class="mini-teams"><div class="team-red"><span data-i18n="team.red">Kırmızı</span><i></i><i></i></div><div class="team-blue"><span data-i18n="team.blue">Mavi</span><i></i><i></i></div><div class="team-green"><span data-i18n="team.green">Yeşil</span><i></i><i></i></div><div class="team-yellow"><span data-i18n="team.yellow">Sarı</span><i></i><i></i></div></div>
+          </div>
+        </article>
+
+        <article class="feature feature--flip reveal">
+          <div class="feature-copy"><p class="feature-index">02 / <span data-i18n="f2.kicker">TEHDİT + TEKRAR</span></p><h3 data-i18n="f2.title">Tehdit skorunu ve tekrar karşılaşmaları gör.</h3><p data-i18n="f2.body">0-100 skor; FKDR, WLR, KDR, yatak oranı, seviye, winstreak, alt hesap şüphesi ve tekrar karşılaşmalardan oluşur. Low, Medium, High ve Extreme bantlarıyla lobiyi hızlıca tararsın. Aynı oyuncuyu yeniden gördüğünde isim satırında ×N rozeti belirir.</p></div>
+          <div class="feature-visual threat-visual reveal" style="--d:90ms" aria-hidden="true">
+            <div class="ruler-card"><div class="ruler-top"><span data-i18n="f2.sample">Örnek tehdit skoru</span><span class="repeat-badge">×5</span></div><p class="ruler-score"><strong>82</strong><span>/100</span><em data-i18n="band.extreme">Aşırı</em></p><div class="ruler"><i style="width:82%"></i><b style="left:82%"></b></div><div class="ruler-bands"><span data-i18n="band.low">Düşük</span><span data-i18n="band.medium">Orta</span><span data-i18n="band.high">Yüksek</span><span data-i18n="band.extreme">Aşırı</span></div></div>
+            <p class="visual-note"><span data-i18n="f2.repeat">Tekrar karşılaşma ×5</span><span data-i18n="f2.note">Sinyaller birlikte okunur.</span></p>
+          </div>
+        </article>
+
+        <article class="feature reveal">
+          <div class="feature-copy"><p class="feature-index">03 / <span data-i18n="f3.kicker">PENCERE</span></p><h3 data-i18n="f3.title">Oyunun üstünde, yolunun dışında.</h3><p data-i18n="f3.body">Play mode'da pencere saydam ve tıklama-geçirgen. Ctrl+Alt+O ile düzenleme moduna geç; sürükle, boyutlandır, kolonları seç. Ctrl+Alt+H ile gizle. Tepside çalışır, oyun sonunda listeyi temizler.</p></div>
+          <div class="feature-visual window-visual reveal" style="--d:90ms" aria-hidden="true">
+            <div class="mc-layer"><span>MINECRAFT</span><div class="mc-blocks"><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+            <div class="ov-layer"><div class="ov-head"><span>OVERLAY</span><b data-i18n="f3.click">Tıklama geçirgen</b></div><div class="ov-row"><i></i><i></i><i></i><i></i></div><div class="ov-row"><i></i><i></i><i></i><i></i></div><div class="ov-row"><i></i><i></i><i></i><i></i></div></div>
+            <div class="edit-handles"><i></i><i></i><i></i><i></i></div>
+            <p class="window-keys"><kbd>Ctrl</kbd><span>+</span><kbd>Alt</kbd><span>+</span><kbd>O</kbd><em data-i18n="f3.edit">düzenle / oyna</em></p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="setup" id="setup" aria-labelledby="setup-title">
+      <div class="shell">
+        <header class="section-head reveal"><p class="eyebrow"><span class="eyebrow-num">04</span><span data-i18n="setup.eyebrow">KURULUM</span></p><h2 id="setup-title" data-i18n="setup.title">Üç adım, sonra oyun.</h2><p data-i18n="setup.lede">Windows x64. Kurulum paketi veya portable ZIP. İlk açılışta düzenleme modundasın; overlay'i istediğin yere taşı.</p></header>
+        <ol class="steps">
+          <li class="reveal"><span class="step-num">01</span><h3 data-i18n="setup.step1Title">İndir ve aç</h3><p data-i18n="setup.step1Body">Kurulum paketini çalıştır ya da portable ZIP'i çıkar. .NET 8 çalışma zamanı paketle gelir.</p><a href="https://github.com/emi-ran/Bedwars-Overlay/releases/latest" data-i18n="setup.step1Link">Son sürüm ↗</a></li>
+          <li class="reveal" style="--d:80ms"><span class="step-num">02</span><h3 data-i18n="setup.step2Title">Anahtarı ve logu bağla</h3><p data-i18n="setup.step2Body">Hypixel API anahtarını developer.hypixel.net'ten al ve Ayarlar'a gir. latest.log yolunu seç. Anahtar masaüstü uygulamasında kalır.</p><a href="https://developer.hypixel.net/" data-i18n="setup.step2Link">Hypixel Developer Dashboard ↗</a></li>
+          <li class="reveal" style="--d:160ms"><span class="step-num">03</span><h3 data-i18n="setup.step3Title">Oyun içinde oku</h3><p data-i18n="setup.step3Body">Lobiye gir, /who yaz. TAB'ı basılı tutup END'e bas; takımlar yerelde okunur. Genel API sorguları internet ister, OCR yereldir.</p><span class="inline-keys" aria-hidden="true"><kbd>TAB</kbd><span>+</span><kbd>END</kbd></span></li>
+        </ol>
+        <div class="key-warning reveal"><span class="warning-tag">API KEY</span><p><strong data-i18n="setup.warningTitle">Anahtarını bu site istemez.</strong> <span data-i18n="setup.warningBody">Hypixel API anahtarı yalnızca masaüstü uygulamasının Ayarlar ekranına girilir ve Windows DPAPI ile yerelde şifrelenir. Bu sayfa hiçbir anahtar toplamaz.</span></p></div>
+      </div>
+    </section>
+
+    <section class="shortcuts" aria-labelledby="shortcuts-title">
+      <div class="shell shortcuts-grid">
+        <div class="shortcuts-head"><p class="eyebrow"><span class="eyebrow-num">05</span><span data-i18n="shortcuts.eyebrow">KISAYOLLAR</span></p><h2 id="shortcuts-title" data-i18n="shortcuts.title">Eller oyunda kalsın.</h2></div>
+        <ul class="shortcut-list"><li><span class="keys"><kbd>Ctrl</kbd><span>+</span><kbd>Alt</kbd><span>+</span><kbd>O</kbd></span><span data-i18n="shortcuts.edit">Düzenle / oyna</span></li><li><span class="keys"><kbd>Ctrl</kbd><span>+</span><kbd>Alt</kbd><span>+</span><kbd>H</kbd></span><span data-i18n="shortcuts.hide">Göster / gizle</span></li><li><span class="keys"><kbd>TAB</kbd><span>+</span><kbd>END</kbd></span><span data-i18n="shortcuts.teams">Takımları oku</span></li><li><span class="keys"><kbd>/who</kbd></span><span data-i18n="shortcuts.who">Kadroyu yükle</span></li></ul>
+      </div>
+    </section>
+
+    <section class="faq" id="faq" aria-labelledby="faq-title">
+      <div class="shell faq-grid">
+        <header class="faq-head reveal"><p class="eyebrow"><span class="eyebrow-num">06</span><span data-i18n="faq.eyebrow">SSS</span></p><h2 id="faq-title" data-i18n="faq.title">Aklındaki sorular.</h2><p data-i18n="faq.lede">Kısa cevaplar, abartısız sınırlar.</p></header>
+        <div class="faq-list reveal" style="--d:80ms">
+          <details><summary><span data-i18n="faq.q1">Badlion gibi istemcilerle çalışır mı?</span><i aria-hidden="true"></i></summary><div class="faq-answer"><p data-i18n="faq.a1">Evet. Uygulama istemciye mod kurmaz; Minecraft latest.log akışını ve TAB listesinin ekran görüntüsünü kullanır. Badlion gibi istemcilerde log yolunu Ayarlar'dan seçip aynı /who ve TAB + END akışını kullanabilirsin. Ayrı bir OCR kurulumu gerekmez.</p></div></details>
+          <details><summary><span data-i18n="faq.q2">Takımlar her zaman doğru okunur mu?</span><i aria-hidden="true"></i></summary><div class="faq-answer"><p data-i18n="faq.a2">Hayır. Takım OCR'ı kullanıcı tetikler: Minecraft öndeyken TAB'ı basılı tutup END'e basmalısın. Farklı GUI ölçekleri, sıra dışı düzenler veya renksiz isimler okunamayabilir; belirsiz atamalar boş kalır.</p></div></details>
+          <details><summary><span data-i18n="faq.q3">API anahtarım nereye gidiyor?</span><i aria-hidden="true"></i></summary><div class="faq-answer"><p data-i18n="faq.a3">Yalnızca masaüstü uygulamasının Ayarlar ekranına. Anahtar Windows DPAPI ile yerelde şifrelenir. Bu web sitesi anahtar istemez, toplamaz veya iletmez.</p></div></details>
+          <details><summary><span data-i18n="faq.q4">İnternet olmadan çalışır mı?</span><i aria-hidden="true"></i></summary><div class="faq-answer"><p data-i18n="faq.a4">Takım OCR'ı ve log okuma yereldir. Oyuncu istatistikleri genel Mojang/Hypixel API'lerinden geldiği için sorgular internet gerektirir.</p></div></details>
+          <details><summary><span data-i18n="faq.q5">Windows SmartScreen uyarısı neden çıkıyor?</span><i aria-hidden="true"></i></summary><div class="faq-answer"><p data-i18n="faq.a5">Release paketleri kendinden imzalı bir sertifika ile imzalanır; bu, diğer bilgisayarlarda otomatik güven oluşturmaz. Yalnızca bu deponun release sayfasından indirdiğin dosyaları çalıştır ve kaynağı kontrol et.</p></div></details>
+          <details><summary><span data-i18n="faq.q6">Threat skoru nasıl hesaplanır?</span><i aria-hidden="true"></i></summary><div class="faq-answer"><p data-i18n="faq.a6">FKDR, WLR, KDR, yatak oranı, seviye, winstreak, alt hesap şüphesi ve kayıtlı tekrar karşılaşmaları birleştiren 0-100 arası istatistiksel bir göstergedir. Low / Medium / High / Extreme bantlarına ayrılır. Kesin bir yargı değil, lobiyi hızlı okumak için bir ipucudur.</p></div></details>
+        </div>
+      </div>
+    </section>
+
+    <section class="closing" id="download" aria-labelledby="closing-title">
+      <div class="shell closing-grid">
+        <div class="reveal"><p class="eyebrow"><span class="eyebrow-num">↧</span><span data-i18n="close.kicker">SON SÜRÜM</span></p><h2 id="closing-title"><span data-i18n="close.line1">Sıradaki lobi</span><span class="hero-mark" data-i18n="close.line2">senin.</span></h2><p data-i18n="close.body">Kurulum paketiyle başla veya portable ZIP'i çıkar. Kaynak açık, lisans AGPL-3.0; indirmeler release sayfasından gelir.</p><div class="closing-actions"><a class="btn" href="https://github.com/emi-ran/Bedwars-Overlay/releases/latest"><span data-i18n="close.download">En son sürümü indir</span><span aria-hidden="true">↓</span></a><a class="btn btn--outline" href="https://github.com/emi-ran/Bedwars-Overlay"><span data-i18n="close.source">Kaynak kodu</span><span aria-hidden="true">↗</span></a></div><p class="closing-meta" data-i18n="close.meta">Windows 10/11 · x64 · Installer + portable ZIP</p></div>
+        <div class="closing-mark reveal" style="--d:120ms" aria-hidden="true"><svg viewBox="0 0 64 64" role="presentation"><rect width="64" height="64" fill="#181a17"/><rect x="0" y="0" width="64" height="4" fill="#f0b429"/><rect x="8" y="17" width="7" height="26" fill="#f0b429"/><rect x="15" y="28" width="41" height="15" fill="#f4efe4"/><rect x="36" y="28" width="20" height="15" fill="#f0b429"/><rect x="18" y="30" width="13" height="6" fill="#fffaf0"/><rect x="20" y="43" width="6" height="8" fill="#f4efe4"/><rect x="46" y="43" width="6" height="8" fill="#f4efe4"/><rect x="10" y="54" width="8" height="4" fill="#f0b429"/><rect x="23" y="54" width="8" height="4" fill="#9b9d8d"/><rect x="36" y="54" width="8" height="4" fill="#f0b429"/><rect x="49" y="54" width="8" height="4" fill="#9b9d8d"/></svg></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell footer-grid">
+      <div class="footer-brand"><a class="brand" href="#top" aria-label="Bedwars Overlay ana sayfa" data-i18n-aria-label="brand.home"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 64 64" role="presentation"><rect width="64" height="64" fill="#181a17"/><rect x="8" y="17" width="7" height="26" fill="#f0b429"/><rect x="15" y="28" width="41" height="15" fill="#f4efe4"/><rect x="36" y="28" width="20" height="15" fill="#f0b429"/><rect x="18" y="30" width="13" height="6" fill="#fffaf0"/><rect x="20" y="43" width="6" height="8" fill="#f4efe4"/><rect x="46" y="43" width="6" height="8" fill="#f4efe4"/><rect x="10" y="54" width="8" height="4" fill="#f0b429"/><rect x="23" y="54" width="8" height="4" fill="#9b9d8d"/><rect x="36" y="54" width="8" height="4" fill="#f0b429"/><rect x="49" y="54" width="8" height="4" fill="#9b9d8d"/></svg></span><span class="brand-text"><strong>Bedwars Overlay</strong><small data-i18n="brand.sub">BED WARS / WINDOWS</small></span></a><p data-i18n="footer.desc">Hypixel Bed Wars için küçük, açık kaynaklı bir Windows overlay'i. Lobiyi oku, oyuna odaklan.</p></div>
+      <div class="footer-col"><h2 data-i18n="footer.product">Proje</h2><a href="https://github.com/emi-ran/Bedwars-Overlay" data-i18n="footer.github">GitHub</a><a href="https://github.com/emi-ran/Bedwars-Overlay/releases/latest" data-i18n="footer.releases">Sürümler</a><a href="https://github.com/emi-ran/Bedwars-Overlay/blob/main/LICENSE" data-i18n="footer.license">AGPL-3.0 lisansı</a></div>
+      <div class="footer-col"><h2 data-i18n="footer.about">Bilgi</h2><a href="https://github.com/emi-ran/Bedwars-Overlay/blob/main/CONTRIBUTING.md" data-i18n="footer.contributing">Katkı</a><a href="https://github.com/emi-ran/Bedwars-Overlay/issues" data-i18n="footer.issues">Sorun bildir</a><span data-i18n="footer.privacy">Statik sayfa. Çerez yok, izleme yok.</span></div>
+    </div>
+    <div class="shell footer-legal"><p data-i18n="footer.legal">Hypixel veya Mojang ile bağlantılı değildir. Resmi onay yoktur.</p><p><span data-i18n="footer.copyright">© 2026 Bedwars Overlay</span> · <span data-i18n="footer.licenseShort">AGPL-3.0</span></p></div>
+  </footer>
+  <p class="sr-only" id="lang-status" role="status" aria-live="polite"></p>
+</body>
+</html>

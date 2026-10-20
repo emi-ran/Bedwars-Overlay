@@ -29,6 +29,7 @@ Develop a **Windows-only external stats overlay** for Minecraft BedWars. The app
 
 ## 3. Implemented Features
 
+- Added a bilingual static product website in `docs/`, with an illustrative interactive team/Threat demo, responsive layout and reduced-motion support. GitHub Pages uses `main` / `/docs`. See [Site maintenance](docs/SITE.md).
 - Reads Minecraft `latest.log` and detects `/who` output.
 - Reads Hypixel team prefixes from a user-triggered capture of the visible Minecraft player list (`END`, while holding `TAB`) and shows the result in a sortable Team column. OCR runs locally using bundled Tesseract; no client mod or separate user installation is required.
 - Team OCR scans the left and center player-list region, crops masks to visible team-colored text, reuses the OCR engine, and leaves ambiguous or uncolored names blank. Captures stay at native resolution until the OCR crop is enlarged once.

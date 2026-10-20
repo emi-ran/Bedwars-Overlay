@@ -4,6 +4,7 @@ All notable user-facing changes to Bedwars Overlay are tracked here.
 
 ## Unreleased
 
+- Added a Turkish/English product website with interactive team and Threat demos on GitHub Pages.
 ## 1.4.3 - 2026-10-20
 
 - Added manual signed-package builds before publishing and fixed installer asset selection for automatic release uploads.

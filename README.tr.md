@@ -123,6 +123,10 @@ Varsayılan olarak uygulama exe dosyasını, proje DLL dosyalarını ve installe
 
 Yayımlamadan önce Actions üzerinden release workflow'unu elle çalıştırabilirsin. Windows 2022 üzerinde proje sürümünü derleyip imzalar; release oluşturmadan installer ve ZIP dosyalarını `signed-windows-packages` artifact'ı olarak saklar.
 
+## Tanıtım Sitesi
+
+[Türkçe/İngilizce tanıtım sitesini aç](https://emi-ran.github.io/Bedwars-Overlay/). Kaynaklar `docs/` altında; yerel önizleme ve GitHub Pages yayınlama yönergeleri için [Site bakımı](docs/SITE.md) belgesine bak.
+
 ## Notlar
 
 - Bedwars Overlay, Hypixel ile bağlı veya resmi bir uygulama değildir.
