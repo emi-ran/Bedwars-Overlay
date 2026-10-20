@@ -4,7 +4,15 @@ All notable user-facing changes to Bedwars Overlay are tracked here.
 
 ## Unreleased
 
+## 1.4.4 - 2026-10-21
+
+- Track explicit disconnect/reconnect messages with a `DC` badge while preserving stats and team assignments. Reconnect and `/who` clear the badge; final-killed players remain excluded. Connection messages never trigger Split reminders.
+- Added a small five-second `Split!` reminder on normal teammate deaths, using the configured local player, OCR team assignments, and party membership when teams are unknown. Hidden self/party players now participate in team OCR; known opposing teams, self deaths, and final kills do not trigger the reminder.
+- Keep known players through respawns and merge in-match `/who` snapshots instead of replacing the roster; recognized death messages fill missing names without restarting existing lookups.
+- Keep final-killed players excluded from subsequent snapshots until the next match, and reset roster state on match/lobby transitions.
+- Read teams from recognized death messages when Minecraft color codes are preserved; plain Badlion death messages still require team OCR.
 - Added a Turkish/English product website with interactive team and Threat demos on GitHub Pages.
+
 ## 1.4.3 - 2026-10-20
 
 - Added manual signed-package builds before publishing and fixed installer asset selection for automatic release uploads.

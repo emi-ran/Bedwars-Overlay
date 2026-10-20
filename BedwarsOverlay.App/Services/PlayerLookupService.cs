@@ -60,6 +60,9 @@ namespace BedwarsOverlay.App.Services
             return _cts.Token;
         }
 
+        /// <summary>Append lookups without cancelling rows already loading in this roster.</summary>
+        public CancellationToken CurrentToken => _cts?.Token ?? CancelAndReset();
+
         public void Dispose()
         {
             _cts?.Cancel();

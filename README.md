@@ -9,6 +9,10 @@ Bedwars Overlay is a small Windows overlay for Hypixel Bed Wars players. It read
 ## What It Does
 
 - Shows players from your `/who` list.
+- Keeps disconnected match players with a `DC` badge. A reconnect message or inclusion in a later `/who` clears the badge; reconnect can add missing players, with ignore filters applied. A subsequent `FINAL KILL!` removes the player and prevents reconnect from restoring them in that match. Disconnect alone does not infer elimination from bed state and never triggers `Split!`.
+- Keeps known match players during respawns even if a later `/who` omits them, and fills missing names from recognized death messages without reloading existing stats. Final-killed players stay excluded until the next match.
+- Reads player teams from death-message color codes when the client preserves them; otherwise keeps OCR assignments or leaves the team unknown.
+- Shows a small five-second `Split!` reminder when a teammate dies normally. Set your own Minecraft name in Settings; matching OCR teams take priority, with `/p list` membership as a fallback when teams are unknown. Self deaths and final kills do not trigger it. Hidden self/party rows are included in TAB+END team matching. This is a death reminder, not a check of your distance from the generator; it appears only while the overlay is visible.
 - Reads team prefixes from the visible Minecraft player list with `END` (hold `TAB` and press `END`) and lets you sort the table by team. The OCR engine is bundled with the app.
 - Lets you load specific players with `/bwstats`.
 - Lets you hide players with `/bwignore`, Settings ignored players, `/p list` party ignore, and self ignore.
@@ -43,7 +47,9 @@ Type these in Minecraft chat. Hypixel will report them as unknown commands, and 
 - `/bwhelp`: show the command help in the overlay diagnostics/status area.
 - `/p list`: update the party list used by the `Ignore party players from /p list` setting.
 
-`/who` is the only reliable way to load the roster: Hypixel never states which team a player is on, and lobby join messages miss everyone who was already in the game. Type it right after the game starts; the status bar prompts you.
+Use `/who` just after the game starts to load the roster; the status bar prompts you. During the match, later `/who` results are merged with known players because players waiting to respawn can be absent. Recognized death messages add missing victims and killers, with the same ignore filters. Final kills remove players permanently for that match. A new match, game end, or detected lobby transfer resets the match roster. After a mid-game launch, load `/who`; the next recognized death enables roster retention without creating a tracked encounter match.
+
+The inspected Badlion logs contain no team colors in death messages, so `TAB` + `END` remains necessary there. Clients that preserve Minecraft color codes can supply team assignments through recognized death messages. Plain names, killer/victim relationships, and destroyed-bed messages are not enough to infer a team.
 
 ## Setup
 
@@ -109,13 +115,13 @@ try {
 Build release artifacts:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.4.3"
+.\scripts\publish-release.ps1 -Version "1.4.4"
 ```
 
 Build and sign release artifacts with a `.pfx` certificate:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.4.3" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
+.\scripts\publish-release.ps1 -Version "1.4.4" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
 ```
 
 The script prompts for the certificate password. Do not commit `.pfx` or `.p12` files.

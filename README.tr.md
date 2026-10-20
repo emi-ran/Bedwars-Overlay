@@ -9,6 +9,10 @@ Bedwars Overlay, Hypixel Bed Wars oyuncuları için küçük bir Windows overlay
 ## Ne İşe Yarar?
 
 - `/who` listesindeki oyuncuları gösterir.
+- Bağlantısı kopan maç oyuncusunu `DC` rozetiyle listede tutar. Reconnect mesajı veya sonraki `/who` içinde görünmesi rozeti kaldırır; eksik oyuncular reconnect ile gizleme filtreleri uygulanarak eklenir. Ardından `FINAL KILL!` gelirse oyuncu silinir ve aynı maçta reconnect ile geri eklenmez. Tek başına disconnect mesajından yatak durumuna göre elenme çıkarılmaz; `Split!` tetiklenmez.
+- Maçta bilinen oyuncuları yeniden doğarken korur; sonraki `/who` çıktısında görünmeseler de silmez. Tanınan ölüm mesajlarından eksik isimleri eklerken mevcut istatistikleri yeniden yüklemez. Final kill alanlar sonraki maça kadar geri eklenmez.
+- İstemci renk kodlarını koruyorsa ölüm mesajlarından oyuncuların takımlarını okur; renk yoksa OCR bilgisini korur veya takımı boş bırakır.
+- Takım arkadaşın normal şekilde ölürse beş saniyelik küçük bir `Split!` uyarısı gösterir. Ayarlarda kendi Minecraft adını gir; TAB+END ile belirlenen aynı takım bilgisi önceliklidir, takım bilinmiyorsa `/p list` üyeliği kullanılır. Kendin öldüğünde veya final kill durumunda tetiklenmez. Kendini/partini tabloda gizlesen de TAB+END takım eşleştirmesine dahil edilirler. Fırına uzaklığın ölçülmez; bu bir ölüm hatırlatıcısıdır ve yalnız overlay görünürken görünür.
 - `END` ile (TAB'ı basılı tutup END'e basarak) Minecraft oyuncu listesindeki takım etiketlerini okur ve tabloda takıma göre sıralamayı sağlar. OCR motoru uygulamayla birlikte gelir.
 - `/bwstats` ile belirli oyuncuları yükleyebilirsin.
 - `/bwignore`, Ayarlar'daki gizlenen oyuncular, `/p list` parti gizleme ve kendini gizleme seçenekleriyle oyuncuları gizleyebilirsin.
@@ -43,7 +47,9 @@ Bu komutları Minecraft chat’e yaz. Hypixel bunları bilinmeyen komut olarak l
 - `/bwhelp`: komut yardımını overlay tanılama/status alanında gösterir.
 - `/p list`: `Ignore party players from /p list` ayarı için parti listesini günceller.
 
-`/who` kadroyu yüklemenin tek güvenilir yolu: Hypixel hiçbir zaman bir oyuncunun hangi takımda olduğunu yazmıyor ve lobiye giriş mesajları oyunda zaten bulunan herkesi kaçırıyor. Oyun başlar başlamaz yaz; durum çubuğu seni uyarıyor.
+Kadroyu yüklemek için oyun başlar başlamaz `/who` yaz; durum çubuğu seni uyarıyor. Maç sırasında sonraki `/who` çıktıları bilinen oyuncularla birleştirilir; yeniden doğmayı bekleyen oyuncular listede görünmeyebilir. Tanınan ölüm mesajlarından eksik ölen/öldüren oyuncular da aynı gizleme filtreleriyle eklenir. Final kill alanlar o maçta tekrar eklenmez. Yeni maç, oyun sonu veya algılanan lobi geçişi maç kadrosunu sıfırlar. Uygulamayı maç ortasında açtıysan `/who` yükledikten sonraki ilk tanınan ölüm mesajı kadroyu korumayı başlatır; geçmişe yeni bir maç kaydı açmaz.
+
+İncelenen Badlion loglarında ölüm mesajları takım renklerini içermiyor; bu durumda `TAB` + `END` hâlâ gerekiyor. Minecraft renk kodlarını koruyan istemcilerde tanınan ölüm mesajlarından takım bilgisi alınabilir. Yalnızca isimlerden, kimin kimi öldürdüğünden veya yatak yıkılma mesajından takım tahmin edilmez.
 
 ## Kurulum
 
@@ -109,13 +115,13 @@ try {
 Release dosyalarını oluştur:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.4.3"
+.\scripts\publish-release.ps1 -Version "1.4.4"
 ```
 
 `.pfx` sertifika ile release dosyalarını imzala:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.4.3" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
+.\scripts\publish-release.ps1 -Version "1.4.4" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
 ```
 
 Script sertifika şifresini sorar. `.pfx` veya `.p12` dosyalarını commit etme.

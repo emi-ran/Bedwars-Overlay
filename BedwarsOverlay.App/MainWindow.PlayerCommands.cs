@@ -34,32 +34,41 @@ namespace BedwarsOverlay.App
 
         private void ClearPlayers()
         {
+            _teamRosterVersion++;
+            HideSplitAlert();
             _playerLookupService?.CancelAndReset();
             _currentTeamByPlayer.Clear();
+            _matchRoster.ClearPlayers();
             _players.Clear();
             PlaceholderPanel.Visibility = Visibility.Visible;
             AddDiagnosticLine(LocalizationService.Instance["Status_Cleared"]);
             SetStatus(LocalizationService.Instance["Status_Cleared"]);
         }
 
-        private void LoadPlayers(List<string> players)
+        private void LoadPlayers(List<string> players, bool preserveExisting = false)
         {
             if (_playerLookupService == null)
             {
                 return;
             }
 
-            var token = _playerLookupService.CancelAndReset();
-            _players.Clear();
-            PlaceholderPanel.Visibility = players.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            var token = preserveExisting ? _playerLookupService.CurrentToken : _playerLookupService.CancelAndReset();
+            if (!preserveExisting) _players.Clear();
 
             var encounterContext = BuildEncounterContext();
             _playerLookupService.SetEncounterContext(encounterContext);
 
-            int index = 0;
+            int index = _players.Count;
             foreach (var name in players)
             {
+                var existing = _players.FirstOrDefault(row => row.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+                if (preserveExisting && existing != null)
+                {
+                    existing.IsDisconnected = _matchRoster.IsDisconnected(name);
+                    continue;
+                }
                 var placeholder = PlayerRow.CreateLoading(name, index % 2 == 0);
+                placeholder.IsDisconnected = _matchRoster.IsDisconnected(name);
                 if (_currentTeamByPlayer.TryGetValue(name, out string? team))
                 {
                     placeholder.Team = team;
@@ -71,6 +80,7 @@ namespace BedwarsOverlay.App
                 index++;
             }
 
+            PlaceholderPanel.Visibility = _players.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
             RestoreSorting();
         }
 

@@ -110,6 +110,8 @@
   "Lang_Label": "Dil",
   "Lang_English": "English",
   "Lang_Turkish": "Türkçe",
+  "Split_TeammateDied": "{0} öldü · Takım arkadaşını bekle",
+  "Connection_Disconnected": "Bağlantısı koptu — maçta elenmediyse geri dönebilir.",
   "Help_Title": "Bedwars Overlay Komutları",
   "Help_BwStats": "/bwstats <isim...> - Sadece bu oyuncuları gösterir. Filtreleri yok sayar.",
   "Help_BwIgnore": "/bwignore <isim...> - Oyuncuları gizlenenler listesine ekler.",

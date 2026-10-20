@@ -66,6 +66,7 @@ namespace BedwarsOverlay.App
 
             try
             {
+                int rosterVersion = _teamRosterVersion;
                 if (restoreOverlay)
                 {
                     Hide();
@@ -85,12 +86,22 @@ namespace BedwarsOverlay.App
                     ShowWithoutActivating();
                 }
 
-                string[] rosterNames = _players.Select(player => player.Name).ToArray();
+                // Hidden self/party rows still need team assignments for teammate alerts.
+                string[] rosterNames = _matchRoster.GetPlayers()
+                    .Concat(_players.Select(player => player.Name))
+                    .Concat(_partyPlayers)
+                    .Append(_settingsRepository?.LocalPlayerName ?? string.Empty)
+                    .Where(name => !string.IsNullOrWhiteSpace(name))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToArray();
                 var recognizedTeams = await Task.Run(() => _teamRecognitionService.ReadTeams(screenshot, rosterNames));
+                if (rosterVersion != _teamRosterVersion) return;
                 int matchedCount = 0;
 
                 foreach (var pair in recognizedTeams)
                 {
+                    _currentTeamByPlayer[pair.Key] = pair.Value;
+                    matchedCount++;
                     foreach (PlayerRow player in _players)
                     {
                         if (!player.Name.Equals(pair.Key, StringComparison.OrdinalIgnoreCase))
@@ -98,9 +109,7 @@ namespace BedwarsOverlay.App
                             continue;
                         }
 
-                        _currentTeamByPlayer[player.Name] = pair.Value;
                         player.Team = pair.Value;
-                        matchedCount++;
                         break;
                     }
                 }

@@ -66,6 +66,14 @@ namespace BedwarsOverlay.App
             {
                 AddDiagnosticLine(line);
 
+                if (_logParser?.IsLobbyTransition(line) == true)
+                {
+                    HideSplitAlert();
+                    bool hadRoster = _matchRoster.IsActive;
+                    _matchRoster.Reset();
+                    if (hadRoster) ClearPlayers();
+                }
+
                 var gameBlock = _logParser?.ParseGameBlock(line) ?? GameBlockEvent.None;
                 if (gameBlock.Kind == GameBlockKind.MatchStart)
                 {
@@ -73,8 +81,12 @@ namespace BedwarsOverlay.App
                 }
                 else if (gameBlock.Kind == GameBlockKind.MatchEnd)
                 {
+                    HideSplitAlert();
+                    _teamRosterVersion++;
                     bool closedRunningMatch = EndTrackedMatch(gameBlock.Outcome);
-                    if (closedRunningMatch)
+                    bool hadRoster = _matchRoster.IsActive;
+                    _matchRoster.Reset();
+                    if (closedRunningMatch || hadRoster)
                     {
                         _currentTeamByPlayer.Clear();
                         _playerLookupService?.CancelAndReset();
@@ -137,17 +149,45 @@ namespace BedwarsOverlay.App
                     return;
                 }
 
+                var connection = _logParser?.ParsePlayerConnection(line);
+                if (connection != null)
+                {
+                    // Like deaths, connection messages can resume in-memory tracking after a
+                    // mid-game /who. They never create an encounter match or a Split reminder.
+                    if (!_matchRoster.IsActive && _players.Count > 0) _matchRoster.Activate();
+                    if (_matchRoster.IsActive && _matchRoster.ObserveConnection(connection))
+                    {
+                        LoadPlayers(FilterIgnoredPlayers(_matchRoster.GetPlayers()), preserveExisting: true);
+                        AddDiagnosticLine($"Player {connection.Name}: {(connection.IsConnected ? "reconnected" : "disconnected")}");
+                    }
+                    return;
+                }
+
                 var players = _logParser?.ParsePlayerList(line);
                 if (players != null && players.Count > 0 && _playerLookupService != null)
                 {
-                    players = FilterIgnoredPlayers(players);
-                    LoadPlayers(players);
+                    players = FilterIgnoredPlayers(_matchRoster.ObservePlayers(players));
+                    LoadPlayers(players, preserveExisting: _matchRoster.IsActive);
                 }
                 else
                 {
+                    var death = _logParser?.ParsePlayerDeath(line);
+                    if (death != null && !_matchRoster.IsActive && _players.Count > 0)
+                    {
+                        _matchRoster.Activate();
+                    }
+                    if (death != null && _matchRoster.IsActive)
+                    {
+                        ApplyLogTeam(death.Victim, death.VictimTeam);
+                        if (death.Killer != null) ApplyLogTeam(death.Killer, death.KillerTeam);
+                        HandleSplitAlert(death);
+                        LoadPlayers(FilterIgnoredPlayers(_matchRoster.ObserveDeath(death)), preserveExisting: true);
+                    }
+
                     var finalKillVictim = _logParser?.ParseFinalKillVictim(line);
                     if (!string.IsNullOrWhiteSpace(finalKillVictim))
                     {
+                        _matchRoster.Eliminate(finalKillVictim);
                         for (int i = 0; i < _players.Count; i++)
                         {
                             if (_players[i].Name.Equals(finalKillVictim, StringComparison.OrdinalIgnoreCase))
@@ -155,6 +195,7 @@ namespace BedwarsOverlay.App
                                 var eliminatedPlayer = _players[i];
                                 if (!eliminatedPlayer.IsEliminated)
                                 {
+                                    eliminatedPlayer.IsDisconnected = false;
                                     eliminatedPlayer.MarkEliminated();
                                     AddDiagnosticLine($"Marked final-killed player: {finalKillVictim}");
                                     _ = RemoveFinalKilledPlayerAfterDelayAsync(eliminatedPlayer);
@@ -175,6 +216,8 @@ namespace BedwarsOverlay.App
         private void StartTrackedMatch()
         {
             _lastEndedMatchId = null;
+            ClearPlayers();
+            _matchRoster.Reset(active: true);
             _currentTeamByPlayer.Clear();
 
             if (_encounterRepository == null)
@@ -192,6 +235,16 @@ namespace BedwarsOverlay.App
             {
                 _currentMatchId = null;
                 AddDiagnosticLine($"[ERROR] Could not open match: {ex.Message}");
+            }
+        }
+
+        private void ApplyLogTeam(string name, string? team)
+        {
+            if (team == null) return;
+            _currentTeamByPlayer[name] = team;
+            foreach (var player in _players)
+            {
+                if (player.Name.Equals(name, StringComparison.OrdinalIgnoreCase)) player.Team = team;
             }
         }
 

@@ -27,6 +27,11 @@ namespace BedwarsOverlay.Core.LogWatching
         public static readonly GameBlockEvent MatchStart = new(GameBlockKind.MatchStart, GameOutcome.Unknown);
     }
 
+    public sealed record PlayerDeathEvent(string Victim, string? Killer, bool IsFinal,
+        string? VictimTeam, string? KillerTeam);
+
+    public sealed record PlayerConnectionEvent(string Name, bool IsConnected);
+
     public class HypixelLogParser
     {
         // Default regex patterns to match the /who output in client logs.
@@ -49,6 +54,26 @@ namespace BedwarsOverlay.Core.LogWatching
 
         private static readonly Regex ChatMessagePattern = new(
             @"\[CHAT\]\s*(?<message>.*)$",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        // Anchored server messages only: player chat ("name: ...") must never change the roster.
+        // Cosmetic kill messages vary, but their actor positions and punctuation are stable.
+        private static readonly Regex DeathMessagePattern = new(
+            @"^(?<victim>[a-zA-Z0-9_]{3,16}) (?:" +
+            @"was [^:.!>]+? (?:by|from|meet|against|of|for) (?<killer>[a-zA-Z0-9_]{3,16})(?:'s [^:.!>]+)?|" +
+            @"was (?<killer>[a-zA-Z0-9_]{3,16})'s final #[\d,]+|" +
+            @"died in close combat to (?<killer>[a-zA-Z0-9_]{3,16})|" +
+            @"(?:didn't distance themselves properly from|tripped while trying to run away from|be cannonballed to death by|slipped into void for|howled into the void for) (?<killer>[a-zA-Z0-9_]{3,16})|" +
+            @"fell into the void|fell from a high place|died" +
+            @")\.(?<final> FINAL KILL!)?$",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        private static readonly Regex LobbyTransitionPattern = new(
+            @"^(?:Sending you to [a-zA-Z0-9_-]+!|[a-zA-Z0-9_]{3,16} has joined \(\d+/\d+\)!)$",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        private static readonly Regex ConnectionMessagePattern = new(
+            @"^(?<name>[a-zA-Z0-9_]{3,16}) (?<state>disconnected|reconnected)\.$",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         private static readonly Regex GameEndWinRewardPattern = new(
@@ -198,6 +223,68 @@ namespace BedwarsOverlay.Core.LogWatching
 
             string victim = match.Groups["victim"].Value;
             return Regex.IsMatch(victim, "^[a-zA-Z0-9_]{3,16}$") ? victim : null;
+        }
+
+        public PlayerDeathEvent? ParsePlayerDeath(string logLine)
+        {
+            if (string.IsNullOrWhiteSpace(logLine)) return null;
+            var chat = ChatMessagePattern.Match(logLine);
+            if (!chat.Success) return null;
+
+            string rawMessage = chat.Groups["message"].Value.Trim();
+            string message = Regex.Replace(rawMessage, "§.", "");
+            var match = DeathMessagePattern.Match(message);
+            if (!match.Success) return null;
+
+            string victim = match.Groups["victim"].Value;
+            string? killer = match.Groups["killer"].Success ? match.Groups["killer"].Value : null;
+            return new PlayerDeathEvent(victim, killer, match.Groups["final"].Success,
+                ReadActorTeam(rawMessage, 0),
+                killer == null ? null : ReadActorTeam(rawMessage, match.Groups["killer"].Index));
+        }
+
+        public bool IsLobbyTransition(string logLine)
+        {
+            if (string.IsNullOrWhiteSpace(logLine)) return false;
+            var chat = ChatMessagePattern.Match(Regex.Replace(logLine, "§.", ""));
+            return chat.Success && LobbyTransitionPattern.IsMatch(chat.Groups["message"].Value.Trim());
+        }
+
+        public PlayerConnectionEvent? ParsePlayerConnection(string logLine)
+        {
+            if (string.IsNullOrWhiteSpace(logLine)) return null;
+            var chat = ChatMessagePattern.Match(Regex.Replace(logLine, "§.", ""));
+            if (!chat.Success) return null;
+            var match = ConnectionMessagePattern.Match(chat.Groups["message"].Value.Trim());
+            return match.Success
+                ? new PlayerConnectionEvent(match.Groups["name"].Value,
+                    match.Groups["state"].Value.Equals("reconnected", StringComparison.OrdinalIgnoreCase))
+                : null;
+        }
+
+        // Track the active Minecraft color at the actor's plain-text offset. Formatting such as
+        // bold does not reset color. Missing/reset colors deliberately leave the team unknown.
+        private static string? ReadActorTeam(string message, int actorOffset)
+        {
+            char color = '\0';
+            int plainOffset = 0;
+            for (int i = 0; i < message.Length; i++)
+            {
+                if (message[i] == '§' && i + 1 < message.Length)
+                {
+                    char code = char.ToLowerInvariant(message[++i]);
+                    if ("0123456789abcdefr".Contains(code)) color = code;
+                    continue;
+                }
+                if (plainOffset++ == actorOffset) break;
+            }
+
+            return color switch
+            {
+                'c' => "Red", '9' => "Blue", 'a' => "Green", 'e' => "Yellow",
+                'b' => "Aqua", 'f' => "White", 'd' => "Pink", '7' => "Gray",
+                _ => null
+            };
         }
 
         /// <summary>

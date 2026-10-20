@@ -80,10 +80,27 @@ namespace BedwarsOverlay.Core.Models
             "Green" => GreenBrush,
             "Red" => RedBrush,
             "Yellow" => GoldBrush,
+            "Aqua" => new SolidColorBrush(Color.FromRgb(0x55, 0xFF, 0xFF)),
+            "White" => Brushes.White,
+            "Pink" => new SolidColorBrush(Color.FromRgb(0xFF, 0x55, 0xFF)),
+            "Gray" => GrayBrush,
             _ => GrayBrush
         };
 
         private string _statusText = "OK";
+        private bool _isDisconnected;
+        public bool IsDisconnected
+        {
+            get => _isDisconnected;
+            set
+            {
+                if (SetProperty(ref _isDisconnected, value))
+                    OnPropertyChanged(nameof(DisconnectedVisibility));
+            }
+        }
+
+        public Visibility DisconnectedVisibility => IsDisconnected ? Visibility.Visible : Visibility.Collapsed;
+
         public string StatusText
         {
             get => _statusText;

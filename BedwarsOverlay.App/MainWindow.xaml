@@ -553,6 +553,11 @@
                                             </Border>
                                              
                                             <!-- Repeat opponent badge (seen in earlier matches) -->
+                                            <Border Background="#1F94A3B8" BorderBrush="#64748B" BorderThickness="1" CornerRadius="4" Padding="4,1" Margin="0,0,6,0"
+                                                    VerticalAlignment="Center" Visibility="{Binding DisconnectedVisibility}"
+                                                    ToolTip="{Binding Source={x:Static services:LocalizationService.Instance}, Path=Connection_Disconnected, Mode=OneWay}">
+                                                <TextBlock Text="DC" Foreground="#CBD5E1" FontSize="9" FontWeight="Bold" FontFamily="Segoe UI"/>
+                                            </Border>
                                             <Border Background="#33FBBF24" BorderBrush="#FBBF24" BorderThickness="1" CornerRadius="4" Padding="4,1" Margin="0,0,6,0"
                                                     VerticalAlignment="Center"
                                                     Visibility="{Binding RepeatBadgeVisibility}"
@@ -735,6 +740,18 @@
                     </DataGrid>
 
                     <Button x:Name="UpdateAvailableButton" Style="{StaticResource UpdateButtonStyle}" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10" Panel.ZIndex="10" Visibility="Collapsed" Click="UpdateButton_Click"/>
+                    <Border x:Name="SplitAlert" Visibility="Collapsed" Panel.ZIndex="20"
+                            HorizontalAlignment="Center" VerticalAlignment="Top" Margin="10,34,10,0"
+                            Padding="16,8" Background="#F2121214" BorderBrush="#FFFBBF24"
+                            BorderThickness="2,0,0,0" CornerRadius="4" MaxWidth="320"
+                            IsHitTestVisible="False" AutomationProperties.LiveSetting="Polite">
+                        <StackPanel>
+                            <TextBlock Text="Split!" Foreground="#FFFBBF24" FontFamily="Segoe UI"
+                                       FontSize="22" FontWeight="Bold" HorizontalAlignment="Center"/>
+                            <TextBlock x:Name="SplitAlertPlayer" Foreground="#FFE2E8F0" FontFamily="Segoe UI"
+                                       FontSize="12" Margin="0,2,0,0" TextAlignment="Center" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
                 </Grid>
 
                 <!-- Diagnostics Panel (Visible in Edit Mode only) -->

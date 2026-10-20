@@ -34,6 +34,7 @@ namespace BedwarsOverlay.App.Services
         }
 
         public string this[string key] => GetString(key);
+        public string Connection_Disconnected => GetString("Connection_Disconnected");
 
         // XAML-bound properties - updated via PropertyChanged("") on language change
 
@@ -143,6 +144,8 @@ namespace BedwarsOverlay.App.Services
         // ──────────────────────────────────────────────
         private static readonly Dictionary<string, string> _builtInEnglish = new()
         {
+            ["Split_TeammateDied"] = "{0} died · Wait for your teammate",
+            ["Connection_Disconnected"] = "Disconnected — may rejoin while still in the match.",
             // MainWindow - Title / Badge
             ["Title_BedwarsOverlay"] = "Bedwars Overlay",
             ["Title_BedwarsOverlayShort"] = "BW Overlay",

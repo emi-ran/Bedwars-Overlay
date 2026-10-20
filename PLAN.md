@@ -37,5 +37,5 @@ This file tracks forward-looking work only. Current implemented state belongs in
 - Predicting a specific "sniper" player by name; the overlay only scores statistical danger and repeat encounters.
 - Match history UI (past matches, win/loss record, per-player history view). The data is stored, but nothing renders it yet.
 - Identifying a nicked player's real account.
-- Reading team assignments requires the player list to be open for a user-triggered screen capture; team data is not available from the `latest.log` stream.
+- Complete team assignments from plain Badlion logs: inspected death messages contain no team color codes. Color-preserving death messages can supplement OCR, but TAB+END remains necessary for a complete roster of teams.
 - Auto-loading the roster at game start. `X has joined (N/16)!` messages only cover players who join after the client is transferred in (measured: 4 of 16 names recovered), and the overlay cannot send `/who` itself without input injection, which is out of scope.

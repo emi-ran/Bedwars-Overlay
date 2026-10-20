@@ -30,4 +30,6 @@ GitHub Pages source: repository Settings → Pages → Deploy from a branch → 
 
 ## Maintaining content
 
+The v1.4.4 FAQ covers respawn roster retention, DC/reconnect handling and the teammate `Split!` reminder in both languages. The existing interactive demo still illustrates team/Threat behavior only.
+
 Keep Turkish HTML fallback copy and both dictionaries in `assets/site.js` consistent. Update the product claims when desktop behavior changes. Keep sample data labeled, retain keyboard-accessible controls and reduced-motion support, and preserve stable download links across future releases.

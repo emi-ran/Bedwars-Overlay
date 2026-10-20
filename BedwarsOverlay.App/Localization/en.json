@@ -110,6 +110,8 @@
   "Lang_Label": "Language",
   "Lang_English": "English",
   "Lang_Turkish": "Türkçe",
+  "Split_TeammateDied": "{0} died · Wait for your teammate",
+  "Connection_Disconnected": "Disconnected — may rejoin while still in the match.",
   "Help_Title": "Bedwars Overlay Commands",
   "Help_BwStats": "/bwstats <name...> - Show only these players. Ignores filters.",
   "Help_BwIgnore": "/bwignore <name...> - Add players to ignored list.",

@@ -47,6 +47,7 @@ namespace BedwarsOverlay.App
         private readonly ObservableCollection<PlayerRow> _players = new();
         private readonly HashSet<string> _partyPlayers = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, string> _currentTeamByPlayer = new(StringComparer.OrdinalIgnoreCase);
+        private readonly MatchRoster _matchRoster = new();
         private readonly TeamRecognitionService _teamRecognitionService = new(AppDomain.CurrentDomain.BaseDirectory);
         private const int FinalKillRemoveDelayMs = 2500;
 
@@ -77,6 +78,7 @@ namespace BedwarsOverlay.App
             this.SizeChanged += MainWindow_SizeChanged;
             this.LocationChanged += MainWindow_LocationChanged;
             _windowBoundsSaveTimer.Tick += WindowBoundsSaveTimer_Tick;
+            _splitAlertTimer.Tick += SplitAlertTimer_Tick;
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -236,6 +238,7 @@ namespace BedwarsOverlay.App
 
         protected override void OnClosed(EventArgs e)
         {
+            _splitAlertTimer.Stop();
             _windowBoundsSaveTimer.Stop();
             SaveWindowBounds();
             _trayIconService?.Dispose();
