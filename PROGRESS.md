@@ -12,6 +12,8 @@ App/assembly/installer versions and publish script examples use 1.4.5. README EN
 
 ## Unreleased
 
+- v1.4.5 release workflow (`39810461071`) failed inside `publish-release.ps1` at the test step: `PlayerRowTests.Name_UsesTeamColor_WhenTeamIsKnown` and `Name_KeepsTeamColor_WhenRankStatsArriveLater` threw `InvalidOperationException: The calling thread cannot access this object because a different thread owns it` when reading `SolidColorBrush.Color`. Cause: `PlayerRow` created unfrozen WPF brushes (static color brushes, `TeamColor`, row backgrounds, level colors); xUnit spreads test classes over the thread pool, so the brush was created on one thread and read on another. Local runs passed because the static initializer and the assertion happened to share a thread. All `PlayerRow` brushes now go through a freezing factory and team colors are cached as frozen statics; `PlayerRowTests.Row_BrushesStayReadable_WhenRowIsBuiltOnAnotherThread` covers the cross-thread read. Verified locally: Release build of Core/App 0 errors/0 warnings, 121/121 tests pass over repeated runs. The GitHub release `v1.4.5` exists with no assets because the job failed before upload.
+
 ---
 
 ## Release 1.4.4 — 2026-10-21

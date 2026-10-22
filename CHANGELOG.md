@@ -4,6 +4,8 @@ All notable user-facing changes to Bedwars Overlay are tracked here.
 
 ## Unreleased
 
+- Fixed the release build failing after 1.4.5 was published. Player rows handed out WPF brushes that were never frozen, and the test host reads them from a different thread than the one that created them, so two name-color tests threw `The calling thread cannot access this object because a different thread owns it`. Row brushes are now frozen and team colors are cached as frozen statics, so a row can be built and read on different threads. Added a cross-thread regression test.
+
 ## 1.4.5 - 2026-10-22
 
 - Fix team capture reporting missing or wrong teams. Every team color now gets its own OCR pass and a name inherits the color it was actually drawn in, instead of the team being guessed from the characters next to a matched name. Strict Minecraft palette matching and glyph-sized component filtering keep the world behind the player list out of the OCR input, which used to make a capture silently find nothing.

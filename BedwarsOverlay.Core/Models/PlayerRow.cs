@@ -32,12 +32,38 @@ namespace BedwarsOverlay.Core.Models
             return true;
         }
 
-        private static readonly Brush GrayBrush = new SolidColorBrush(Color.FromRgb(0x94, 0xA3, 0xB8));
+        /// <summary>
+        /// WPF brushes are thread-affine until frozen. Rows are created from background work
+        /// (log parsing, API lookups, tests), so every brush handed out by this model is frozen:
+        /// a frozen <see cref="Freezable"/> can be read from any thread, an unfrozen one throws
+        /// "The calling thread cannot access this object because a different thread owns it".
+        /// </summary>
+        private static SolidColorBrush Frozen(Color color)
+        {
+            var brush = new SolidColorBrush(color);
+            brush.Freeze();
+            return brush;
+        }
+
+        private static SolidColorBrush Frozen(byte red, byte green, byte blue)
+        {
+            return Frozen(0xFF, red, green, blue);
+        }
+
+        private static SolidColorBrush Frozen(byte alpha, byte red, byte green, byte blue)
+        {
+            return Frozen(Color.FromArgb(alpha, red, green, blue));
+        }
+
+        private static readonly Brush GrayBrush = Frozen(0x94, 0xA3, 0xB8);
         private static readonly Brush WhiteBrush = Brushes.White;
-        private static readonly Brush GreenBrush = new SolidColorBrush(Color.FromRgb(0x22, 0xC5, 0x5E));
-        private static readonly Brush GoldBrush = new SolidColorBrush(Color.FromRgb(0xFB, 0xBF, 0x24));
-        private static readonly Brush RedBrush = new SolidColorBrush(Color.FromRgb(0xEF, 0x44, 0x44));
-        private static readonly Brush OrangeBrush = new SolidColorBrush(Color.FromRgb(0xFB, 0x92, 0x3C));
+        private static readonly Brush GreenBrush = Frozen(0x22, 0xC5, 0x5E);
+        private static readonly Brush GoldBrush = Frozen(0xFB, 0xBF, 0x24);
+        private static readonly Brush RedBrush = Frozen(0xEF, 0x44, 0x44);
+        private static readonly Brush OrangeBrush = Frozen(0xFB, 0x92, 0x3C);
+        private static readonly Brush BlueBrush = Frozen(0x55, 0xAA, 0xFF);
+        private static readonly Brush AquaBrush = Frozen(0x55, 0xFF, 0xFF);
+        private static readonly Brush PinkBrush = Frozen(0xFF, 0x55, 0xFF);
 
         private string _rankTag = string.Empty;
         public string RankTag
@@ -77,13 +103,13 @@ namespace BedwarsOverlay.Core.Models
 
         public Brush TeamColor => Team switch
         {
-            "Blue" => new SolidColorBrush(Color.FromRgb(0x55, 0xAA, 0xFF)),
+            "Blue" => BlueBrush,
             "Green" => GreenBrush,
             "Red" => RedBrush,
             "Yellow" => GoldBrush,
-            "Aqua" => new SolidColorBrush(Color.FromRgb(0x55, 0xFF, 0xFF)),
+            "Aqua" => AquaBrush,
             "White" => Brushes.White,
-            "Pink" => new SolidColorBrush(Color.FromRgb(0xFF, 0x55, 0xFF)),
+            "Pink" => PinkBrush,
             "Gray" => GrayBrush,
             _ => GrayBrush
         };
@@ -372,7 +398,7 @@ namespace BedwarsOverlay.Core.Models
             set => SetProperty(ref _riskColor, value);
         }
 
-        private Brush _rowBackground = new SolidColorBrush(Color.FromRgb(0x0F, 0x0F, 0x11));
+        private Brush _rowBackground = Frozen(Color.FromRgb(0x0F, 0x0F, 0x11));
         public Brush RowBackground
         {
             get => _rowBackground;
@@ -397,11 +423,11 @@ namespace BedwarsOverlay.Core.Models
         public void MarkEliminated()
         {
             IsEliminated = true;
-            RowBackground = new SolidColorBrush(Color.FromArgb(0xAA, 0x7F, 0x1D, 0x1D));
-            NameColor = new SolidColorBrush(Color.FromRgb(0xFE, 0xCA, 0xCA));
+            RowBackground = Frozen(Color.FromArgb(0xAA, 0x7F, 0x1D, 0x1D));
+            NameColor = Frozen(Color.FromRgb(0xFE, 0xCA, 0xCA));
             Tag = "FINAL KILL";
             TagVisibility = Visibility.Visible;
-            RiskColor = new SolidColorBrush(Color.FromRgb(0xFE, 0xF2, 0xF2));
+            RiskColor = Frozen(Color.FromRgb(0xFE, 0xF2, 0xF2));
         }
 
         /// <summary>
@@ -409,16 +435,16 @@ namespace BedwarsOverlay.Core.Models
         /// </summary>
         public static Brush GetLevelColor(int level)
         {
-            if (level < 100) return new SolidColorBrush(Color.FromRgb(0x94, 0xA3, 0xB8)); // gray
+            if (level < 100) return Frozen(Color.FromRgb(0x94, 0xA3, 0xB8)); // gray
             if (level < 200) return Brushes.White; // white/iron
-            if (level < 300) return new SolidColorBrush(Color.FromRgb(0xFB, 0xBF, 0x24)); // gold
-            if (level < 400) return new SolidColorBrush(Color.FromRgb(0x22, 0xD3, 0xEE)); // aqua/cyan
-            if (level < 500) return new SolidColorBrush(Color.FromRgb(0x34, 0xD3, 0x99)); // green
-            if (level < 600) return new SolidColorBrush(Color.FromRgb(0x0D, 0x94, 0x88)); // dark aqua
-            if (level < 700) return new SolidColorBrush(Color.FromRgb(0xF4, 0x72, 0xB6)); // pink
-            if (level < 800) return new SolidColorBrush(Color.FromRgb(0xA7, 0x8B, 0xFA)); // purple
-            if (level < 900) return new SolidColorBrush(Color.FromRgb(0x81, 0x8C, 0xF8)); // indigo
-            return new SolidColorBrush(Color.FromRgb(0xFB, 0x71, 0x85)); // rose/rainbow
+            if (level < 300) return Frozen(Color.FromRgb(0xFB, 0xBF, 0x24)); // gold
+            if (level < 400) return Frozen(Color.FromRgb(0x22, 0xD3, 0xEE)); // aqua/cyan
+            if (level < 500) return Frozen(Color.FromRgb(0x34, 0xD3, 0x99)); // green
+            if (level < 600) return Frozen(Color.FromRgb(0x0D, 0x94, 0x88)); // dark aqua
+            if (level < 700) return Frozen(Color.FromRgb(0xF4, 0x72, 0xB6)); // pink
+            if (level < 800) return Frozen(Color.FromRgb(0xA7, 0x8B, 0xFA)); // purple
+            if (level < 900) return Frozen(Color.FromRgb(0x81, 0x8C, 0xF8)); // indigo
+            return Frozen(Color.FromRgb(0xFB, 0x71, 0x85)); // rose/rainbow
         }
 
         /// <summary>Color used for a threat band. Single source of truth for the threat column.</summary>
@@ -450,8 +476,8 @@ namespace BedwarsOverlay.Core.Models
                 Threat = "-",
                 NameColor = Brushes.Gray,
                 RowBackground = isEvenRow ?
-                    new SolidColorBrush(Color.FromArgb(0x35, 0x0E, 0x0E, 0x10)) :
-                    new SolidColorBrush(Color.FromArgb(0x35, 0x16, 0x16, 0x18)),
+                    Frozen(Color.FromArgb(0x35, 0x0E, 0x0E, 0x10)) :
+                    Frozen(Color.FromArgb(0x35, 0x16, 0x16, 0x18)),
                 LevelRaw = 0,
                 WinstreakRaw = 0,
                 FkdrRaw = 0.0,
@@ -484,13 +510,13 @@ namespace BedwarsOverlay.Core.Models
             Brush currentBg;
             if (isLocalPlayer)
             {
-                currentBg = new SolidColorBrush(Color.FromArgb(0x55, 0x0C, 0x1B, 0x33)); // Transparent dark blue highlight
+                currentBg = Frozen(Color.FromArgb(0x55, 0x0C, 0x1B, 0x33)); // Transparent dark blue highlight
             }
             else
             {
                 currentBg = isEvenRow ?
-                    new SolidColorBrush(Color.FromArgb(0x35, 0x0E, 0x0E, 0x10)) :
-                    new SolidColorBrush(Color.FromArgb(0x35, 0x16, 0x16, 0x18));
+                    Frozen(Color.FromArgb(0x35, 0x0E, 0x0E, 0x10)) :
+                    Frozen(Color.FromArgb(0x35, 0x16, 0x16, 0x18));
             }
 
             var row = new PlayerRow
@@ -548,7 +574,7 @@ namespace BedwarsOverlay.Core.Models
             Brush currentBg;
             if (isLocalPlayer)
             {
-                currentBg = new SolidColorBrush(Color.FromArgb(0x55, 0x0C, 0x1B, 0x33)); // Transparent dark blue highlight
+                currentBg = Frozen(Color.FromArgb(0x55, 0x0C, 0x1B, 0x33)); // Transparent dark blue highlight
             }
             else
             {
