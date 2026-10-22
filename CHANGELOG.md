@@ -4,6 +4,11 @@ All notable user-facing changes to Bedwars Overlay are tracked here.
 
 ## Unreleased
 
+## 1.4.5 - 2026-10-22
+
+- Fix team capture reporting missing or wrong teams. Every team color now gets its own OCR pass and a name inherits the color it was actually drawn in, instead of the team being guessed from the characters next to a matched name. Strict Minecraft palette matching and glyph-sized component filtering keep the world behind the player list out of the OCR input, which used to make a capture silently find nothing.
+- Known teams now color player names. Names without a known team keep their rank color (MVP+ cyan, VIP green, unranked gray), so an MVP no longer hides its team color.
+
 ## 1.4.4 - 2026-10-21
 
 - Track explicit disconnect/reconnect messages with a `DC` badge while preserving stats and team assignments. Reconnect and `/who` clear the badge; final-killed players remain excluded. Connection messages never trigger Split reminders.

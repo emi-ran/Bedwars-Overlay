@@ -70,6 +70,7 @@ namespace BedwarsOverlay.Core.Models
                 if (SetProperty(ref _team, value ?? string.Empty))
                 {
                     OnPropertyChanged(nameof(TeamColor));
+                    RefreshNameColor();
                 }
             }
         }
@@ -290,6 +291,36 @@ namespace BedwarsOverlay.Core.Models
             set => SetProperty(ref _nameColor, value);
         }
 
+        private Brush _rankColor = Brushes.White;
+        /// <summary>
+        /// Name color implied by the player's rank (MVP+ cyan, VIP green, default gray). Used as the
+        /// name color whenever the team is unknown.
+        /// </summary>
+        public Brush RankColor
+        {
+            get => _rankColor;
+            set
+            {
+                if (SetProperty(ref _rankColor, value))
+                {
+                    RefreshNameColor();
+                }
+            }
+        }
+
+        /// <summary>
+        /// A known team wins over the rank color, so names follow their team like they do in game.
+        /// </summary>
+        private void RefreshNameColor()
+        {
+            if (IsEliminated)
+            {
+                return;
+            }
+
+            NameColor = string.IsNullOrEmpty(Team) ? _rankColor : TeamColor;
+        }
+
         private Brush _levelColor = Brushes.White;
         public Brush LevelColor
         {
@@ -472,7 +503,7 @@ namespace BedwarsOverlay.Core.Models
                 FinalKills = finals.ToString("N0"),
                 Wins = wins.ToString("N0"),
                 IsLocalPlayer = isLocalPlayer,
-                NameColor = nameBrush,
+                RankColor = nameBrush,
                 LevelColor = GetLevelColor(level),
                 FkdrColor = fkdr >= 5.0 ? GreenBrush : (fkdr >= 1.0 ? WhiteBrush : GrayBrush),
                 WlrColor = wlr >= 1.0 ? GreenBrush : (wlr >= 0.3 ? WhiteBrush : GrayBrush),
@@ -531,7 +562,7 @@ namespace BedwarsOverlay.Core.Models
             FinalKills = finals.ToString("N0");
             Wins = wins.ToString("N0");
             IsLocalPlayer = isLocalPlayer;
-            NameColor = nameBrush;
+            RankColor = nameBrush;
             LevelColor = GetLevelColor(level);
             FkdrColor = fkdr >= 5.0 ? GreenBrush : (fkdr >= 1.0 ? WhiteBrush : GrayBrush);
             WlrColor = wlr >= 1.0 ? GreenBrush : (wlr >= 0.3 ? WhiteBrush : GrayBrush);

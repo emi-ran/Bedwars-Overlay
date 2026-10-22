@@ -13,7 +13,7 @@ Bedwars Overlay is a small Windows overlay for Hypixel Bed Wars players. It read
 - Keeps known match players during respawns even if a later `/who` omits them, and fills missing names from recognized death messages without reloading existing stats. Final-killed players stay excluded until the next match.
 - Reads player teams from death-message color codes when the client preserves them; otherwise keeps OCR assignments or leaves the team unknown.
 - Shows a small five-second `Split!` reminder when a teammate dies normally. Set your own Minecraft name in Settings; matching OCR teams take priority, with `/p list` membership as a fallback when teams are unknown. Self deaths and final kills do not trigger it. Hidden self/party rows are included in TAB+END team matching. This is a death reminder, not a check of your distance from the generator; it appears only while the overlay is visible.
-- Reads team prefixes from the visible Minecraft player list with `END` (hold `TAB` and press `END`) and lets you sort the table by team. The OCR engine is bundled with the app.
+- Reads team prefixes from the visible Minecraft player list with `END` (hold `TAB` and press `END`) and lets you sort the table by team. Each team color is read separately, so a known team also colors the player's name; names without a known team keep their rank color (MVP+ cyan, VIP green, and so on). The OCR engine is bundled with the app.
 - Lets you load specific players with `/bwstats`.
 - Lets you hide players with `/bwignore`, Settings ignored players, `/p list` party ignore, and self ignore.
 - Displays useful Bed Wars stats such as level, winstreak, FKDR, WLR, final kills, wins, and a 0-100 threat score.
@@ -115,7 +115,7 @@ try {
 Build release artifacts:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.4.4"
+.\scripts\publish-release.ps1 -Version "1.4.5"
 ```
 
 Build and sign release artifacts with a `.pfx` certificate:

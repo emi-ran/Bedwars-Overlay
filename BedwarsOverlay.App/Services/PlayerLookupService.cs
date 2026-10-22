@@ -109,7 +109,7 @@ namespace BedwarsOverlay.App.Services
                     Application.Current.Dispatcher.Invoke(() =>
                     {
                         row.StatusText = statusText;
-                        row.NameColor = Brushes.Red;
+                        row.RankColor = Brushes.Red;
                         row.Level = "?";
                         row.Winstreak = "?";
                         row.Fkdr = "?";
@@ -144,7 +144,7 @@ namespace BedwarsOverlay.App.Services
                     Application.Current.Dispatcher.Invoke(() =>
                     {
                         row.StatusText = statusText;
-                        row.NameColor = Brushes.Orange;
+                        row.RankColor = Brushes.Orange;
                         row.Level = "-";
                         row.Winstreak = "-";
                         row.Fkdr = "-";
@@ -202,7 +202,7 @@ namespace BedwarsOverlay.App.Services
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     row.StatusText = "ERROR";
-                    row.NameColor = Brushes.Red;
+                    row.RankColor = Brushes.Red;
                 });
             }
         }

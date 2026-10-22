@@ -94,7 +94,13 @@ namespace BedwarsOverlay.App
                     .Where(name => !string.IsNullOrWhiteSpace(name))
                     .Distinct(StringComparer.OrdinalIgnoreCase)
                     .ToArray();
-                var recognizedTeams = await Task.Run(() => _teamRecognitionService.ReadTeams(screenshot, rosterNames));
+                string teamDiagnostics = string.Empty;
+                var recognizedTeams = await Task.Run(() =>
+                {
+                    var result = _teamRecognitionService.ReadTeams(screenshot, rosterNames, out string details);
+                    teamDiagnostics = details;
+                    return result;
+                });
                 if (rosterVersion != _teamRosterVersion) return;
                 int matchedCount = 0;
 
@@ -117,13 +123,13 @@ namespace BedwarsOverlay.App
                 if (matchedCount == 0)
                 {
                     SetStatus(LocalizationService.Instance["Teams_NoneFound"]);
-                    AddDiagnosticLine($"Team capture found no roster matches from {bounds.Right - bounds.Left}x{bounds.Bottom - bounds.Top} in {captureTimer.ElapsedMilliseconds} ms.");
+                    AddDiagnosticLine($"Team capture found no roster matches from {bounds.Right - bounds.Left}x{bounds.Bottom - bounds.Top} in {captureTimer.ElapsedMilliseconds} ms ({teamDiagnostics}).");
                     return;
                 }
 
                 string result = LocalizationService.Instance["Teams_Updated"].Replace("{0}", matchedCount.ToString());
                 SetStatus(result);
-                AddDiagnosticLine($"{result} ({bounds.Right - bounds.Left}x{bounds.Bottom - bounds.Top}, {captureTimer.ElapsedMilliseconds} ms)");
+                AddDiagnosticLine($"{result} ({bounds.Right - bounds.Left}x{bounds.Bottom - bounds.Top}, {captureTimer.ElapsedMilliseconds} ms, {teamDiagnostics})");
             }
             catch (Exception ex)
             {

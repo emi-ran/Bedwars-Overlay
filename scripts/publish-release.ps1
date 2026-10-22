@@ -1,5 +1,5 @@
 param(
-    [string]$Version = "1.4.4",
+    [string]$Version = "1.4.5",
     [string]$Runtime = "win-x64",
     [string]$CertificatePath,
     [switch]$Sign,
@@ -31,7 +31,7 @@ Usage:
   .\scripts\publish-release.ps1 --help
 
 Options:
-  -Version <value>              Release version. Default: 1.4.4
+  -Version <value>              Release version. Default: 1.4.5
   -Runtime <value>              .NET runtime identifier. Default: win-x64
   -CertificatePath <path>       PFX certificate path. Required with -Sign.
   -Sign                         Sign published app files and installer.
@@ -41,10 +41,10 @@ Options:
   -Help, --help, -h             Show this help.
 
 Examples:
-  .\scripts\publish-release.ps1 -Version "1.4.4"
-  .\scripts\publish-release.ps1 -Version "1.4.4" -SkipInstaller
-  .\scripts\publish-release.ps1 -Version "1.4.4" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
-  .\scripts\publish-release.ps1 -Version "1.4.4" -Runtime "win-x64" -Sign -SignAllBinaries -CertificatePath ".\Bedwars-Overlay.pfx"
+  .\scripts\publish-release.ps1 -Version "1.4.5"
+  .\scripts\publish-release.ps1 -Version "1.4.5" -SkipInstaller
+  .\scripts\publish-release.ps1 -Version "1.4.5" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
+  .\scripts\publish-release.ps1 -Version "1.4.5" -Runtime "win-x64" -Sign -SignAllBinaries -CertificatePath ".\Bedwars-Overlay.pfx"
 
 Notes:
   - With -Sign, certificate password is requested at script start.

@@ -13,7 +13,7 @@ Bedwars Overlay, Hypixel Bed Wars oyuncuları için küçük bir Windows overlay
 - Maçta bilinen oyuncuları yeniden doğarken korur; sonraki `/who` çıktısında görünmeseler de silmez. Tanınan ölüm mesajlarından eksik isimleri eklerken mevcut istatistikleri yeniden yüklemez. Final kill alanlar sonraki maça kadar geri eklenmez.
 - İstemci renk kodlarını koruyorsa ölüm mesajlarından oyuncuların takımlarını okur; renk yoksa OCR bilgisini korur veya takımı boş bırakır.
 - Takım arkadaşın normal şekilde ölürse beş saniyelik küçük bir `Split!` uyarısı gösterir. Ayarlarda kendi Minecraft adını gir; TAB+END ile belirlenen aynı takım bilgisi önceliklidir, takım bilinmiyorsa `/p list` üyeliği kullanılır. Kendin öldüğünde veya final kill durumunda tetiklenmez. Kendini/partini tabloda gizlesen de TAB+END takım eşleştirmesine dahil edilirler. Fırına uzaklığın ölçülmez; bu bir ölüm hatırlatıcısıdır ve yalnız overlay görünürken görünür.
-- `END` ile (TAB'ı basılı tutup END'e basarak) Minecraft oyuncu listesindeki takım etiketlerini okur ve tabloda takıma göre sıralamayı sağlar. OCR motoru uygulamayla birlikte gelir.
+- `END` ile (TAB'ı basılı tutup END'e basarak) Minecraft oyuncu listesindeki takım etiketlerini okur ve tabloda takıma göre sıralamayı sağlar. Her takım rengi ayrı okunduğu için takımı bilinen oyuncunun adı da takım rengiyle görünür; takımı bilinmeyen isimler rank rengini korur (MVP+ camgöbeği, VIP yeşil vb.). OCR motoru uygulamayla birlikte gelir.
 - `/bwstats` ile belirli oyuncuları yükleyebilirsin.
 - `/bwignore`, Ayarlar'daki gizlenen oyuncular, `/p list` parti gizleme ve kendini gizleme seçenekleriyle oyuncuları gizleyebilirsin.
 - Level, winstreak, FKDR, WLR, final kills, wins ve 0-100 arası tehdit (threat) skoru gibi Bed Wars statlarını gösterir.
@@ -115,7 +115,7 @@ try {
 Release dosyalarını oluştur:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.4.4"
+.\scripts\publish-release.ps1 -Version "1.4.5"
 ```
 
 `.pfx` sertifika ile release dosyalarını imzala:

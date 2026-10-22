@@ -16,13 +16,23 @@ namespace BedwarsOverlay.App.Services
     /// <summary>Reads Hypixel team-colored player names from a captured Minecraft player list.</summary>
     public sealed class TeamRecognitionService : IDisposable
     {
-        private static readonly (string Name, string Code)[] Teams =
+        private static readonly (string Name, byte Red, byte Green, byte Blue)[] Teams =
         {
-            ("Blue", "B"),
-            ("Green", "G"),
-            ("Red", "R"),
-            ("Yellow", "Y")
+            ("Blue", 0x55, 0x55, 0xFF),   // Minecraft dark blue (§9)
+            ("Green", 0x55, 0xFF, 0x55),  // Minecraft green (§a)
+            ("Red", 0xFF, 0x55, 0x55),    // Minecraft red (§c)
+            ("Yellow", 0xFF, 0xFF, 0x55)  // Minecraft yellow (§e)
         };
+
+        /// <summary>
+        /// Minecraft renders player-list names in exact team colors, while the world behind the list is
+        /// blended, shaded, or textured. A strict per-channel tolerance keeps the painted world out of
+        /// the OCR masks, which is what used to break captures.
+        /// </summary>
+        private const int TeamColorTolerance = 36;
+
+        /// <summary>Below this many text pixels a team color is treated as not present in the capture.</summary>
+        private const int MinimumTeamPixels = 12;
 
         private readonly string _tessdataPath;
         private readonly object _engineLock = new();
@@ -40,7 +50,20 @@ namespace BedwarsOverlay.App.Services
 
         public IReadOnlyDictionary<string, string> ReadTeams(byte[] screenshot, IEnumerable<string> rosterNames)
         {
+            return ReadTeams(screenshot, rosterNames, out _);
+        }
+
+        /// <summary>
+        /// Reads team-colored names from a captured player list.
+        /// </summary>
+        /// <param name="diagnostics">Per-color pixel counts and match counts, for the diagnostics log.</param>
+        public IReadOnlyDictionary<string, string> ReadTeams(
+            byte[] screenshot,
+            IEnumerable<string> rosterNames,
+            out string diagnostics)
+        {
             var teams = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            diagnostics = string.Empty;
             if (screenshot == null || screenshot.Length == 0 || rosterNames == null)
             {
                 return teams;
@@ -57,28 +80,53 @@ namespace BedwarsOverlay.App.Services
 
             using var stream = new MemoryStream(screenshot);
             using var source = new Bitmap(stream);
-            var captureArea = GetPlayerListArea(source.Width, source.Height);
+            Rectangle captureArea = GetPlayerListArea(source.Width, source.Height);
             Bitmap[] masks = CreateColorMasks(source, captureArea, out int[] colorCounts);
 
             try
             {
-                using var mask = CombineColorMasks(masks, colorCounts);
-                if (colorCounts.All(count => count < 12))
-                {
-                    return teams;
-                }
-
                 Engine engine = GetEngine();
-                using var image = PixImage.LoadFromMemory(EncodeForOcr(mask));
-                using var page = engine.Process(image, PageSegMode.SparseText);
 
-                foreach (string line in page.Text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
+                // Each team color gets its own OCR pass. Merging every color into one image threw the
+                // color away and forced the team to be guessed from the characters around a matched
+                // name, so the wrong team (or none) was reported. Reading each color separately makes
+                // the team a property of the mask that produced the match.
+                var candidates = new Dictionary<string, (string Team, double Score)>(StringComparer.OrdinalIgnoreCase);
+                for (int teamIndex = 0; teamIndex < Teams.Length; teamIndex++)
                 {
-                    if (TryMatchRosterName(line, roster, out string playerName, out string teamName, out _))
+                    if (colorCounts[teamIndex] < MinimumTeamPixels)
                     {
-                        teams[playerName] = teamName;
+                        continue;
+                    }
+
+                    using var image = PixImage.LoadFromMemory(EncodeForOcr(masks[teamIndex]));
+                    using var page = engine.Process(image, PageSegMode.SparseText);
+
+                    foreach (string line in page.Text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        if (!TryMatchRosterName(line, roster, out string playerName, out double score))
+                        {
+                            continue;
+                        }
+
+                        if (candidates.TryGetValue(playerName, out var existing) && existing.Score >= score)
+                        {
+                            continue;
+                        }
+
+                        candidates[playerName] = (Teams[teamIndex].Name, score);
                     }
                 }
+
+                foreach (var candidate in candidates)
+                {
+                    teams[candidate.Key] = candidate.Value.Team;
+                }
+
+                diagnostics = string.Join(
+                    ", ",
+                    Enumerable.Range(0, Teams.Length).Select(i => $"{Teams[i].Name} {colorCounts[i]}px"));
+                diagnostics += $" -> {teams.Count} matched";
             }
             finally
             {
@@ -117,10 +165,11 @@ namespace BedwarsOverlay.App.Services
 
         private static Rectangle GetPlayerListArea(int width, int height)
         {
-            // Keep the upper-left and center regions because clients can left-align the list.
-            int left = (int)(width * 0.01);
+            // Minecraft centers the player list, so sample a wide middle band. The outer edges only
+            // hold world/chat pixels, and their colored blocks drowned the color masks.
+            int left = (int)(width * 0.14);
             int top = (int)(height * 0.01);
-            int right = (int)(width * 0.62);
+            int right = (int)(width * 0.86);
             int bottom = (int)(height * 0.84);
             return Rectangle.FromLTRB(left, top, Math.Max(left + 1, right), Math.Max(top + 1, bottom));
         }
@@ -154,123 +203,253 @@ namespace BedwarsOverlay.App.Services
                 }
             }
 
-            var maskPixels = new byte[Teams.Length][];
+            var hitsByTeam = ClassifyTeamPixels(sourcePixels, width, height, exactColors: true);
+            if (CountTeamPixels(hitsByTeam) < MinimumTeamPixels)
+            {
+                // Shaders and client color effects can shift the rendered text away from the exact
+                // Minecraft palette; the looser color test keeps team capture working there.
+                hitsByTeam = ClassifyTeamPixels(sourcePixels, width, height, exactColors: false);
+            }
+
             coloredPixelCounts = new int[Teams.Length];
-            var minX = Enumerable.Repeat(width, Teams.Length).ToArray();
-            var minY = Enumerable.Repeat(height, Teams.Length).ToArray();
-            var maxX = Enumerable.Repeat(-1, Teams.Length).ToArray();
-            var maxY = Enumerable.Repeat(-1, Teams.Length).ToArray();
+            var masks = new Bitmap[Teams.Length];
             for (int teamIndex = 0; teamIndex < Teams.Length; teamIndex++)
             {
-                maskPixels[teamIndex] = new byte[sourcePixels.Length];
-                Array.Fill(maskPixels[teamIndex], byte.MaxValue);
+                bool[] textPixels = KeepTextComponents(hitsByTeam[teamIndex], width, height);
+                masks[teamIndex] = CreateMaskBitmap(textPixels, width, height, out coloredPixelCounts[teamIndex]);
+            }
+
+            return masks;
+        }
+
+        private static bool[][] ClassifyTeamPixels(byte[] sourcePixels, int width, int height, bool exactColors)
+        {
+            var hitsByTeam = new bool[Teams.Length][];
+            for (int teamIndex = 0; teamIndex < Teams.Length; teamIndex++)
+            {
+                hitsByTeam[teamIndex] = new bool[width * height];
             }
 
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
-                    int offset = (y * width + x) * 4;
+                    int pixelIndex = y * width + x;
+                    int offset = pixelIndex * 4;
                     byte blue = sourcePixels[offset];
                     byte green = sourcePixels[offset + 1];
                     byte red = sourcePixels[offset + 2];
                     for (int teamIndex = 0; teamIndex < Teams.Length; teamIndex++)
                     {
-                        if (!MatchesTeamColor(red, green, blue, Teams[teamIndex].Code))
+                        bool match = exactColors
+                            ? MatchesTeamColor(red, green, blue, teamIndex)
+                            : MatchesTeamColorLoose(red, green, blue, teamIndex);
+                        if (match)
+                        {
+                            hitsByTeam[teamIndex][pixelIndex] = true;
+                        }
+                    }
+                }
+            }
+
+            return hitsByTeam;
+        }
+
+        private static int CountTeamPixels(bool[][] hitsByTeam)
+        {
+            int total = 0;
+            foreach (bool[] hits in hitsByTeam)
+            {
+                foreach (bool hit in hits)
+                {
+                    if (hit)
+                    {
+                        total++;
+                    }
+                }
+            }
+
+            return total;
+        }
+
+        /// <summary>
+        /// Keeps only the pixel blobs that can be a glyph of the player list. Team colors also appear
+        /// in the world behind the list (wool, terracotta, sky, lava), and those large blobs used to
+        /// dominate the OCR input so a capture sometimes produced no usable text at all.
+        /// </summary>
+        private static bool[] KeepTextComponents(bool[] hits, int width, int height)
+        {
+            int maxGlyphHeight = Math.Clamp((int)Math.Round(height * 0.055), 14, 44);
+            int maxGlyphWidth = maxGlyphHeight * 4;
+
+            var kept = new bool[hits.Length];
+            var visited = new bool[hits.Length];
+            var stack = new int[hits.Length];
+            var component = new List<int>();
+
+            for (int start = 0; start < hits.Length; start++)
+            {
+                if (!hits[start] || visited[start])
+                {
+                    continue;
+                }
+
+                component.Clear();
+                int stackSize = 0;
+                stack[stackSize++] = start;
+                visited[start] = true;
+                int minX = width;
+                int minY = height;
+                int maxX = -1;
+                int maxY = -1;
+
+                while (stackSize > 0)
+                {
+                    int index = stack[--stackSize];
+                    component.Add(index);
+                    int x = index % width;
+                    int y = index / width;
+                    if (x < minX) minX = x;
+                    if (x > maxX) maxX = x;
+                    if (y < minY) minY = y;
+                    if (y > maxY) maxY = y;
+
+                    for (int offsetY = -1; offsetY <= 1; offsetY++)
+                    {
+                        int neighborY = y + offsetY;
+                        if (neighborY < 0 || neighborY >= height)
                         {
                             continue;
                         }
 
-                        maskPixels[teamIndex][offset] = 0;
-                        maskPixels[teamIndex][offset + 1] = 0;
-                        maskPixels[teamIndex][offset + 2] = 0;
-                        coloredPixelCounts[teamIndex]++;
-                        minX[teamIndex] = Math.Min(minX[teamIndex], x);
-                        minY[teamIndex] = Math.Min(minY[teamIndex], y);
-                        maxX[teamIndex] = Math.Max(maxX[teamIndex], x);
-                        maxY[teamIndex] = Math.Max(maxY[teamIndex], y);
+                        for (int offsetX = -1; offsetX <= 1; offsetX++)
+                        {
+                            int neighborX = x + offsetX;
+                            if (neighborX < 0 || neighborX >= width)
+                            {
+                                continue;
+                            }
+
+                            int neighborIndex = neighborY * width + neighborX;
+                            if (!hits[neighborIndex] || visited[neighborIndex])
+                            {
+                                continue;
+                            }
+
+                            visited[neighborIndex] = true;
+                            stack[stackSize++] = neighborIndex;
+                        }
                     }
                 }
-            }
 
-            var masks = new Bitmap[Teams.Length];
-            for (int teamIndex = 0; teamIndex < Teams.Length; teamIndex++)
-            {
-                if (coloredPixelCounts[teamIndex] == 0)
+                int componentWidth = maxX - minX + 1;
+                int componentHeight = maxY - minY + 1;
+                if (component.Count < 3 || componentHeight > maxGlyphHeight || componentWidth > maxGlyphWidth)
                 {
-                    masks[teamIndex] = new Bitmap(1, 1, PixelFormat.Format32bppArgb);
                     continue;
                 }
 
-                const int padding = 4;
-                int cropLeft = Math.Max(0, minX[teamIndex] - padding);
-                int cropTop = Math.Max(0, minY[teamIndex] - padding);
-                int cropRight = Math.Min(width, maxX[teamIndex] + padding + 1);
-                int cropBottom = Math.Min(height, maxY[teamIndex] + padding + 1);
-                int cropWidth = cropRight - cropLeft;
-                int cropHeight = cropBottom - cropTop;
-                int cropRowBytes = cropWidth * 4;
-                var croppedPixels = new byte[cropRowBytes * cropHeight];
-                Array.Fill(croppedPixels, byte.MaxValue);
-                for (int y = 0; y < cropHeight; y++)
+                foreach (int index in component)
                 {
-                    int sourceOffset = ((cropTop + y) * width + cropLeft) * 4;
-                    Array.Copy(maskPixels[teamIndex], sourceOffset, croppedPixels, y * cropRowBytes, cropRowBytes);
+                    kept[index] = true;
                 }
-
-                var mask = new Bitmap(cropWidth, cropHeight, PixelFormat.Format32bppArgb);
-                BitmapData data = mask.LockBits(new Rectangle(0, 0, cropWidth, cropHeight), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
-                try
-                {
-                    for (int y = 0; y < cropHeight; y++)
-                    {
-                        Marshal.Copy(croppedPixels, y * cropRowBytes, IntPtr.Add(data.Scan0, y * data.Stride), cropRowBytes);
-                    }
-                }
-                finally
-                {
-                    mask.UnlockBits(data);
-                }
-
-                masks[teamIndex] = mask;
             }
 
-            return masks;
+            return kept;
         }
 
-        private static Bitmap CombineColorMasks(Bitmap[] masks, int[] colorCounts)
+        private static Bitmap CreateMaskBitmap(bool[] pixels, int width, int height, out int keptCount)
         {
-            int[] included = Enumerable.Range(0, masks.Length).Where(i => colorCounts[i] >= 12).ToArray();
-            if (included.Length == 0)
+            int minX = width;
+            int minY = height;
+            int maxX = -1;
+            int maxY = -1;
+            keptCount = 0;
+
+            for (int y = 0; y < height; y++)
+            {
+                int rowOffset = y * width;
+                for (int x = 0; x < width; x++)
+                {
+                    if (!pixels[rowOffset + x])
+                    {
+                        continue;
+                    }
+
+                    keptCount++;
+                    if (x < minX) minX = x;
+                    if (x > maxX) maxX = x;
+                    if (y < minY) minY = y;
+                    if (y > maxY) maxY = y;
+                }
+            }
+
+            if (keptCount == 0)
             {
                 return new Bitmap(1, 1, PixelFormat.Format32bppArgb);
             }
 
-            int width = included.Max(i => masks[i].Width);
-            int height = included.Sum(i => masks[i].Height) + (included.Length - 1) * 8;
-            var combined = new Bitmap(width, height, PixelFormat.Format32bppArgb);
-            using (var graphics = Graphics.FromImage(combined))
+            const int padding = 4;
+            int cropLeft = Math.Max(0, minX - padding);
+            int cropTop = Math.Max(0, minY - padding);
+            int cropRight = Math.Min(width, maxX + padding + 1);
+            int cropBottom = Math.Min(height, maxY + padding + 1);
+            int cropWidth = cropRight - cropLeft;
+            int cropHeight = cropBottom - cropTop;
+
+            var mask = new Bitmap(cropWidth, cropHeight, PixelFormat.Format32bppArgb);
+            BitmapData data = mask.LockBits(
+                new Rectangle(0, 0, cropWidth, cropHeight),
+                ImageLockMode.WriteOnly,
+                PixelFormat.Format32bppArgb);
+            try
             {
-                graphics.Clear(Color.White);
-                int top = 0;
-                foreach (int index in included)
+                var row = new byte[cropWidth * 4];
+                for (int y = 0; y < cropHeight; y++)
                 {
-                    graphics.DrawImageUnscaled(masks[index], 0, top);
-                    top += masks[index].Height + 8;
+                    Array.Fill(row, byte.MaxValue);
+                    int sourceRowOffset = (cropTop + y) * width + cropLeft;
+                    for (int x = 0; x < cropWidth; x++)
+                    {
+                        if (!pixels[sourceRowOffset + x])
+                        {
+                            continue;
+                        }
+
+                        int offset = x * 4;
+                        row[offset] = 0;
+                        row[offset + 1] = 0;
+                        row[offset + 2] = 0;
+                    }
+
+                    Marshal.Copy(row, 0, IntPtr.Add(data.Scan0, y * data.Stride), row.Length);
                 }
             }
+            finally
+            {
+                mask.UnlockBits(data);
+            }
 
-            return combined;
+            return mask;
         }
 
-        private static bool MatchesTeamColor(byte red, byte green, byte blue, string teamCode)
+        private static bool MatchesTeamColor(byte red, byte green, byte blue, int teamIndex)
         {
-            return teamCode switch
+            var team = Teams[teamIndex];
+            return Math.Abs(red - team.Red) <= TeamColorTolerance
+                && Math.Abs(green - team.Green) <= TeamColorTolerance
+                && Math.Abs(blue - team.Blue) <= TeamColorTolerance;
+        }
+
+        /// <summary>Ratio-based fallback for clients that do not render the exact Minecraft palette.</summary>
+        private static bool MatchesTeamColorLoose(byte red, byte green, byte blue, int teamIndex)
+        {
+            return teamIndex switch
             {
-                "B" => blue > 130 && blue > red * 1.35 && blue > green * 1.2,
-                "G" => green > 130 && green > red * 1.25 && green > blue * 1.2,
-                "R" => red > 150 && red > green * 1.3 && red > blue * 1.3,
-                "Y" => red > 150 && green > 150 && blue < 140 && Math.Abs(red - green) < 100,
+                0 => blue > 130 && blue > red * 1.35 && blue > green * 1.2,
+                1 => green > 130 && green > red * 1.25 && green > blue * 1.2,
+                2 => red > 150 && red > green * 1.3 && red > blue * 1.3,
+                3 => red > 150 && green > 150 && blue < 140 && Math.Abs(red - green) < 100,
                 _ => false
             };
         }
@@ -279,11 +458,9 @@ namespace BedwarsOverlay.App.Services
             string ocrLine,
             IReadOnlyList<string> roster,
             out string matchedName,
-            out string matchedTeam,
             out double matchedScore)
         {
             matchedName = string.Empty;
-            matchedTeam = string.Empty;
             matchedScore = 0;
 
             string compactLine = Regex.Replace(ocrLine.ToUpperInvariant(), "[^A-Z0-9]", string.Empty);
@@ -293,18 +470,16 @@ namespace BedwarsOverlay.App.Services
             }
 
             double secondBestScore = 0;
-            int matchedStart = -1;
             foreach (string rosterName in roster)
             {
                 string normalizedName = Regex.Replace(rosterName.ToUpperInvariant(), "[^A-Z0-9]", string.Empty);
-                double score = BestSubstringSimilarity(compactLine, normalizedName, out int start);
+                double score = BestSubstringSimilarity(compactLine, normalizedName, out _);
 
                 if (score > matchedScore)
                 {
                     secondBestScore = matchedScore;
                     matchedScore = score;
                     matchedName = rosterName;
-                    matchedStart = start;
                 }
                 else if (score > secondBestScore)
                 {
@@ -313,24 +488,7 @@ namespace BedwarsOverlay.App.Services
             }
 
             // Avoid guessing when OCR is too weak or two roster names look equally close.
-            if (matchedScore < 0.70 || matchedScore - secondBestScore < 0.08 || matchedStart < 0)
-            {
-                return false;
-            }
-
-            for (int i = matchedStart - 1; i >= Math.Max(0, matchedStart - 4); i--)
-            {
-                foreach (var team in Teams)
-                {
-                    if (compactLine[i] == team.Code[0])
-                    {
-                        matchedTeam = team.Name;
-                        return true;
-                    }
-                }
-            }
-
-            return false;
+            return matchedScore >= 0.70 && matchedScore - secondBestScore >= 0.08;
         }
 
         private static double BestSubstringSimilarity(string ocrLine, string rosterName, out int bestStart)
