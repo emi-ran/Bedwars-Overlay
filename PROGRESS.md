@@ -4,7 +4,7 @@ This document is the current project state and handover guide. Read it before co
 
 ## Release 1.4.7 - 2026-10-23
 
-Release v1.4.7 includes `/pstats`, compact bilingual `/bwhelp`, stricter team-prefix validation for OCR candidates, and compact rank badges. The 2026-10-23 12:06:42 capture showed `B DyeTypical` incorrectly colored Green; on the exact capture a local harness consistently recognized Blue, but code inspection identified that candidates from any team mask were accepted without checking the OCR row prefix. Candidates now require the row's initial team letter to agree with the producing mask. Local verification: 158/158 tests and Release build (0 warnings/errors) passed. GitHub release workflow and assets are pending verification.
+Release v1.4.7 includes `/pstats`, compact bilingual `/bwhelp`, stricter team-prefix validation for OCR candidates, and compact rank badges. The 2026-10-23 12:06:42 capture showed `B DyeTypical` incorrectly colored Green; on the exact capture a local harness consistently recognized Blue, but code inspection identified that candidates from any team mask were accepted without checking the OCR row prefix. Candidates now require the row's initial team letter to agree with the producing mask. Local verification: 158/158 tests and Release build (0 warnings/errors) passed. Published GitHub Release v1.4.7 on 2026-10-23 from commit `8a133de8a5d3925a72e680fa8c4b9e95e7f1bc0c`; workflow `39934161266` succeeded with 158/158 CI tests and attached the portable ZIP (78.5 MB) and setup EXE (55.5 MB).
 
 ## Previous release: 1.4.6 - 2026-10-23
 
