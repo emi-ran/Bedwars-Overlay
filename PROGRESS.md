@@ -2,15 +2,19 @@
 
 This document is the current project state and handover guide. Read it before continuing implementation work.
 
-## Release 1.4.5 - 2026-10-22
+## Release 1.4.6 - 2026-10-23
 
-Team OCR now reads each team color with its own pass and derives the team from the captured pixels, and player names use their team color whenever the team is known. Implementation notes: `TeamRecognitionService` builds one text mask per team, keeps only glyph-sized connected components, matches roster names against each mask's OCR text, reports per-color pixel counts in the diagnostics log, and falls back to the looser color test when the strict palette finds nothing. Verified with a local synthetic-capture harness (8 roster names, 4 team colors, with and without world blocks behind a centered list: 7/8 names correct, no wrong team assignments, identical results with and without world noise) plus `PlayerRowTests` for rank/team/elimination color precedence. Live captures were not re-tested.
+Team OCR reads all eight Bed Wars team colors and uses `SingleColumn` page segmentation so short names survive OCR; the conservative fuzzy-match threshold was not lowered. `/p list` party ignore also parses the separate moderator line. Player-row brushes are frozen for safe cross-thread use.
 
-App/assembly/installer versions and publish script examples use 1.4.5. README EN/TR, changelog and bilingual site FAQ describe the behavior and its limits. Release build (0 hata/0 uyarı) and 120/120 tests passed locally; installer/release package not built locally. No new live-game checks were run.
+App/assembly/installer versions and publish script examples use 1.4.6. README EN/TR and changelog describe the behavior. Verified against the user's actual 15-player Doubles screenshot: 15/15 team assignments, including the short name `fgd0`, on five repeated recognizer runs; `fgd0` alone also resolves to Yellow. The short-name change was traced to `SparseText` emitting inconsistent glyphs; `SingleColumn` produces an OCR line that the unchanged matcher resolves at 0.75 confidence. Local verification: 138/138 tests and Release build passed. Release packaging and Actions outcome must be checked before reporting this as published.
 
 ---
 
 ## Unreleased
+
+- Release 1.4.6 includes the eight-team palette, short-name OCR fix, party moderator ignore, and frozen WPF brushes.
+
+- Party ignore missed party moderators. Real Badlion log (`logs/blclient/minecraft/latest.log`, 2026-10-23 02:08-02:37) shows `/p list` printing three lines: `Party Members (2)` header, `Party Leader: [VIP+] TryHardnt ?`, `Party Moderators: [VIP+] Colorado17 ?` — with no `Party Members:` line at all when every other member is a moderator. `HypixelLogParser.PartyLinePattern` only accepted `Party Leader:` and `Party Members:`, so moderators never reached `_partyPlayers` and `RemoveIgnoredExistingPlayers`/`FilterIgnoredPlayers` kept their rows. Pattern now accepts `Party Moderators:` as well; three parser cases added from the real log lines. Verified: 124/124 tests pass. Related gap not changed: `_partyPlayers` is still never cleared when you leave/disband a party, so old members stay ignored until the next `/p list` header or an app restart.
 
 - v1.4.5 release workflow (`39810461071`) failed inside `publish-release.ps1` at the test step: `PlayerRowTests.Name_UsesTeamColor_WhenTeamIsKnown` and `Name_KeepsTeamColor_WhenRankStatsArriveLater` threw `InvalidOperationException: The calling thread cannot access this object because a different thread owns it` when reading `SolidColorBrush.Color`. Cause: `PlayerRow` created unfrozen WPF brushes (static color brushes, `TeamColor`, row backgrounds, level colors); xUnit spreads test classes over the thread pool, so the brush was created on one thread and read on another. Local runs passed because the static initializer and the assertion happened to share a thread. All `PlayerRow` brushes now go through a freezing factory and team colors are cached as frozen statics; `PlayerRowTests.Row_BrushesStayReadable_WhenRowIsBuiltOnAnotherThread` covers the cross-thread read. Verified locally: Release build of Core/App 0 errors/0 warnings, 121/121 tests pass over repeated runs. The GitHub release `v1.4.5` exists with no assets because the job failed before upload.
 

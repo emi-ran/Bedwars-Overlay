@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BedwarsOverlay.Core\BedwarsOverlay.Core.csproj" />
+    <ProjectReference Include="..\BedwarsOverlay.App\BedwarsOverlay.App.csproj" />
   </ItemGroup>
 
 </Project>

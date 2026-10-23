@@ -102,8 +102,11 @@ namespace BedwarsOverlay.Core.LogWatching
             @"^[^a-zA-Z0-9\s]{20,}$",
             RegexOptions.Compiled);
 
+        // Hypixel lists the party leader and party moderators on their own lines, and the
+        // "Party Members:" line only contains the plain members. All three must be parsed or
+        // party moderators stay visible in the overlay even with party ignore enabled.
         private static readonly Regex PartyLinePattern = new(
-            @"\[CHAT\]\s+Party\s+(?:Leader|Members):\s*(?<names>.*)$",
+            @"\[CHAT\]\s+Party\s+(?:Leader|Moderators?|Members):\s*(?<names>.*)$",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         private static readonly Regex PartyHeaderPattern = new(

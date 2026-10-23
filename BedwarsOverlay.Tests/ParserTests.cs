@@ -71,6 +71,9 @@ namespace BedwarsOverlay.Tests
         [InlineData("[01:52:13] [Client thread/INFO]: [CHAT] Party Leader: [MVP++] Nargle3 ?", new[] { "Nargle3" })]
         [InlineData("[01:52:13] [Client thread/INFO]: [CHAT] Party Members: [VIP] Studying ? [VIP+] TryHardnt ? [VIP+] atseng ?", new[] { "Studying", "TryHardnt", "atseng" })]
         [InlineData("[01:52:13] [Client thread/INFO]: [CHAT] §9Party Members: §a[VIP] Studying ? §b[VIP+] TryHardnt ?", new[] { "Studying", "TryHardnt" })]
+        [InlineData("[02:08:39] [Client thread/INFO]: [CHAT] Party Moderators: [VIP+] Colorado17 ? ", new[] { "Colorado17" })]
+        [InlineData("[02:08:39] [Client thread/INFO]: [CHAT] Party Moderators: [MVP+] One ? [VIP] Two ?", new[] { "One", "Two" })]
+        [InlineData("[02:08:39] [Client thread/INFO]: [CHAT] §9Party Moderators: §b[VIP+] Colorado17 ? ", new[] { "Colorado17" })]
         public void ParsePartyPlayers_ValidLines_ExtractsPlayers(string line, string[] expectedPlayers)
         {
             var parser = new HypixelLogParser();
@@ -78,6 +81,25 @@ namespace BedwarsOverlay.Tests
 
             Assert.NotNull(players);
             Assert.Equal(expectedPlayers, players);
+        }
+
+        [Fact]
+        public void ParsePartyPlayers_LeaderAndModeratorsTogether_CollectAllPartyRoles()
+        {
+            var parser = new HypixelLogParser();
+            var captured = new List<string>();
+            string[] lines =
+            {
+                "[02:08:39] [Client thread/INFO]: [CHAT] Party Leader: [VIP+] TryHardnt ?",
+                "[02:08:39] [Client thread/INFO]: [CHAT] Party Moderators: [VIP+] Colorado17 ? "
+            };
+
+            foreach (string line in lines)
+            {
+                captured.AddRange(parser.ParsePartyPlayers(line) ?? new List<string>());
+            }
+
+            Assert.Equal(new[] { "TryHardnt", "Colorado17" }, captured);
         }
 
         [Theory]

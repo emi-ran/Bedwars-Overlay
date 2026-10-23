@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using BedwarsOverlay.Core.Teams;
 using TesseractOCR;
 using TesseractOCR.Enums;
 using PixImage = TesseractOCR.Pix.Image;
@@ -16,20 +17,7 @@ namespace BedwarsOverlay.App.Services
     /// <summary>Reads Hypixel team-colored player names from a captured Minecraft player list.</summary>
     public sealed class TeamRecognitionService : IDisposable
     {
-        private static readonly (string Name, byte Red, byte Green, byte Blue)[] Teams =
-        {
-            ("Blue", 0x55, 0x55, 0xFF),   // Minecraft dark blue (§9)
-            ("Green", 0x55, 0xFF, 0x55),  // Minecraft green (§a)
-            ("Red", 0xFF, 0x55, 0x55),    // Minecraft red (§c)
-            ("Yellow", 0xFF, 0xFF, 0x55)  // Minecraft yellow (§e)
-        };
-
-        /// <summary>
-        /// Minecraft renders player-list names in exact team colors, while the world behind the list is
-        /// blended, shaded, or textured. A strict per-channel tolerance keeps the painted world out of
-        /// the OCR masks, which is what used to break captures.
-        /// </summary>
-        private const int TeamColorTolerance = 36;
+        internal const PageSegMode OcrPageSegmentation = PageSegMode.SingleColumn;
 
         /// <summary>Below this many text pixels a team color is treated as not present in the capture.</summary>
         private const int MinimumTeamPixels = 12;
@@ -63,6 +51,7 @@ namespace BedwarsOverlay.App.Services
             out string diagnostics)
         {
             var teams = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            var palette = TeamPalette.Teams;
             diagnostics = string.Empty;
             if (screenshot == null || screenshot.Length == 0 || rosterNames == null)
             {
@@ -92,7 +81,7 @@ namespace BedwarsOverlay.App.Services
                 // name, so the wrong team (or none) was reported. Reading each color separately makes
                 // the team a property of the mask that produced the match.
                 var candidates = new Dictionary<string, (string Team, double Score)>(StringComparer.OrdinalIgnoreCase);
-                for (int teamIndex = 0; teamIndex < Teams.Length; teamIndex++)
+                for (int teamIndex = 0; teamIndex < palette.Count; teamIndex++)
                 {
                     if (colorCounts[teamIndex] < MinimumTeamPixels)
                     {
@@ -100,7 +89,7 @@ namespace BedwarsOverlay.App.Services
                     }
 
                     using var image = PixImage.LoadFromMemory(EncodeForOcr(masks[teamIndex]));
-                    using var page = engine.Process(image, PageSegMode.SparseText);
+                    using var page = engine.Process(image, OcrPageSegmentation);
 
                     foreach (string line in page.Text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
                     {
@@ -114,7 +103,7 @@ namespace BedwarsOverlay.App.Services
                             continue;
                         }
 
-                        candidates[playerName] = (Teams[teamIndex].Name, score);
+                        candidates[playerName] = (palette[teamIndex].Name, score);
                     }
                 }
 
@@ -125,7 +114,7 @@ namespace BedwarsOverlay.App.Services
 
                 diagnostics = string.Join(
                     ", ",
-                    Enumerable.Range(0, Teams.Length).Select(i => $"{Teams[i].Name} {colorCounts[i]}px"));
+                    Enumerable.Range(0, palette.Count).Select(i => $"{palette[i].Name} {colorCounts[i]}px"));
                 diagnostics += $" -> {teams.Count} matched";
             }
             finally
@@ -176,6 +165,7 @@ namespace BedwarsOverlay.App.Services
 
         private static Bitmap[] CreateColorMasks(Bitmap source, Rectangle area, out int[] coloredPixelCounts)
         {
+            var palette = TeamPalette.Teams;
             int width = area.Width;
             int height = area.Height;
             int rowBytes = width * 4;
@@ -211,9 +201,9 @@ namespace BedwarsOverlay.App.Services
                 hitsByTeam = ClassifyTeamPixels(sourcePixels, width, height, exactColors: false);
             }
 
-            coloredPixelCounts = new int[Teams.Length];
-            var masks = new Bitmap[Teams.Length];
-            for (int teamIndex = 0; teamIndex < Teams.Length; teamIndex++)
+            coloredPixelCounts = new int[palette.Count];
+            var masks = new Bitmap[palette.Count];
+            for (int teamIndex = 0; teamIndex < palette.Count; teamIndex++)
             {
                 bool[] textPixels = KeepTextComponents(hitsByTeam[teamIndex], width, height);
                 masks[teamIndex] = CreateMaskBitmap(textPixels, width, height, out coloredPixelCounts[teamIndex]);
@@ -224,8 +214,9 @@ namespace BedwarsOverlay.App.Services
 
         private static bool[][] ClassifyTeamPixels(byte[] sourcePixels, int width, int height, bool exactColors)
         {
-            var hitsByTeam = new bool[Teams.Length][];
-            for (int teamIndex = 0; teamIndex < Teams.Length; teamIndex++)
+            var palette = TeamPalette.Teams;
+            var hitsByTeam = new bool[palette.Count][];
+            for (int teamIndex = 0; teamIndex < palette.Count; teamIndex++)
             {
                 hitsByTeam[teamIndex] = new bool[width * height];
             }
@@ -239,11 +230,12 @@ namespace BedwarsOverlay.App.Services
                     byte blue = sourcePixels[offset];
                     byte green = sourcePixels[offset + 1];
                     byte red = sourcePixels[offset + 2];
-                    for (int teamIndex = 0; teamIndex < Teams.Length; teamIndex++)
+                    for (int teamIndex = 0; teamIndex < palette.Count; teamIndex++)
                     {
+                        var team = palette[teamIndex];
                         bool match = exactColors
-                            ? MatchesTeamColor(red, green, blue, teamIndex)
-                            : MatchesTeamColorLoose(red, green, blue, teamIndex);
+                            ? TeamPalette.Matches(team, red, green, blue)
+                            : TeamPalette.MatchesLoose(team, red, green, blue);
                         if (match)
                         {
                             hitsByTeam[teamIndex][pixelIndex] = true;
@@ -433,28 +425,7 @@ namespace BedwarsOverlay.App.Services
             return mask;
         }
 
-        private static bool MatchesTeamColor(byte red, byte green, byte blue, int teamIndex)
-        {
-            var team = Teams[teamIndex];
-            return Math.Abs(red - team.Red) <= TeamColorTolerance
-                && Math.Abs(green - team.Green) <= TeamColorTolerance
-                && Math.Abs(blue - team.Blue) <= TeamColorTolerance;
-        }
-
-        /// <summary>Ratio-based fallback for clients that do not render the exact Minecraft palette.</summary>
-        private static bool MatchesTeamColorLoose(byte red, byte green, byte blue, int teamIndex)
-        {
-            return teamIndex switch
-            {
-                0 => blue > 130 && blue > red * 1.35 && blue > green * 1.2,
-                1 => green > 130 && green > red * 1.25 && green > blue * 1.2,
-                2 => red > 150 && red > green * 1.3 && red > blue * 1.3,
-                3 => red > 150 && green > 150 && blue < 140 && Math.Abs(red - green) < 100,
-                _ => false
-            };
-        }
-
-        private static bool TryMatchRosterName(
+        internal static bool TryMatchRosterName(
             string ocrLine,
             IReadOnlyList<string> roster,
             out string matchedName,

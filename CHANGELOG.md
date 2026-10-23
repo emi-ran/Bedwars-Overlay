@@ -4,7 +4,12 @@ All notable user-facing changes to Bedwars Overlay are tracked here.
 
 ## Unreleased
 
-- Fixed the release build failing after 1.4.5 was published. Player rows handed out WPF brushes that were never frozen, and the test host reads them from a different thread than the one that created them, so two name-color tests threw `The calling thread cannot access this object because a different thread owns it`. Row brushes are now frozen and team colors are cached as frozen statics, so a row can be built and read on different threads. Added a cross-thread regression test.
+## 1.4.6 - 2026-10-23
+
+- Fixed `/p list` party ignore so it includes party moderators printed on their own line.
+- Added Aqua, White, Pink and Gray to team OCR, covering all eight teams in Solos and Doubles as well as 4v4v4v4.
+- Improved short player-name OCR with single-column segmentation; verified all 15 names in a real Doubles capture, including `fgd0`, without relaxing fuzzy-match thresholds.
+- Fixed thread-affinity failures in release tests by freezing WPF row brushes; the local Release test suite passes all 138 tests.
 
 ## 1.4.5 - 2026-10-22
 
