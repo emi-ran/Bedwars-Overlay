@@ -6,13 +6,13 @@ This document is the current project state and handover guide. Read it before co
 
 Team OCR reads all eight Bed Wars team colors and uses `SingleColumn` page segmentation so short names survive OCR; the conservative fuzzy-match threshold was not lowered. `/p list` party ignore also parses the separate moderator line. Player-row brushes are frozen for safe cross-thread use.
 
-App/assembly/installer versions and publish script examples use 1.4.6. README EN/TR and changelog describe the behavior. Verified against the user's actual 15-player Doubles screenshot: 15/15 team assignments, including the short name `fgd0`, on five repeated recognizer runs; `fgd0` alone also resolves to Yellow. The short-name change was traced to `SparseText` emitting inconsistent glyphs; `SingleColumn` produces an OCR line that the unchanged matcher resolves at 0.75 confidence. Local verification: 138/138 tests and Release build passed. Release packaging and Actions outcome must be checked before reporting this as published.
+App/assembly/installer versions and publish script examples use 1.4.6. README EN/TR and changelog describe the behavior. Verified against the user's actual 15-player Doubles screenshot: 15/15 team assignments, including the short name `fgd0`, on five repeated recognizer runs; `fgd0` alone also resolves to Yellow. The short-name change was traced to `SparseText` emitting inconsistent glyphs; `SingleColumn` produces an OCR line that the unchanged matcher resolves at 0.75 confidence. Local verification: 138/138 tests and Release build passed. Published GitHub Release v1.4.6 from commit `bd97a2023c2d108597e1c7db8b38afca729a720e` on 2026-10-23. Release workflow `39880817675` succeeded; CI passed 138/138 tests and uploaded both packages: portable ZIP and setup EXE (78.4/55.5 MB).
 
 ---
 
 ## Unreleased
 
-- Release 1.4.6 includes the eight-team palette, short-name OCR fix, party moderator ignore, and frozen WPF brushes.
+- Release 1.4.6 is published and verified: workflow `39880817675` succeeded, 138/138 CI tests passed, and both packages are attached.
 
 - Party ignore missed party moderators. Real Badlion log (`logs/blclient/minecraft/latest.log`, 2026-10-23 02:08-02:37) shows `/p list` printing three lines: `Party Members (2)` header, `Party Leader: [VIP+] TryHardnt ?`, `Party Moderators: [VIP+] Colorado17 ?` — with no `Party Members:` line at all when every other member is a moderator. `HypixelLogParser.PartyLinePattern` only accepted `Party Leader:` and `Party Members:`, so moderators never reached `_partyPlayers` and `RemoveIgnoredExistingPlayers`/`FilterIgnoredPlayers` kept their rows. Pattern now accepts `Party Moderators:` as well; three parser cases added from the real log lines. Verified: 124/124 tests pass. Related gap not changed: `_partyPlayers` is still never cleared when you leave/disband a party, so old members stay ignored until the next `/p list` header or an app restart.
 
