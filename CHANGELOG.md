@@ -4,6 +4,10 @@ All notable user-facing changes to Bedwars Overlay are tracked here.
 
 ## Unreleased
 
+## 1.4.8 - 2026-10-23
+
+- Fixed team OCR losing the lower strokes of dimmed/gradient-colored player-list text at small GUI scales. Saturated team colors now tolerate brightness changes without weakening team-prefix or roster-match validation.
+
 ## 1.4.7 - 2026-10-23
 
 - Added `/pstats` to load the cached `/p list` party roster, including players otherwise hidden by ignore filters; `/bwhelp` now fits the diagnostics panel in compact bilingual rows.

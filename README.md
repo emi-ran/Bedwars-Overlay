@@ -52,6 +52,8 @@ Use `/who` just after the game starts to load the roster; the status bar prompts
 
 The inspected Badlion logs contain no team colors in death messages, so `TAB` + `END` remains necessary there. Clients that preserve Minecraft color codes can supply team assignments through recognized death messages. Plain names, killer/victim relationships, and destroyed-bed messages are not enough to infer a team.
 
+Team OCR preserves dimmed strokes in saturated team-colored text, including vertically shaded text at small GUI scales. It still requires a matching team prefix and a sufficiently confident roster-name match; uncertain rows stay unknown.
+
 ## Setup
 
 1. Download the latest version from the [Latest Release](https://github.com/emi-ran/Bedwars-Overlay/releases/latest).
@@ -116,13 +118,13 @@ try {
 Build release artifacts:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.4.7"
+.\scripts\publish-release.ps1 -Version "1.4.8"
 ```
 
 Build and sign release artifacts with a `.pfx` certificate:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.4.7" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
+.\scripts\publish-release.ps1 -Version "1.4.8" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
 ```
 
 The script prompts for the certificate password. Do not commit `.pfx` or `.p12` files.

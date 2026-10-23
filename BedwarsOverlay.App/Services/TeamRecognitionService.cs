@@ -239,7 +239,7 @@ namespace BedwarsOverlay.App.Services
                     {
                         var team = palette[teamIndex];
                         bool match = exactColors
-                            ? TeamPalette.Matches(team, red, green, blue)
+                            ? MatchesCaptureColor(team, red, green, blue)
                             : TeamPalette.MatchesLoose(team, red, green, blue);
                         if (match)
                         {
@@ -250,6 +250,28 @@ namespace BedwarsOverlay.App.Services
             }
 
             return hitsByTeam;
+        }
+
+        internal static bool MatchesCaptureColor(TeamColorDefinition team, byte red, byte green, byte blue)
+        {
+            if (TeamPalette.Matches(team, red, green, blue))
+            {
+                return true;
+            }
+
+            // Some clients shade each glyph vertically. Absolute palette matching cuts off the
+            // darker lower strokes, especially at small GUI scales. Preserve the hue while
+            // normalizing brightness; do not promote text shadows or neutral backgrounds.
+            int brightest = Math.Max(red, Math.Max(green, blue));
+            if (brightest < 130 || team.Name is "White" or "Gray")
+            {
+                return false;
+            }
+
+            return TeamPalette.Matches(team,
+                (byte)(red * 255 / brightest),
+                (byte)(green * 255 / brightest),
+                (byte)(blue * 255 / brightest));
         }
 
         private static int CountTeamPixels(bool[][] hitsByTeam)

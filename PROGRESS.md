@@ -2,7 +2,11 @@
 
 This document is the current project state and handover guide. Read it before continuing implementation work.
 
-## Release 1.4.7 - 2026-10-23
+## Release 1.4.8 - 2026-10-23
+
+Brightness-aware team OCR preserves vertically dimmed glyph strokes at small GUI scales without relaxing prefix validation or roster matching. The user's original 1287x427 capture now matches all nine visible players in three repeated runs (previously two); the user also confirmed live laptop team recognition works. Added a redacted native-size OCR fixture and ten color/background regression cases. Release suite: 169/169 passed. Slow live capture was reported but not benchmarked or optimized; this release makes no speed claim. Version metadata, installer and publish examples use 1.4.8. Publication and package verification pending.
+
+## Previous release: 1.4.7 - 2026-10-23
 
 Release v1.4.7 includes `/pstats`, compact bilingual `/bwhelp`, stricter team-prefix validation for OCR candidates, and compact rank badges. The 2026-10-23 12:06:42 capture showed `B DyeTypical` incorrectly colored Green; on the exact capture a local harness consistently recognized Blue, but code inspection identified that candidates from any team mask were accepted without checking the OCR row prefix. Candidates now require the row's initial team letter to agree with the producing mask. Local verification: 158/158 tests and Release build (0 warnings/errors) passed. Published GitHub Release v1.4.7 on 2026-10-23 from commit `8a133de8a5d3925a72e680fa8c4b9e95e7f1bc0c`; workflow `39934161266` succeeded with 158/158 CI tests and attached the portable ZIP (78.5 MB) and setup EXE (55.5 MB).
 
@@ -15,6 +19,8 @@ App/assembly/installer versions and publish script examples use 1.4.6. README EN
 ---
 
 ## Unreleased
+
+- Laptop OCR investigation and v1.4.8 verification are recorded in the release section above. The live user confirmation supersedes the earlier static-only verification; live capture performance remains unmeasured.
 
 - v1.4.7 release publication status is recorded in the release section above.
 

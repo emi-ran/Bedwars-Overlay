@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.IO;
 using BedwarsOverlay.App.Services;
 using TesseractOCR.Enums;
 using BedwarsOverlay.Core.Teams;
@@ -8,6 +9,55 @@ namespace BedwarsOverlay.Tests
 {
     public class TeamRecognitionTests
     {
+        [Fact]
+        public void ReadTeams_DimmedSmallTabList_RecognizesAllNineNames()
+        {
+            var expected = new Dictionary<string, string>
+            {
+                ["qxxi_"] = "Blue", ["InsaneFull"] = "Blue",
+                ["Space_Child_"] = "Green", ["Kurumiqwp"] = "Green",
+                ["mscocotella"] = "Green", ["shadowscrafted"] = "Green",
+                ["Laitmeid"] = "Red", ["TryHardnt"] = "Red", ["TheKawaiiPink"] = "Red"
+            };
+            byte[] capture = File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, "Fixtures", "dimmed-tab-list.png"));
+            using var recognizer = new TeamRecognitionService(AppContext.BaseDirectory);
+
+            var actual = recognizer.ReadTeams(capture, expected.Keys);
+
+            Assert.Equal(expected.Count, actual.Count);
+            foreach (var pair in expected) Assert.Equal(pair.Value, actual[pair.Key]);
+        }
+
+        [Theory]
+        [InlineData("Green", 0x44, 0xCA, 0x44)]
+        [InlineData("Green", 0x49, 0xDA, 0x49)]
+        [InlineData("Blue", 0x44, 0x44, 0xCA)]
+        [InlineData("Red", 0xCA, 0x44, 0x44)]
+        [InlineData("Yellow", 0xCA, 0xCA, 0x44)]
+        [InlineData("Aqua", 0x44, 0xCA, 0xCA)]
+        [InlineData("Pink", 0xCA, 0x44, 0xCA)]
+        public void CapturePalette_PreservesDimmedGlyphPixels(string expected, byte red, byte green, byte blue)
+        {
+            Assert.Equal(new[] { expected }, TeamPalette.Teams
+                .Where(team => MatchesCaptureColor(team, red, green, blue))
+                .Select(team => team.Name).ToArray());
+        }
+
+        [Theory]
+        [InlineData(0x13, 0x3B, 0x13)] // Minecraft text shadow, not the foreground glyph.
+        [InlineData(0x35, 0x69, 0x8B)] // Actual blue world/list background from the laptop capture.
+        [InlineData(0x3C, 0x3B, 0x36)]
+        public void CapturePalette_DoesNotPromoteShadowsOrBackground(byte red, byte green, byte blue)
+        {
+            Assert.DoesNotContain(TeamPalette.Teams, team => MatchesCaptureColor(team, red, green, blue));
+        }
+
+        private static bool MatchesCaptureColor(TeamColorDefinition team, byte red, byte green, byte blue)
+        {
+            return (bool)typeof(TeamRecognitionService).GetMethod("MatchesCaptureColor",
+                BindingFlags.NonPublic | BindingFlags.Static)!.Invoke(null, new object[] { team, red, green, blue })!;
+        }
+
         [Fact]
         public void OcrPageSegmentation_UsesSingleColumnForShortRosterNames()
         {

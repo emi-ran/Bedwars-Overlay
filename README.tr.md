@@ -52,6 +52,8 @@ Kadroyu yüklemek için oyun başlar başlamaz `/who` yaz; durum çubuğu seni u
 
 İncelenen Badlion loglarında ölüm mesajları takım renklerini içermiyor; bu durumda `TAB` + `END` hâlâ gerekiyor. Minecraft renk kodlarını koruyan istemcilerde tanınan ölüm mesajlarından takım bilgisi alınabilir. Yalnızca isimlerden, kimin kimi öldürdüğünden veya yatak yıkılma mesajından takım tahmin edilmez.
 
+Takım OCR'ı, küçük arayüz ölçeklerindeki dikey gölgelendirme dahil, doygun takım renkli yazıların koyulaşan çizgilerini korur. Takım etiketi uyumu ve yeterli isim eşleşme güveni hâlâ zorunludur; belirsiz satırlar boş kalır.
+
 ## Kurulum
 
 1. [Latest Release](https://github.com/emi-ran/Bedwars-Overlay/releases/latest) kısmından son sürümü indir.
@@ -116,13 +118,13 @@ try {
 Release dosyalarını oluştur:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.4.7"
+.\scripts\publish-release.ps1 -Version "1.4.8"
 ```
 
 `.pfx` sertifika ile release dosyalarını imzala:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.4.7" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
+.\scripts\publish-release.ps1 -Version "1.4.8" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
 ```
 
 Script sertifika şifresini sorar. `.pfx` veya `.p12` dosyalarını commit etme.
