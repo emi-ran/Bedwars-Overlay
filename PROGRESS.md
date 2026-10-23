@@ -4,7 +4,9 @@ This document is the current project state and handover guide. Read it before co
 
 ## Release 1.4.8 - 2026-10-23
 
-Brightness-aware team OCR preserves vertically dimmed glyph strokes at small GUI scales without relaxing prefix validation or roster matching. The user's original 1287x427 capture now matches all nine visible players in three repeated runs (previously two); the user also confirmed live laptop team recognition works. Added a redacted native-size OCR fixture and ten color/background regression cases. Release suite: 169/169 passed. Slow live capture was reported but not benchmarked or optimized; this release makes no speed claim. Version metadata, installer and publish examples use 1.4.8. Publication and package verification pending.
+Brightness-aware team OCR preserves vertically dimmed glyph strokes at small GUI scales without relaxing prefix validation or roster matching. The user's original 1287x427 capture now matches all nine visible players in three repeated runs (previously two); the user also confirmed live laptop team recognition works. Added a redacted native-size OCR fixture and ten color/background regression cases. Release suite: 169/169 passed. Slow live capture was reported but not benchmarked or optimized; this release makes no speed claim. Version metadata, installer and publish examples use 1.4.8.
+
+Published v1.4.8 from commit `781c13d9b9df0d75072c01461c2f43e1bffc61e5`. Workflow `40015308154` succeeded with 169/169 CI tests; signing logs confirm app EXE, App/Core DLLs and installer signing. Release assets are uploaded: portable ZIP (82,286,179 bytes) and setup EXE (58,214,432 bytes). Local Release build passed with 0 warnings/errors. Downloaded-package installation/signature inspection was not performed. The workflow emitted a non-blocking Node 20 action deprecation warning.
 
 ## Previous release: 1.4.7 - 2026-10-23
 
