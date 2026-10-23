@@ -2,7 +2,11 @@
 
 This document is the current project state and handover guide. Read it before continuing implementation work.
 
-## Release 1.4.6 - 2026-10-23
+## Release 1.4.7 - 2026-10-23
+
+Release v1.4.7 includes `/pstats`, compact bilingual `/bwhelp`, stricter team-prefix validation for OCR candidates, and compact rank badges. The 2026-10-23 12:06:42 capture showed `B DyeTypical` incorrectly colored Green; on the exact capture a local harness consistently recognized Blue, but code inspection identified that candidates from any team mask were accepted without checking the OCR row prefix. Candidates now require the row's initial team letter to agree with the producing mask. Local verification: 158/158 tests and Release build (0 warnings/errors) passed. GitHub release workflow and assets are pending verification.
+
+## Previous release: 1.4.6 - 2026-10-23
 
 Team OCR reads all eight Bed Wars team colors and uses `SingleColumn` page segmentation so short names survive OCR; the conservative fuzzy-match threshold was not lowered. `/p list` party ignore also parses the separate moderator line. Player-row brushes are frozen for safe cross-thread use.
 
@@ -11,6 +15,8 @@ App/assembly/installer versions and publish script examples use 1.4.6. README EN
 ---
 
 ## Unreleased
+
+- v1.4.7 release publication status is recorded in the release section above.
 
 - Release 1.4.6 is published and verified: workflow `39880817675` succeeded, 138/138 CI tests passed, and both packages are attached.
 

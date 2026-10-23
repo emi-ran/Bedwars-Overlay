@@ -4,6 +4,12 @@ All notable user-facing changes to Bedwars Overlay are tracked here.
 
 ## Unreleased
 
+## 1.4.7 - 2026-10-23
+
+- Added `/pstats` to load the cached `/p list` party roster, including players otherwise hidden by ignore filters; `/bwhelp` now fits the diagnostics panel in compact bilingual rows.
+- Prevented false team assignments by requiring the OCR-read team prefix to agree with the color mask that produced the candidate.
+- Made rank badges more compact by removing brackets and reducing their font size, leaving more room for player names.
+
 ## 1.4.6 - 2026-10-23
 
 - Fixed `/p list` party ignore so it includes party moderators printed on their own line.

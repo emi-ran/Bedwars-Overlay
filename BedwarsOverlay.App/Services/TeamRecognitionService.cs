@@ -93,6 +93,11 @@ namespace BedwarsOverlay.App.Services
 
                     foreach (string line in page.Text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
                     {
+                        if (!HasMatchingTeamPrefix(line, palette[teamIndex].Name))
+                        {
+                            continue;
+                        }
+
                         if (!TryMatchRosterName(line, roster, out string playerName, out double score))
                         {
                             continue;
@@ -460,6 +465,20 @@ namespace BedwarsOverlay.App.Services
 
             // Avoid guessing when OCR is too weak or two roster names look equally close.
             return matchedScore >= 0.70 && matchedScore - secondBestScore >= 0.08;
+        }
+
+        internal static bool HasMatchingTeamPrefix(string ocrLine, string teamName)
+        {
+            if (string.IsNullOrWhiteSpace(ocrLine) || string.IsNullOrWhiteSpace(teamName))
+            {
+                return false;
+            }
+
+            char expectedPrefix = char.ToUpperInvariant(teamName[0]);
+            string normalizedLine = ocrLine.TrimStart();
+            return normalizedLine.Length > 1
+                && char.ToUpperInvariant(normalizedLine[0]) == expectedPrefix
+                && char.IsWhiteSpace(normalizedLine[1]);
         }
 
         private static double BestSubstringSimilarity(string ocrLine, string rosterName, out int bestStart)

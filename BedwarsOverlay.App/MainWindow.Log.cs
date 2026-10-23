@@ -110,6 +110,22 @@ namespace BedwarsOverlay.App
                     return;
                 }
 
+                if (_logParser?.IsPartyStatsCommand(line) == true)
+                {
+                    if (_partyPlayers.Count == 0)
+                    {
+                        AddDiagnosticLine(LocalizationService.Instance["Status_PartyStatsUnavailable"]);
+                        SetStatus(LocalizationService.Instance["Status_PartyStatsUnavailable"]);
+                    }
+                    else
+                    {
+                        LoadPlayers(_partyPlayers.ToList());
+                        SetStatus(LocalizationService.Instance["Status_PartyStatsLoaded"].Replace("{0}", _partyPlayers.Count.ToString()));
+                    }
+
+                    return;
+                }
+
                 if (_logParser?.IsClearCommand(line) == true)
                 {
                     ClearPlayers();

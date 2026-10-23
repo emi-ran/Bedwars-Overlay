@@ -129,6 +129,10 @@ namespace BedwarsOverlay.Core.LogWatching
             @"\('bwhelp'\)",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
+        private static readonly Regex PartyStatsCommandPattern = new(
+            @"\('pstats'\)",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
         private static readonly Regex ClearCommandPattern = new(
             @"\('bwclear'\)",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
@@ -449,6 +453,14 @@ namespace BedwarsOverlay.Core.LogWatching
 
             string cleanLine = Regex.Replace(logLine, "§.", "");
             return HelpCommandPattern.IsMatch(cleanLine);
+        }
+
+        public bool IsPartyStatsCommand(string logLine)
+        {
+            if (string.IsNullOrWhiteSpace(logLine)) return false;
+
+            string cleanLine = Regex.Replace(logLine, "§.", "");
+            return PartyStatsCommandPattern.IsMatch(cleanLine);
         }
 
         public bool IsClearCommand(string logLine)

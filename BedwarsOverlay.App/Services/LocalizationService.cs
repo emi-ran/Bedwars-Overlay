@@ -277,13 +277,13 @@ namespace BedwarsOverlay.App.Services
             ["Lang_Label"] = "Language",
             ["Lang_English"] = "English",
             ["Lang_Turkish"] = "Türkçe",
+            ["Status_PartyStatsUnavailable"] = "Party list is empty. Run /p list first.",
+            ["Status_PartyStatsLoaded"] = "Loading stats for {0} party player(s).",
             ["Help_Title"] = "Bedwars Overlay Commands",
-            ["Help_BwStats"] = "/bwstats <name...> - Show only these players. Ignores filters.",
-            ["Help_BwIgnore"] = "/bwignore <name...> - Add players to ignored list.",
-            ["Help_BwClear"] = "/bwclear - Clear current overlay list.",
-            ["Help_BwHelp"] = "/bwhelp - Show this command help.",
-            ["Help_PList"] = "/p list - Update party list for party ignore.",
-            ["Help_Who"] = "/who - Load current game players. Applies ignore filters.",
+            ["Help_Commands_Row1"] = "/who game · /p list refresh party",
+            ["Help_Commands_Row2"] = "/pstats party stats · /bwstats <names>",
+            ["Help_Commands_Row3"] = "/bwignore <names> hide · /bwclear clear",
+            ["Help_Commands_Row4"] = "/bwhelp show help",
         };
     }
 }

@@ -186,6 +186,27 @@ namespace BedwarsOverlay.Tests
         }
 
         [Theory]
+        [InlineData("[01:48:47] [Client thread/INFO]: [CHAT] Unknown command. Type \"help\" for help. ('pstats')")]
+        [InlineData("[01:48:47] [Client thread/INFO]: [CHAT] §cUnknown command. Type \"help\" for help. ('pstats')")]
+        public void IsPartyStatsCommand_WhenPStatsEcho_ReturnsTrue(string line)
+        {
+            var parser = new HypixelLogParser();
+
+            Assert.True(parser.IsPartyStatsCommand(line));
+        }
+
+        [Theory]
+        [InlineData("[01:48:47] [Client thread/INFO]: [CHAT] Unknown command. Type \"help\" for help. ('pstats extra')")]
+        [InlineData("[01:48:47] [Client thread/INFO]: [CHAT] Unknown command. Type \"help\" for help. ('bwstats player1')")]
+        [InlineData("Some random log line")]
+        public void IsPartyStatsCommand_WhenNotExactPStatsEcho_ReturnsFalse(string line)
+        {
+            var parser = new HypixelLogParser();
+
+            Assert.False(parser.IsPartyStatsCommand(line));
+        }
+
+        [Theory]
         [InlineData("[01:48:47] [Client thread/INFO]: [CHAT] Unknown command. Type \"help\" for help. ('bwclear')")]
         [InlineData("[01:48:47] [Client thread/INFO]: [CHAT] §cUnknown command. Type \"help\" for help. ('bwclear')")]
         public void IsClearCommand_WhenBwClearEcho_ReturnsTrue(string line)

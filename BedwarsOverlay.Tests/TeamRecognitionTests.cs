@@ -32,6 +32,26 @@ namespace BedwarsOverlay.Tests
             Assert.Equal(0.75, arguments[3]);
         }
 
+        [Theory]
+        [InlineData("B DyeTypical", "Blue", true)]
+        [InlineData("B DyeTypical", "Green", false)]
+        [InlineData("R TryHardnt", "Red", true)]
+        [InlineData("Y fgd0", "Yellow", true)]
+        [InlineData("A PlayerName", "Aqua", true)]
+        [InlineData("W PlayerName", "White", true)]
+        [InlineData("P PlayerName", "Pink", true)]
+        [InlineData("G PlayerName", "Gray", true)]
+        [InlineData("DyeTypical", "Blue", false)]
+        [InlineData("R DyeTypical", "Blue", false)]
+        public void TeamPrefix_MustAgreeWithColorMask(string ocrLine, string teamName, bool expected)
+        {
+            MethodInfo prefixMatcher = typeof(TeamRecognitionService).GetMethod(
+                "HasMatchingTeamPrefix",
+                BindingFlags.NonPublic | BindingFlags.Static)!;
+
+            Assert.Equal(expected, prefixMatcher.Invoke(null, new object[] { ocrLine, teamName }));
+        }
+
         [Fact]
         public void TeamPalette_ContainsAllEightBedWarsColors()
         {

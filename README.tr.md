@@ -42,9 +42,10 @@ Bu komutları Minecraft chat’e yaz. Hypixel bunları bilinmeyen komut olarak l
 
 - `/who`: mevcut oyun oyuncularını yükler ve ignore filtrelerini uygular.
 - `/bwstats <isim...>`: sadece yazılan oyuncuları yükler. Filtreleri yok sayar; böylece ignore edilmiş oyuncuyu da inceleyebilirsin.
+- `/pstats`: önbellekteki parti kadrosunun istatistiklerini yükler. Önce `/p list` yaz; parti ignore ayarı bu açık isteği engellemez.
 - `/bwignore <isim...>`: oyuncuları gizlenenler listesine ekler ve mevcut overlay’den siler.
 - `/bwclear`: mevcut overlay listesini temizler.
-- `/bwhelp`: komut yardımını overlay tanılama/status alanında gösterir.
+- `/bwhelp`: kısa komut yardımını overlay tanılama/status alanında gösterir.
 - `/p list`: `Ignore party players from /p list` ayarı için parti listesini günceller.
 
 Kadroyu yüklemek için oyun başlar başlamaz `/who` yaz; durum çubuğu seni uyarıyor. Maç sırasında sonraki `/who` çıktıları bilinen oyuncularla birleştirilir; yeniden doğmayı bekleyen oyuncular listede görünmeyebilir. Tanınan ölüm mesajlarından eksik ölen/öldüren oyuncular da aynı gizleme filtreleriyle eklenir. Final kill alanlar o maçta tekrar eklenmez. Yeni maç, oyun sonu veya algılanan lobi geçişi maç kadrosunu sıfırlar. Uygulamayı maç ortasında açtıysan `/who` yükledikten sonraki ilk tanınan ölüm mesajı kadroyu korumayı başlatır; geçmişe yeni bir maç kaydı açmaz.
@@ -115,13 +116,13 @@ try {
 Release dosyalarını oluştur:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.4.6"
+.\scripts\publish-release.ps1 -Version "1.4.7"
 ```
 
 `.pfx` sertifika ile release dosyalarını imzala:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.4.6" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
+.\scripts\publish-release.ps1 -Version "1.4.7" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
 ```
 
 Script sertifika şifresini sorar. `.pfx` veya `.p12` dosyalarını commit etme.

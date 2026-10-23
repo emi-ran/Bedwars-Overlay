@@ -42,9 +42,10 @@ Type these in Minecraft chat. Hypixel will report them as unknown commands, and 
 
 - `/who`: load current game players and apply ignore filters.
 - `/bwstats <name...>`: load only the listed players. This ignores filters so you can inspect a player even if they are ignored.
+- `/pstats`: load stats for the cached party roster. Run `/p list` first; party ignore settings do not suppress this explicit request.
 - `/bwignore <name...>`: add players to the ignored players list and remove them from the current overlay.
 - `/bwclear`: clear the current overlay list.
-- `/bwhelp`: show the command help in the overlay diagnostics/status area.
+- `/bwhelp`: show the compact command help in the overlay diagnostics/status area.
 - `/p list`: update the party list used by the `Ignore party players from /p list` setting.
 
 Use `/who` just after the game starts to load the roster; the status bar prompts you. During the match, later `/who` results are merged with known players because players waiting to respawn can be absent. Recognized death messages add missing victims and killers, with the same ignore filters. Final kills remove players permanently for that match. A new match, game end, or detected lobby transfer resets the match roster. After a mid-game launch, load `/who`; the next recognized death enables roster retention without creating a tracked encounter match.
@@ -115,13 +116,13 @@ try {
 Build release artifacts:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.4.6"
+.\scripts\publish-release.ps1 -Version "1.4.7"
 ```
 
 Build and sign release artifacts with a `.pfx` certificate:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.4.6" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
+.\scripts\publish-release.ps1 -Version "1.4.7" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
 ```
 
 The script prompts for the certificate password. Do not commit `.pfx` or `.p12` files.

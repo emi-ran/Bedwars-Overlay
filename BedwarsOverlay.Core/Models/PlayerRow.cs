@@ -74,9 +74,16 @@ namespace BedwarsOverlay.Core.Models
                 if (SetProperty(ref _rankTag, value))
                 {
                     OnPropertyChanged(nameof(RankTagVisibility));
+                    OnPropertyChanged(nameof(RankBadge));
                 }
             }
         }
+
+        /// <summary>
+        /// Brackets only add width in the grid, so the compact badge drops them: "[MVP++]" renders
+        /// as "MVP++" in the row while <see cref="RankTag"/> keeps the canonical form.
+        /// </summary>
+        public string RankBadge => _rankTag.Trim('[', ']');
 
         public Visibility RankTagVisibility => string.IsNullOrEmpty(RankTag) ? Visibility.Collapsed : Visibility.Visible;
 

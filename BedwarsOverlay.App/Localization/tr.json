@@ -112,11 +112,11 @@
   "Lang_Turkish": "Türkçe",
   "Split_TeammateDied": "{0} öldü · Takım arkadaşını bekle",
   "Connection_Disconnected": "Bağlantısı koptu — maçta elenmediyse geri dönebilir.",
+  "Status_PartyStatsUnavailable": "Parti listesi boş. Önce /p list yaz.",
+  "Status_PartyStatsLoaded": "{0} parti oyuncusunun istatistikleri yükleniyor.",
   "Help_Title": "Bedwars Overlay Komutları",
-  "Help_BwStats": "/bwstats <isim...> - Sadece bu oyuncuları gösterir. Filtreleri yok sayar.",
-  "Help_BwIgnore": "/bwignore <isim...> - Oyuncuları gizlenenler listesine ekler.",
-  "Help_BwClear": "/bwclear - Mevcut overlay listesini temizler.",
-  "Help_BwHelp": "/bwhelp - Bu komut yardımını gösterir.",
-  "Help_PList": "/p list - Parti ignore için parti listesini günceller.",
-  "Help_Who": "/who - Mevcut oyun oyuncularını yükler. Ignore filtrelerini uygular."
+  "Help_Commands_Row1": "/who oyun · /p list partiyi yenile",
+  "Help_Commands_Row2": "/pstats parti stats · /bwstats <isimler>",
+  "Help_Commands_Row3": "/bwignore <isimler> gizle · /bwclear temizle",
+  "Help_Commands_Row4": "/bwhelp yardımı göster"
 }

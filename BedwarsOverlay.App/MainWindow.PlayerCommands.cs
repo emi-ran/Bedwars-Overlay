@@ -13,15 +13,14 @@ namespace BedwarsOverlay.App
         private void ShowCommandHelp()
         {
             var loc = LocalizationService.Instance;
+            _diagnosticLines.Clear();
             string[] helpLines =
             {
                 loc["Help_Title"],
-                loc["Help_BwStats"],
-                loc["Help_BwIgnore"],
-                loc["Help_BwClear"],
-                loc["Help_BwHelp"],
-                loc["Help_PList"],
-                loc["Help_Who"]
+                loc["Help_Commands_Row1"],
+                loc["Help_Commands_Row2"],
+                loc["Help_Commands_Row3"],
+                loc["Help_Commands_Row4"]
             };
 
             foreach (var helpLine in helpLines)

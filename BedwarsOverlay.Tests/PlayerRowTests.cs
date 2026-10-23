@@ -22,6 +22,32 @@ namespace BedwarsOverlay.Tests
             return ((SolidColorBrush)brush).Color;
         }
 
+        [Theory]
+        [InlineData("[MVP++]", "MVP++")]
+        [InlineData("[MVP+]", "MVP+")]
+        [InlineData("[VIP]", "VIP")]
+        [InlineData("", "")]
+        public void RankBadge_DropsBracketsToSaveRowWidth(string rankTag, string expectedBadge)
+        {
+            var row = new PlayerRow { RankTag = rankTag };
+
+            Assert.Equal(expectedBadge, row.RankBadge);
+            Assert.Equal(rankTag.Length > 0 ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed, row.RankTagVisibility);
+        }
+
+        [Fact]
+        public void RankBadge_UpdatesWhenRankTagsArriveLater()
+        {
+            var row = new PlayerRow();
+            var changed = new List<string>();
+            row.PropertyChanged += (_, args) => changed.Add(args.PropertyName ?? string.Empty);
+
+            row.RankTag = "[MVP++]";
+
+            Assert.Equal("MVP++", row.RankBadge);
+            Assert.Contains(nameof(PlayerRow.RankBadge), changed);
+        }
+
         [Fact]
         public void Name_UsesRankColor_WhenTeamIsUnknown()
         {
