@@ -19,6 +19,8 @@ namespace BedwarsOverlay.App
                 _logTailer = null;
             }
 
+            _partyPlayers.Clear();
+
             string apiKey = _settingsRepository.ApiKey;
             if (string.IsNullOrWhiteSpace(apiKey) || apiKey.Equals("your_real_hypixel_api_key_here", StringComparison.OrdinalIgnoreCase))
             {
@@ -101,6 +103,41 @@ namespace BedwarsOverlay.App
                 if (_logParser?.IsPartyListHeader(line) == true)
                 {
                     _partyPlayers.Clear();
+                    return;
+                }
+
+                var partyEvent = _logParser?.ParsePartyEvent(line);
+                if (partyEvent != null)
+                {
+                    if (partyEvent.Kind == PartyEventKind.OwnJoin)
+                    {
+                        AddDiagnosticLine($"Party joined: {partyEvent.PlayerName}");
+                    }
+                    else if (partyEvent.Kind == PartyEventKind.CompanionRoster)
+                    {
+                        AddDiagnosticLine($"Party companions updated: {partyEvent.PlayerNames?.Count ?? 0} player(s)");
+                    }
+                    else if (partyEvent.Kind == PartyEventKind.MemberJoined)
+                    {
+                        AddDiagnosticLine($"Party member joined: {partyEvent.PlayerName}");
+                    }
+                    else if (partyEvent.Kind == PartyEventKind.MemberLeft)
+                    {
+                        AddDiagnosticLine($"Party member left/removed: {partyEvent.PlayerName}");
+                    }
+                    else
+                    {
+                        AddDiagnosticLine("Party cleared.");
+                    }
+
+                    bool changedRoster = _partyPlayers.Apply(partyEvent);
+                    if (changedRoster && (partyEvent.Kind == PartyEventKind.OwnJoin ||
+                        partyEvent.Kind == PartyEventKind.CompanionRoster ||
+                        partyEvent.Kind == PartyEventKind.MemberJoined))
+                    {
+                        RemoveIgnoredExistingPlayers();
+                    }
+
                     return;
                 }
 

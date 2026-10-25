@@ -32,6 +32,21 @@ namespace BedwarsOverlay.Core.LogWatching
 
     public sealed record PlayerConnectionEvent(string Name, bool IsConnected);
 
+    public enum PartyEventKind
+    {
+        None,
+        OwnJoin,
+        CompanionRoster,
+        MemberJoined,
+        MemberLeft,
+        OwnLeave,
+        OwnRemoved,
+        Disbanded,
+        NotInParty
+    }
+
+    public sealed record PartyEvent(PartyEventKind Kind, string? PlayerName = null, IReadOnlyList<string>? PlayerNames = null);
+
     public class HypixelLogParser
     {
         // Default regex patterns to match the /who output in client logs.
@@ -111,6 +126,38 @@ namespace BedwarsOverlay.Core.LogWatching
 
         private static readonly Regex PartyHeaderPattern = new(
             @"\[CHAT\]\s+Party\s+Members\s+\(\d+\)\s*$",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        private static readonly Regex PartyOwnJoinPattern = new(
+            @"^You have joined (?:\[[^\]]+\]\s*)?(?<name>[a-zA-Z0-9_]{3,16})'s party!$",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        private static readonly Regex PartyCompanionsPattern = new(
+            @"^You(?:'|’|ʼ)ll be partying with:\s*(?<names>.+)$",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        private static readonly Regex PartyMemberJoinedPattern = new(
+            @"^(?:\[[^\]]+\]\s*)?(?<name>[a-zA-Z0-9_]{3,16}) joined the party\.$",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        private static readonly Regex PartyMemberLeftPattern = new(
+            @"^(?:\[[^\]]+\]\s*)?(?<name>[a-zA-Z0-9_]{3,16}) has (?:left|been removed from|been kicked from) the party\.$",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        private static readonly Regex PartyOwnLeavePattern = new(
+            @"^You left the party\.$",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        private static readonly Regex PartyOwnRemovedPattern = new(
+            @"^You (?:have been|were) (?:removed|kicked) from the party(?: by (?:\[[^\]]+\]\s*)?[a-zA-Z0-9_]{3,16})?\.$",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        private static readonly Regex PartyDisbandedPattern = new(
+            @"^(?:(?:\[[^\]]+\]\s*)?[a-zA-Z0-9_]{3,16} has disbanded the party!|The party (?:was|has been) disbanded\b.*)$",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        private static readonly Regex PartyNotInPartyPattern = new(
+            @"^You are not (?:currently )?in a party(?: and were moved to the ALL channel)?\.?$",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         private static readonly Regex RankPattern = new(
@@ -485,6 +532,78 @@ namespace BedwarsOverlay.Core.LogWatching
             }
 
             return players.Count > 0 ? players : null;
+        }
+
+        public PartyEvent? ParsePartyEvent(string logLine)
+        {
+            if (string.IsNullOrWhiteSpace(logLine)) return null;
+
+            string cleanLine = Regex.Replace(logLine, "§.", "");
+            var chat = ChatMessagePattern.Match(cleanLine);
+            if (!chat.Success) return null;
+
+            string message = chat.Groups["message"].Value.Trim();
+
+            var ownJoin = PartyOwnJoinPattern.Match(message);
+            if (ownJoin.Success)
+            {
+                return new PartyEvent(PartyEventKind.OwnJoin, ownJoin.Groups["name"].Value);
+            }
+
+            var companions = PartyCompanionsPattern.Match(message);
+            if (companions.Success)
+            {
+                string namesText = RankPattern.Replace(companions.Groups["names"].Value, " ");
+                var players = new List<string>();
+                foreach (Match nameMatch in Regex.Matches(namesText, @"\b[a-zA-Z0-9_]{3,16}\b"))
+                {
+                    string name = nameMatch.Value;
+                    if (name.Equals("and", StringComparison.OrdinalIgnoreCase)) continue;
+                    if (!players.Exists(player => player.Equals(name, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        players.Add(name);
+                    }
+                }
+
+                if (players.Count > 0)
+                {
+                    return new PartyEvent(PartyEventKind.CompanionRoster, null, players);
+                }
+            }
+
+            var memberJoined = PartyMemberJoinedPattern.Match(message);
+            if (memberJoined.Success)
+            {
+                return new PartyEvent(PartyEventKind.MemberJoined, memberJoined.Groups["name"].Value);
+            }
+
+            var memberLeft = PartyMemberLeftPattern.Match(message);
+            if (memberLeft.Success)
+            {
+                return new PartyEvent(PartyEventKind.MemberLeft, memberLeft.Groups["name"].Value);
+            }
+
+            if (PartyOwnLeavePattern.IsMatch(message))
+            {
+                return new PartyEvent(PartyEventKind.OwnLeave);
+            }
+
+            if (PartyOwnRemovedPattern.IsMatch(message))
+            {
+                return new PartyEvent(PartyEventKind.OwnRemoved);
+            }
+
+            if (PartyDisbandedPattern.IsMatch(message))
+            {
+                return new PartyEvent(PartyEventKind.Disbanded);
+            }
+
+            if (PartyNotInPartyPattern.IsMatch(message))
+            {
+                return new PartyEvent(PartyEventKind.NotInParty);
+            }
+
+            return null;
         }
 
         public bool IsPartyListHeader(string logLine)

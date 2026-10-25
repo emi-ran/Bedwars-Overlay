@@ -42,11 +42,13 @@ Bu komutları Minecraft chat’e yaz. Hypixel bunları bilinmeyen komut olarak l
 
 - `/who`: mevcut oyun oyuncularını yükler ve ignore filtrelerini uygular.
 - `/bwstats <isim...>`: sadece yazılan oyuncuları yükler. Filtreleri yok sayar; böylece ignore edilmiş oyuncuyu da inceleyebilirsin.
-- `/pstats`: önbellekteki parti kadrosunun istatistiklerini yükler. Önce `/p list` yaz; parti ignore ayarı bu açık isteği engellemez.
+- `/pstats`: önbellekteki parti kadrosunun istatistiklerini yükler. Kadro parti katılma/ayrılma mesajlarından otomatik algılanır, `/p list` yenileme yedek yoludur; parti ignore ayarı bu açık isteği engellemez.
 - `/bwignore <isim...>`: oyuncuları gizlenenler listesine ekler ve mevcut overlay’den siler.
 - `/bwclear`: mevcut overlay listesini temizler.
 - `/bwhelp`: kısa komut yardımını overlay tanılama/status alanında gösterir.
-- `/p list`: `Ignore party players from /p list` ayarı için parti listesini günceller.
+- `/p list`: `Ignore party players` ayarı için parti listesini yeniler. Parti üyeliği ayrıca katılma/ayrılma mesajlarından otomatik algılanır.
+
+Overlay açıldığında zaten partideysen bir kez `/p list` yaz: otomatik takip yalnızca yeni log mesajlarında adı geçen üyeleri bilir. Davet tek başına üyelik sayılmaz. Aynı parti kadrosunu parti gizleme, `/pstats` ve Split hatırlatıcısının yedek takım kontrolü kullanır.
 
 Kadroyu yüklemek için oyun başlar başlamaz `/who` yaz; durum çubuğu seni uyarıyor. Maç sırasında sonraki `/who` çıktıları bilinen oyuncularla birleştirilir; yeniden doğmayı bekleyen oyuncular listede görünmeyebilir. Tanınan ölüm mesajlarından eksik ölen/öldüren oyuncular da aynı gizleme filtreleriyle eklenir. Final kill alanlar o maçta tekrar eklenmez. Yeni maç, oyun sonu veya algılanan lobi geçişi maç kadrosunu sıfırlar. Uygulamayı maç ortasında açtıysan `/who` yükledikten sonraki ilk tanınan ölüm mesajı kadroyu korumayı başlatır; geçmişe yeni bir maç kaydı açmaz.
 
@@ -118,13 +120,13 @@ try {
 Release dosyalarını oluştur:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.4.8"
+.\scripts\publish-release.ps1 -Version "1.4.9"
 ```
 
 `.pfx` sertifika ile release dosyalarını imzala:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.4.8" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
+.\scripts\publish-release.ps1 -Version "1.4.9" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
 ```
 
 Script sertifika şifresini sorar. `.pfx` veya `.p12` dosyalarını commit etme.

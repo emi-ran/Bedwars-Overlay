@@ -45,7 +45,7 @@ namespace BedwarsOverlay.App
         private HypixelLogParser? _logParser;
         private readonly ObservableCollection<string> _diagnosticLines = new();
         private readonly ObservableCollection<PlayerRow> _players = new();
-        private readonly HashSet<string> _partyPlayers = new(StringComparer.OrdinalIgnoreCase);
+        private readonly PartyRoster _partyPlayers = new();
         private readonly Dictionary<string, string> _currentTeamByPlayer = new(StringComparer.OrdinalIgnoreCase);
         private readonly MatchRoster _matchRoster = new();
         private readonly TeamRecognitionService _teamRecognitionService = new(AppDomain.CurrentDomain.BaseDirectory);
