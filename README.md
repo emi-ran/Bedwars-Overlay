@@ -93,6 +93,14 @@ Requirements:
 - Windows
 - .NET 8 SDK
 
+### Development OCR captures
+
+The default Debug `dotnet run --project "BedwarsOverlay.App\BedwarsOverlay.App.csproj"` saves each completed TAB+END screen capture at its original resolution under repository-root `images/team-ocr/`. It creates `captures.json` if missing and appends an entry otherwise, including the PNG filename, UTC capture time, input roster, raw OCR text and pixel counts per team color, recognized teams, unmatched roster names, diagnostics, and any OCR error. Colors skipped for too few pixels have null text. Captures with no matches and captures whose results become stale are kept too; the existing TAB/loaded-roster/window checks still apply.
+
+`expectedTeams` starts as null: fill it with manually verified name-to-team labels from the original PNG, independently of `recognizedTeams`. Later captures preserve those labels and other existing entry fields. These pairs provide a local corpus for future accuracy/regression tests; no automatic scoring is added yet. Release builds never save captures; Debug builds outside a source checkout do not save them either. Save failures are reported in diagnostics without preventing team updates. A malformed manifest is not overwritten.
+
+The directory is Git-ignored and nothing is uploaded. Images include the entire captured foreground window and may contain chat/private information; review/redact before sharing. Captures accumulate until you manually clean them up.
+
 ## Building a Release
 
 Install Inno Setup 6 and Visual Studio Build Tools 2022 with the x64 C++ redistributable files if you want to build the installer or portable release package:

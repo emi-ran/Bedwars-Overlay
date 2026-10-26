@@ -28,6 +28,8 @@ App/assembly/installer versions and publish script examples use 1.4.6. README EN
 
 ## Unreleased
 
+- 2026-10-26: Debug source-checkout TAB+END captures now save native PNGs and append `images/team-ocr/captures.json`. Records contain roster, per-color raw OCR/pixel counts, matches, unmatched names, diagnostics/error and independent nullable `expectedTeams` labels. Existing labels/unknown fields survive appends; invalid JSON is rejected, writes use a temporary manifest, save errors do not stop team updates, and Release builds do not record. Corpus is local/Git-ignored; full foreground-window captures require privacy review before sharing. Accuracy scoring and new OCR fixes remain future work. Debug and Release each passed 197/197 tests in sequential runs using temporary output paths (running Debug app PID 11776 locked normal build output). Concurrent configuration runs exposed existing settings tests sharing the real default settings path; each had one settings failure, then both sequential reruns passed. No unrelated test/storage changes made. Live Minecraft hotkey validation has not been performed; restart/rebuild the running app to use the new feature.
+
 - Laptop OCR investigation and v1.4.8 verification are recorded in the release section above. The live user confirmation supersedes the earlier static-only verification; live capture performance remains unmeasured.
 
 - v1.4.7 release publication status is recorded in the release section above.

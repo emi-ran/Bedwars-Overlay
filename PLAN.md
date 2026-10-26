@@ -11,6 +11,7 @@ This file tracks forward-looking work only. Current implemented state belongs in
 - Join wrapped Hypixel chat continuation lines (no `[CHAT]` prefix) into the message they belong to so long team rosters, reward summaries, and multi-line messages parse as one entry.
 - Review and update screenshots in `docs/assets/` after the Threat column, repeat-opponent badge, ignored-player settings, command help, final-kill row state, and taskbar/Alt-Tab mode behavior changes.
 - Validate team OCR with additional Badlion captures at different resolutions and GUI scales; improve row matching where needed.
+- Review original development PNGs in `images/team-ocr/`, fill independent `expectedTeams` labels in `captures.json`, and turn reviewed examples into redacted regression fixtures/accuracy checks. Do not derive ground truth from OCR predictions.
 
 ---
 

@@ -93,6 +93,14 @@ Gereksinimler:
 - Windows
 - .NET 8 SDK
 
+### Geliştirme OCR kayıtları
+
+Varsayılan Debug `dotnet run --project "BedwarsOverlay.App\BedwarsOverlay.App.csproj"` çalıştırmasında her tamamlanan TAB+END ekran yakalaması, orijinal çözünürlüğüyle proje kökündeki `images/team-ocr/` dizinine kaydedilir. `captures.json` yoksa oluşturulur, varsa yeni kayıt eklenir: PNG dosyası, UTC yakalama zamanı, OCR'ye verilen oyuncu listesi, takım rengi başına ham OCR metni ve piksel sayısı, bulunan takımlar, eşleşmeyen oyuncular, tanı bilgileri ve varsa OCR hatası. Yetersiz piksel nedeniyle atlanan renklerin metni null olur. Sıfır eşleşmeler ve oyuncu listesi değiştiği için uygulanmayan sonuçlar da saklanır; mevcut TAB/oyuncu listesi/pencere kontrolleri geçerlidir.
+
+`expectedTeams` başlangıçta null olur: orijinal PNG'yi inceleyip `recognizedTeams` sonucundan bağımsız doğruladığımız oyuncu-takım etiketlerini buraya yazabiliriz. Sonraki kayıtlar mevcut etiketleri ve ek alanları korur. Böylece ileride doğruluk/regresyon testleri için yerel veri seti oluşur; henüz otomatik başarı ölçümü eklenmedi. Release derlemeleri kayıt yapmaz; kaynak proje dışında çalışan Debug derlemeleri de kayıt yapmaz. Kayıt hataları takım güncellemesini engellemeden tanı alanına yazılır. Bozuk JSON'un üzerine yazılmaz.
+
+Dizin Git tarafından yok sayılır; hiçbir şey yüklenmez. Görseller yakalanan ön plan penceresinin tamamını, sohbeti veya özel bilgileri içerebilir; paylaşmadan önce kontrol et/maskele. Kayıtlar sen elle temizleyene kadar birikir.
+
 ## Release Oluşturma
 
 Installer veya portable release oluşturmak için Inno Setup 6 ve x64 C++ yeniden dağıtılabilir dosyalarıyla birlikte Visual Studio Build Tools 2022 kur:

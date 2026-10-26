@@ -22,10 +22,14 @@ namespace BedwarsOverlay.Tests
             byte[] capture = File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, "Fixtures", "dimmed-tab-list.png"));
             using var recognizer = new TeamRecognitionService(AppContext.BaseDirectory);
 
-            var actual = recognizer.ReadTeams(capture, expected.Keys);
+            var trace = new TeamOcrTrace();
+            var actual = recognizer.ReadTeams(capture, expected.Keys, out string diagnostics, trace);
 
             Assert.Equal(expected.Count, actual.Count);
             foreach (var pair in expected) Assert.Equal(pair.Value, actual[pair.Key]);
+            Assert.Equal(8, trace.Passes.Count);
+            Assert.Contains(trace.Passes, pass => pass.Team == "Blue" && pass.PixelCount >= 12 && !string.IsNullOrWhiteSpace(pass.Text));
+            Assert.Contains("9 matched", diagnostics);
         }
 
         [Theory]

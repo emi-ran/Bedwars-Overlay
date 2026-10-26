@@ -63,6 +63,7 @@ namespace BedwarsOverlay.App
             var captureTimer = Stopwatch.StartNew();
             SetStatus(LocalizationService.Instance["Teams_Reading"]);
             bool restoreOverlay = IsVisible;
+            string? captureSaveMessage = null;
 
             try
             {
@@ -74,6 +75,7 @@ namespace BedwarsOverlay.App
                 }
 
                 byte[] screenshot;
+                DateTimeOffset capturedAt = DateTimeOffset.UtcNow;
                 using (var bitmap = new Bitmap(bounds.Right - bounds.Left, bounds.Bottom - bounds.Top))
                 using (var graphics = Graphics.FromImage(bitmap))
                 {
@@ -97,9 +99,40 @@ namespace BedwarsOverlay.App
                 string teamDiagnostics = string.Empty;
                 var recognizedTeams = await Task.Run(() =>
                 {
-                    var result = _teamRecognitionService.ReadTeams(screenshot, rosterNames, out string details);
-                    teamDiagnostics = details;
-                    return result;
+                    var trace = new TeamOcrTrace();
+                    System.Collections.Generic.IReadOnlyDictionary<string, string> result =
+                        new System.Collections.Generic.Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                    string? error = null;
+                    try
+                    {
+                        result = _teamRecognitionService.ReadTeams(screenshot, rosterNames, out string details, trace);
+                        teamDiagnostics = details;
+                        return result;
+                    }
+                    catch (Exception ex)
+                    {
+                        error = ex.Message;
+                        throw;
+                    }
+                    finally
+                    {
+#if DEBUG
+                        try
+                        {
+                            string? captureDirectory = TeamOcrCaptureStore.FindDevelopmentDirectory(AppContext.BaseDirectory);
+                            if (captureDirectory != null)
+                            {
+                                string path = new TeamOcrCaptureStore(captureDirectory).Save(
+                                    screenshot, capturedAt, rosterNames, result, trace, teamDiagnostics, error);
+                                captureSaveMessage = $"OCR development capture saved: {path}";
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            captureSaveMessage = $"[ERROR] OCR development capture could not be saved: {ex.Message}";
+                        }
+#endif
+                    }
                 });
                 if (rosterVersion != _teamRosterVersion) return;
                 int matchedCount = 0;
@@ -143,6 +176,7 @@ namespace BedwarsOverlay.App
             }
             finally
             {
+                if (captureSaveMessage != null) AddDiagnosticLine(captureSaveMessage);
                 if (restoreOverlay && !IsVisible)
                 {
                     ShowWithoutActivating();

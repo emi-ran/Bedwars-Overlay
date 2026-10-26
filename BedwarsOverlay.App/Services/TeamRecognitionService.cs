@@ -50,6 +50,15 @@ namespace BedwarsOverlay.App.Services
             IEnumerable<string> rosterNames,
             out string diagnostics)
         {
+            return ReadTeams(screenshot, rosterNames, out diagnostics, null);
+        }
+
+        public IReadOnlyDictionary<string, string> ReadTeams(
+            byte[] screenshot,
+            IEnumerable<string> rosterNames,
+            out string diagnostics,
+            TeamOcrTrace? trace)
+        {
             var teams = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             var palette = TeamPalette.Teams;
             diagnostics = string.Empty;
@@ -85,13 +94,16 @@ namespace BedwarsOverlay.App.Services
                 {
                     if (colorCounts[teamIndex] < MinimumTeamPixels)
                     {
+                        trace?.Passes.Add(new TeamOcrPass(palette[teamIndex].Name, colorCounts[teamIndex], null));
                         continue;
                     }
 
                     using var image = PixImage.LoadFromMemory(EncodeForOcr(masks[teamIndex]));
                     using var page = engine.Process(image, OcrPageSegmentation);
+                    string text = page.Text;
+                    trace?.Passes.Add(new TeamOcrPass(palette[teamIndex].Name, colorCounts[teamIndex], text));
 
-                    foreach (string line in page.Text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
+                    foreach (string line in text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
                     {
                         if (!HasMatchingTeamPrefix(line, palette[teamIndex].Name))
                         {

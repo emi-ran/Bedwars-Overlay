@@ -25,6 +25,7 @@ appsettings.local.json
 *.db
 *.sqlite
 logs/
+/images/team-ocr/
 *.log
 .env
 *.env
