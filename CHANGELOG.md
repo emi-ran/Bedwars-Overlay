@@ -4,6 +4,8 @@ All notable user-facing changes to Bedwars Overlay are tracked here.
 
 ## Unreleased
 
+- Fixed Gray team recognition using Hypixel's `S` prefix, and added TAB-aligned isolated-row OCR with pixel-validated White `W` prefixes to recover names obscured by neighboring icons/background text. Roster confidence thresholds remain unchanged.
+
 ## 1.4.9 - 2026-10-25
 
 - Automatically detect Hypixel party membership from party join, companion, join, leave, removal, disband, and not-in-party messages; `/p list` remains the refresh fallback and party state persists across lobby/game transitions.

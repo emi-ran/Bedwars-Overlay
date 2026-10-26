@@ -56,6 +56,8 @@ Kadroyu yüklemek için oyun başlar başlamaz `/who` yaz; durum çubuğu seni u
 
 Takım OCR'ı, küçük arayüz ölçeklerindeki dikey gölgelendirme dahil, doygun takım renkli yazıların koyulaşan çizgilerini korur. Takım etiketi uyumu ve yeterli isim eşleşme güveni hâlâ zorunludur; belirsiz satırlar boş kalır.
 
+Gri takım Hypixel'de `S` etiketi kullanır; yeşilin `G` etiketiyle karıştırılmaz. Tekrarlanan etiket konumlarından TAB sütunu ve satır aralığı bulunup satırlar ayrı okunur; kafa ikonları ve çevre yazıları ayrılır. Tesseract beyaz takımın blok `W` harfini `HW`/`WH` okursa harfin pikselleri doğrulanarak yalnız isim tekrar okunur; isim eşleşme eşikleri gevşetilmez. İncelenen altı görüntüde doğru görünür/etiketli oyuncu ataması 57/76'dan 76/76'ya çıktı; ek yanlış atama yok. Tam orijinaller ve maskelenmiş regresyon görselleri doğrulandı; bu sonuç her istemci/arayüz ölçeği için garanti değildir.
+
 ## Kurulum
 
 1. [Latest Release](https://github.com/emi-ran/Bedwars-Overlay/releases/latest) kısmından son sürümü indir.
@@ -94,6 +96,8 @@ Gereksinimler:
 - .NET 8 SDK
 
 ### Geliştirme OCR kayıtları
+
+OCR geçişleri `Mode=ColorMask` veya `Mode=TabRow` ile ayrılır; tekil satırlarda orijinal görseldeki `RowY` konumu bulunur ve piksel sayısı tüm maske yerine etiket bölgesini ifade eder.
 
 Varsayılan Debug `dotnet run --project "BedwarsOverlay.App\BedwarsOverlay.App.csproj"` çalıştırmasında her tamamlanan TAB+END ekran yakalaması, orijinal çözünürlüğüyle proje kökündeki `images/team-ocr/` dizinine kaydedilir. `captures.json` yoksa oluşturulur, varsa yeni kayıt eklenir: PNG dosyası, UTC yakalama zamanı, OCR'ye verilen oyuncu listesi, takım rengi başına ham OCR metni ve piksel sayısı, bulunan takımlar, eşleşmeyen oyuncular, tanı bilgileri ve varsa OCR hatası. Yetersiz piksel nedeniyle atlanan renklerin metni null olur. Sıfır eşleşmeler ve oyuncu listesi değiştiği için uygulanmayan sonuçlar da saklanır; mevcut TAB/oyuncu listesi/pencere kontrolleri geçerlidir.
 

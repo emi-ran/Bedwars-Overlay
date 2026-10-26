@@ -56,6 +56,8 @@ The inspected Badlion logs contain no team colors in death messages, so `TAB` + 
 
 Team OCR preserves dimmed strokes in saturated team-colored text, including vertically shaded text at small GUI scales. It still requires a matching team prefix and a sufficiently confident roster-name match; uncertain rows stay unknown.
 
+Gray uses Hypixel's `S` prefix (not Green's `G`). Repeated detected prefix positions locate the TAB column and row spacing for isolated row OCR, avoiding nearby heads/world text. White block-font `W` prefixes can also be validated from their glyph pixels when Tesseract misreads them as `HW`/`WH`; roster confidence thresholds remain unchanged. Six reviewed captures improve from 57/76 to 76/76 correct visible prefixed roster assignments, with no extra assignments, on both full originals and redacted regression fixtures. This is corpus-specific evidence, not a guarantee for every GUI scale/client.
+
 ## Setup
 
 1. Download the latest version from the [Latest Release](https://github.com/emi-ran/Bedwars-Overlay/releases/latest).
@@ -94,6 +96,8 @@ Requirements:
 - .NET 8 SDK
 
 ### Development OCR captures
+
+OCR pass records identify `Mode=ColorMask` or `Mode=TabRow`; isolated rows include original-image `RowY`, and their pixel count refers to the prefix region rather than the whole mask.
 
 The default Debug `dotnet run --project "BedwarsOverlay.App\BedwarsOverlay.App.csproj"` saves each completed TAB+END screen capture at its original resolution under repository-root `images/team-ocr/`. It creates `captures.json` if missing and appends an entry otherwise, including the PNG filename, UTC capture time, input roster, raw OCR text and pixel counts per team color, recognized teams, unmatched roster names, diagnostics, and any OCR error. Colors skipped for too few pixels have null text. Captures with no matches and captures whose results become stale are kept too; the existing TAB/loaded-roster/window checks still apply.
 

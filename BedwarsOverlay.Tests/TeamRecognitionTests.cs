@@ -27,7 +27,7 @@ namespace BedwarsOverlay.Tests
 
             Assert.Equal(expected.Count, actual.Count);
             foreach (var pair in expected) Assert.Equal(pair.Value, actual[pair.Key]);
-            Assert.Equal(8, trace.Passes.Count);
+            Assert.True(trace.Passes.Count >= 8);
             Assert.Contains(trace.Passes, pass => pass.Team == "Blue" && pass.PixelCount >= 12 && !string.IsNullOrWhiteSpace(pass.Text));
             Assert.Contains("9 matched", diagnostics);
         }
@@ -94,7 +94,9 @@ namespace BedwarsOverlay.Tests
         [InlineData("A PlayerName", "Aqua", true)]
         [InlineData("W PlayerName", "White", true)]
         [InlineData("P PlayerName", "Pink", true)]
-        [InlineData("G PlayerName", "Gray", true)]
+        [InlineData("S PlayerName", "Gray", true)]
+        [InlineData("G PlayerName", "Gray", false)]
+        [InlineData("S PlayerName", "Green", false)]
         [InlineData("DyeTypical", "Blue", false)]
         [InlineData("R DyeTypical", "Blue", false)]
         public void TeamPrefix_MustAgreeWithColorMask(string ocrLine, string teamName, bool expected)

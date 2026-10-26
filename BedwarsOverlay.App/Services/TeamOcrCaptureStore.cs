@@ -11,7 +11,11 @@ namespace BedwarsOverlay.App.Services
         public List<TeamOcrPass> Passes { get; } = new();
     }
 
-    public sealed record TeamOcrPass(string Team, int PixelCount, string? Text);
+    public sealed record TeamOcrPass(string Team, int PixelCount, string? Text)
+    {
+        public string Mode { get; init; } = "ColorMask";
+        public int? RowY { get; init; }
+    }
 
     /// <summary>Local development corpus; never uploads captures or modifies reviewed labels.</summary>
     public sealed class TeamOcrCaptureStore

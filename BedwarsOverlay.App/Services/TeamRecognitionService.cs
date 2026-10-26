@@ -79,7 +79,7 @@ namespace BedwarsOverlay.App.Services
             using var stream = new MemoryStream(screenshot);
             using var source = new Bitmap(stream);
             Rectangle captureArea = GetPlayerListArea(source.Width, source.Height);
-            Bitmap[] masks = CreateColorMasks(source, captureArea, out int[] colorCounts);
+            Bitmap[] masks = CreateColorMasks(source, captureArea, out int[] colorCounts, out Rectangle[] maskAreas);
 
             try
             {
@@ -90,6 +90,7 @@ namespace BedwarsOverlay.App.Services
                 // name, so the wrong team (or none) was reported. Reading each color separately makes
                 // the team a property of the mask that produced the match.
                 var candidates = new Dictionary<string, (string Team, double Score)>(StringComparer.OrdinalIgnoreCase);
+                var anchors = new List<Rectangle>();
                 for (int teamIndex = 0; teamIndex < palette.Count; teamIndex++)
                 {
                     if (colorCounts[teamIndex] < MinimumTeamPixels)
@@ -98,9 +99,22 @@ namespace BedwarsOverlay.App.Services
                         continue;
                     }
 
-                    using var image = PixImage.LoadFromMemory(EncodeForOcr(masks[teamIndex]));
-                    using var page = engine.Process(image, OcrPageSegmentation);
-                    string text = page.Text;
+                    string text;
+                    using (var image = PixImage.LoadFromMemory(EncodeForOcr(masks[teamIndex])))
+                    using (var page = engine.Process(image, OcrPageSegmentation))
+                    {
+                        text = page.Text;
+                        foreach (string row in page.TsvText.Split('\n'))
+                        {
+                            string[] fields = row.TrimEnd('\r').Split('\t');
+                            if (fields.Length < 12 || fields[0] != "5" ||
+                                !HasMatchingTeamPrefix(fields[11] + " ", palette[teamIndex].Name)) continue;
+                            if (int.TryParse(fields[6], out int x) && int.TryParse(fields[7], out int y) &&
+                                int.TryParse(fields[8], out int w) && int.TryParse(fields[9], out int h))
+                                anchors.Add(new Rectangle(captureArea.X + maskAreas[teamIndex].X + x / 2,
+                                    captureArea.Y + maskAreas[teamIndex].Y + y / 2, w / 2, h / 2));
+                        }
+                    }
                     trace?.Passes.Add(new TeamOcrPass(palette[teamIndex].Name, colorCounts[teamIndex], text));
 
                     foreach (string line in text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
@@ -123,6 +137,8 @@ namespace BedwarsOverlay.App.Services
                         candidates[playerName] = (palette[teamIndex].Name, score);
                     }
                 }
+
+                ReadAnchoredRows(source, anchors, roster, candidates, trace);
 
                 foreach (var candidate in candidates)
                 {
@@ -180,7 +196,7 @@ namespace BedwarsOverlay.App.Services
             return Rectangle.FromLTRB(left, top, Math.Max(left + 1, right), Math.Max(top + 1, bottom));
         }
 
-        private static Bitmap[] CreateColorMasks(Bitmap source, Rectangle area, out int[] coloredPixelCounts)
+        private static Bitmap[] CreateColorMasks(Bitmap source, Rectangle area, out int[] coloredPixelCounts, out Rectangle[] maskAreas)
         {
             var palette = TeamPalette.Teams;
             int width = area.Width;
@@ -219,11 +235,12 @@ namespace BedwarsOverlay.App.Services
             }
 
             coloredPixelCounts = new int[palette.Count];
+            maskAreas = new Rectangle[palette.Count];
             var masks = new Bitmap[palette.Count];
             for (int teamIndex = 0; teamIndex < palette.Count; teamIndex++)
             {
                 bool[] textPixels = KeepTextComponents(hitsByTeam[teamIndex], width, height);
-                masks[teamIndex] = CreateMaskBitmap(textPixels, width, height, out coloredPixelCounts[teamIndex]);
+                masks[teamIndex] = CreateMaskBitmap(textPixels, width, height, out coloredPixelCounts[teamIndex], out maskAreas[teamIndex]);
             }
 
             return masks;
@@ -389,7 +406,7 @@ namespace BedwarsOverlay.App.Services
             return kept;
         }
 
-        private static Bitmap CreateMaskBitmap(bool[] pixels, int width, int height, out int keptCount)
+        private static Bitmap CreateMaskBitmap(bool[] pixels, int width, int height, out int keptCount, out Rectangle maskArea)
         {
             int minX = width;
             int minY = height;
@@ -417,6 +434,7 @@ namespace BedwarsOverlay.App.Services
 
             if (keptCount == 0)
             {
+                maskArea = Rectangle.Empty;
                 return new Bitmap(1, 1, PixelFormat.Format32bppArgb);
             }
 
@@ -427,6 +445,7 @@ namespace BedwarsOverlay.App.Services
             int cropBottom = Math.Min(height, maxY + padding + 1);
             int cropWidth = cropRight - cropLeft;
             int cropHeight = cropBottom - cropTop;
+            maskArea = new Rectangle(cropLeft, cropTop, cropWidth, cropHeight);
 
             var mask = new Bitmap(cropWidth, cropHeight, PixelFormat.Format32bppArgb);
             BitmapData data = mask.LockBits(
@@ -508,7 +527,7 @@ namespace BedwarsOverlay.App.Services
                 return false;
             }
 
-            char expectedPrefix = char.ToUpperInvariant(teamName[0]);
+            char expectedPrefix = teamName == "Gray" ? 'S' : char.ToUpperInvariant(teamName[0]);
             string normalizedLine = ocrLine.TrimStart();
             return normalizedLine.Length > 1
                 && char.ToUpperInvariant(normalizedLine[0]) == expectedPrefix
@@ -576,6 +595,73 @@ namespace BedwarsOverlay.App.Services
             using var output = new MemoryStream();
             bitmap.Save(output, System.Drawing.Imaging.ImageFormat.Png);
             return output.ToArray();
+        }
+
+        private void ReadAnchoredRows(Bitmap source, List<Rectangle> anchors, string[] roster,
+            Dictionary<string, (string Team, double Score)> candidates, TeamOcrTrace? trace)
+        {
+            // Repeated team-prefix positions locate the actual TAB column without assuming a GUI scale.
+            var column = anchors.Where(a => a.Height >= 5 && a.Width >= 3)
+                .GroupBy(a => a.X / 4).OrderByDescending(g => g.Count()).FirstOrDefault();
+            if (column == null || column.Count() < 3) return;
+            Rectangle[] aligned = column.OrderBy(a => a.Y).ToArray();
+            int glyphHeight = aligned.Select(a => a.Height).OrderBy(h => h).ElementAt(aligned.Length / 2);
+            int[] gaps = aligned.Zip(aligned.Skip(1), (a, b) => b.Y - a.Y)
+                .Where(g => g > glyphHeight && g <= glyphHeight * 1.7).ToArray();
+            if (gaps.Length < 2) return;
+            int step = gaps.GroupBy(g => g).OrderByDescending(g => g.Count()).First().Key;
+            int left = aligned.Select(a => a.X).OrderBy(x => x).ElementAt(aligned.Length / 2);
+            int firstY = aligned[0].Y;
+            while (firstY - step > 0) firstY -= step;
+            int bottom = Math.Min((int)(source.Height * 0.6), aligned[^1].Y + step * 3);
+            for (int top = firstY; top + glyphHeight < bottom; top += step)
+            {
+                foreach (var team in TeamPalette.Teams)
+                {
+                    int width = Math.Min(source.Width - left, glyphHeight * 18);
+                    using var row = new Bitmap(width + 16, glyphHeight + 16);
+                    using (var graphics = Graphics.FromImage(row)) graphics.Clear(Color.White);
+                    int prefixPixels = 0;
+                    for (int y = 0; y < glyphHeight; y++)
+                    for (int x = 0; x < width; x++)
+                    {
+                        Color pixel = source.GetPixel(left + x, top + y);
+                        if (!MatchesCaptureColor(team, pixel.R, pixel.G, pixel.B)) continue;
+                        row.SetPixel(x + 8, y + 8, Color.Black);
+                        if (x < glyphHeight) prefixPixels++;
+                    }
+                    if (prefixPixels < 12) continue;
+                    string text;
+                    using (var image = PixImage.LoadFromMemory(EncodeForOcr(row)))
+                    using (var page = GetEngine().Process(image, PageSegMode.SingleLine)) text = page.Text.Trim();
+                    // Minecraft's block W is regularly read as HW/WH. Validate its pixels instead
+                    // of accepting arbitrary OCR noise ahead of a roster name.
+                    if (team.Name == "White" && IsWhitePrefix(row, glyphHeight))
+                    {
+                        int nameOffset = glyphHeight;
+                        using var nameRow = row.Clone(new Rectangle(8 + nameOffset, 0,
+                            row.Width - 8 - nameOffset, row.Height), row.PixelFormat);
+                        using var nameImage = PixImage.LoadFromMemory(EncodeForOcr(nameRow));
+                        using var namePage = GetEngine().Process(nameImage, PageSegMode.SingleLine);
+                        text = "W " + namePage.Text.Trim();
+                    }
+                    trace?.Passes.Add(new TeamOcrPass(team.Name, prefixPixels, text) { Mode = "TabRow", RowY = top });
+                    if (!HasMatchingTeamPrefix(text, team.Name) ||
+                        !TryMatchRosterName(text, roster, out string name, out double score)) continue;
+                    if (!candidates.TryGetValue(name, out var existing) || score > existing.Score)
+                        candidates[name] = (team.Name, score);
+                }
+            }
+        }
+
+        private static bool IsWhitePrefix(Bitmap row, int height)
+        {
+            int width = Math.Max(3, (int)Math.Round(height * 5.0 / 7));
+            bool Ink(double x, double y) => row.GetPixel(8 + Math.Min(width - 1, (int)(x * width)),
+                8 + Math.Min(height - 1, (int)(y * height))).R < 128;
+            return Ink(0.05, 0.1) && Ink(0.95, 0.1) && !Ink(0.5, 0.1)
+                && Ink(0.05, 0.5) && Ink(0.5, 0.5) && Ink(0.95, 0.5)
+                && Ink(0.05, 0.9) && !Ink(0.5, 0.9) && Ink(0.95, 0.9);
         }
 
         /// <summary>Enlarges a masked player-list image before it is passed to OCR.</summary>
