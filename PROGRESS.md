@@ -2,9 +2,11 @@
 
 This document is the current project state and handover guide. Read it before continuing implementation work.
 
-## Release 1.4.10 — preparation, 2026-10-28
+## Release 1.4.10 — published, 2026-10-28
 
-Includes accumulated OCR fixes (Gray S, isolated rows/White W/name retries, O/0 ambiguity handling, closed-TAB rejection), 29 reviewed image fixtures, and shared nicked/current-name teammate resolution for Split and party-ignore filtering. App/assembly/file, installer fallback and publish examples now use 1.4.10. Corpus is 363/369 correct assignments with zero extra/wrong teams and six explicitly tested Gray-background misses; this is not a speed optimization or general 100% accuracy claim. No account deanonymization. Release verification/publication status will be recorded after CI completes; live Minecraft/installer validation remains unperformed.
+Includes accumulated OCR fixes (Gray S, isolated rows/White W/name retries, O/0 ambiguity handling, closed-TAB rejection), 29 reviewed image fixtures, and shared nicked/current-name teammate resolution for Split and party-ignore filtering. App/assembly/file, installer fallback and publish examples now use 1.4.10. Corpus is 363/369 correct assignments with zero extra/wrong teams and six explicitly tested Gray-background misses; this is not a speed optimization or general 100% accuracy claim. No account deanonymization.
+
+Published commit `da407e25f061e1f13f7b2e34aedb8173e53a22fd` with annotated tag `v1.4.10`. Release workflow `40691550799` succeeded in 3m33s; CI passed 212/212 tests and signed app EXE, App/Core DLLs and installer. Both release assets are uploaded: portable `BedwarsOverlay-1.4.10-win-x64.zip` (82,298,921 bytes) and installer `BedwarsOverlaySetup-1.4.10-win-x64.exe` (58,220,864 bytes). Local Release suite passed 212/212 and app build passed with zero warnings/errors. Node20 action deprecation annotation is non-blocking. Live Minecraft, installer execution and independent downloaded-binary signature checks remain unperformed.
 
 ## Release 1.4.9 - 2026-10-25
 
