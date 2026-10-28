@@ -87,6 +87,19 @@ namespace BedwarsOverlay.Tests
         }
 
         [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void RosterMatcher_HandlesOZeroWithoutGuessingBetweenAmbiguousNames(bool ambiguous)
+        {
+            MethodInfo matcher = typeof(TeamRecognitionService).GetMethod("TryMatchRosterName",
+                BindingFlags.NonPublic | BindingFlags.Static)!;
+            string[] roster = ambiguous ? new[] { "8OO85", "80085" } : new[] { "8OO85" };
+            object[] arguments = { "G 80085", roster, string.Empty, 0d };
+            Assert.Equal(!ambiguous, (bool)matcher.Invoke(null, arguments)!);
+            if (!ambiguous) Assert.Equal("8OO85", arguments[2]);
+        }
+
+        [Theory]
         [InlineData("B DyeTypical", "Blue", true)]
         [InlineData("B DyeTypical", "Green", false)]
         [InlineData("R TryHardnt", "Red", true)]

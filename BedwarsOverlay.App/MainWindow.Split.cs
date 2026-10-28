@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Threading;
 using BedwarsOverlay.App.Services;
 using BedwarsOverlay.Core.LogWatching;
+using BedwarsOverlay.Core.Teams;
 
 namespace BedwarsOverlay.App
 {
@@ -23,17 +24,7 @@ namespace BedwarsOverlay.App
             }
             if (death.IsFinal) return;
 
-            bool isTeammate;
-            if (_currentTeamByPlayer.TryGetValue(localName, out string? localTeam) &&
-                _currentTeamByPlayer.TryGetValue(death.Victim, out string? victimTeam))
-            {
-                // A party member on a known opposing team must not trigger the reminder.
-                isTeammate = localTeam.Equals(victimTeam, StringComparison.OrdinalIgnoreCase);
-            }
-            else
-            {
-                isTeammate = _partyPlayers.Contains(death.Victim);
-            }
+            bool isTeammate = TeammateResolver.IsTeammate(death.Victim, localName, _partyPlayers, _currentTeamByPlayer);
             if (!isTeammate) return;
 
             SplitAlertPlayer.Text = LocalizationService.Instance["Split_TeammateDied"]

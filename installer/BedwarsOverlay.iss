@@ -1,7 +1,7 @@
 #define MyAppName "Bedwars Overlay"
 #define MyAppVersion GetEnv("BEDWARS_OVERLAY_VERSION")
 #if MyAppVersion == ""
-#define MyAppVersion "1.4.9"
+#define MyAppVersion "1.4.10"
 #endif
 #define MyAppPublisher "emi-ran"
 #define MyAppURL "https://github.com/emi-ran/Bedwars-Overlay"

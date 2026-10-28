@@ -4,6 +4,13 @@ All notable user-facing changes to Bedwars Overlay are tracked here.
 
 ## Unreleased
 
+## 1.4.10 - 2026-10-28
+
+- Retry isolated TAB names when OCR merges a team prefix into the name or corrupts a roster match; recovers the captured `rezna_2010` and `momochiki1089` rows without lowering roster thresholds.
+
+- Require aligned TAB-row evidence before applying OCR teams, preventing a closed-TAB world nametag from supplying a team. Handle font-confusable O/0 roster names conservatively while rejecting ambiguous matches.
+
+- Recognize nicked/current-name teammates from the local player's team, or one consistent team among recognized party members when the local team is unknown. Party ignore now also hides inferred same-team players after TAB+END; Split uses the same teammate resolution without changing the actual party roster or identifying real accounts.
 - Fixed Gray team recognition using Hypixel's `S` prefix, and added TAB-aligned isolated-row OCR with pixel-validated White `W` prefixes to recover names obscured by neighboring icons/background text. Roster confidence thresholds remain unchanged.
 
 ## 1.4.9 - 2026-10-25

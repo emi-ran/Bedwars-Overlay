@@ -233,6 +233,7 @@ namespace BedwarsOverlay.App
                     {
                         ApplyLogTeam(death.Victim, death.VictimTeam);
                         if (death.Killer != null) ApplyLogTeam(death.Killer, death.KillerTeam);
+                        RemoveIgnoredExistingPlayers();
                         HandleSplitAlert(death);
                         LoadPlayers(FilterIgnoredPlayers(_matchRoster.ObserveDeath(death)), preserveExisting: true);
                     }

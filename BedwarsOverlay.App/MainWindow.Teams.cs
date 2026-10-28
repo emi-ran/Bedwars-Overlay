@@ -153,6 +153,10 @@ namespace BedwarsOverlay.App
                     }
                 }
 
+                // Nicked aliases already loaded by /who can share the anchored self/party team
+                // without matching a real party name. Keep this match-local; never alter the party roster.
+                RemoveIgnoredExistingPlayers();
+
                 if (matchedCount == 0)
                 {
                     SetStatus(LocalizationService.Instance["Teams_NoneFound"]);

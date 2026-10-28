@@ -54,6 +54,8 @@ Use `/who` just after the game starts to load the roster; the status bar prompts
 
 The inspected Badlion logs contain no team colors in death messages, so `TAB` + `END` remains necessary there. Clients that preserve Minecraft color codes can supply team assignments through recognized death messages. Plain names, killer/victim relationships, and destroyed-bed messages are not enough to infer a team.
 
+Nicked teammates are supported by their current match name: after `/who` and `TAB` + `END`, players on your recognized team count as teammates even when their names differ from `/p list`. Your configured Minecraft name anchors the team; if its team is unknown, recognized party members must all agree on one team. Conflicting party teams do not identify unknown teammates. `Ignore party players` also hides these same-team players (including non-party teammates) after capture and on later roster loads; normal teammate deaths can trigger `Split!` using the same rule. Set your own name for Split reminders. This does not identify a nick's real account, prove party membership, or fetch the real account's stats. Names must still match the loaded roster confidently; inferred membership is match-local, not added to the party roster.
+
 Team OCR preserves dimmed strokes in saturated team-colored text, including vertically shaded text at small GUI scales. It still requires a matching team prefix and a sufficiently confident roster-name match; uncertain rows stay unknown.
 
 Gray uses Hypixel's `S` prefix (not Green's `G`). Repeated detected prefix positions locate the TAB column and row spacing for isolated row OCR, avoiding nearby heads/world text. White block-font `W` prefixes can also be validated from their glyph pixels when Tesseract misreads them as `HW`/`WH`; roster confidence thresholds remain unchanged. Six reviewed captures improve from 57/76 to 76/76 correct visible prefixed roster assignments, with no extra assignments, on both full originals and redacted regression fixtures. This is corpus-specific evidence, not a guarantee for every GUI scale/client.
@@ -97,6 +99,10 @@ Requirements:
 
 ### Development OCR captures
 
+Failed aligned row matches can retry only the name region, retaining the OCR-read team letter (`Mode=TabName`). The latest two 15-player captures now match all players; the expanded 29-image corpus has 363/369 correct assignments with no extras and six explicit Gray-background misses. This supersedes earlier corpus totals below.
+
+OCR results now require repeated aligned TAB prefixes/row spacing; isolated world nametags are not enough. O/0 font confusion can be resolved against an unambiguous roster name without reducing the acceptance threshold. Expanded corpus: 290/292 correct assignments, no wrong/extra teams. Two Gray names on a blending background remain known misses; see `BedwarsOverlay.Tests/Fixtures/TeamOcr/README.md`.
+
 OCR pass records identify `Mode=ColorMask` or `Mode=TabRow`; isolated rows include original-image `RowY`, and their pixel count refers to the prefix region rather than the whole mask.
 
 The default Debug `dotnet run --project "BedwarsOverlay.App\BedwarsOverlay.App.csproj"` saves each completed TAB+END screen capture at its original resolution under repository-root `images/team-ocr/`. It creates `captures.json` if missing and appends an entry otherwise, including the PNG filename, UTC capture time, input roster, raw OCR text and pixel counts per team color, recognized teams, unmatched roster names, diagnostics, and any OCR error. Colors skipped for too few pixels have null text. Captures with no matches and captures whose results become stale are kept too; the existing TAB/loaded-roster/window checks still apply.
@@ -132,13 +138,13 @@ try {
 Build release artifacts:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.4.9"
+.\scripts\publish-release.ps1 -Version "1.4.10"
 ```
 
 Build and sign release artifacts with a `.pfx` certificate:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.4.9" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
+.\scripts\publish-release.ps1 -Version "1.4.10" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
 ```
 
 The script prompts for the certificate password. Do not commit `.pfx` or `.p12` files.

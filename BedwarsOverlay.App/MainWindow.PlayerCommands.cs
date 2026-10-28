@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using BedwarsOverlay.App.Services;
 using BedwarsOverlay.Core.Models;
+using BedwarsOverlay.Core.Teams;
 
 namespace BedwarsOverlay.App
 {
@@ -174,7 +175,7 @@ namespace BedwarsOverlay.App
             return players
                 .Where(player => !ignoredPlayers.Exists(ignoredPlayer => ignoredPlayer.Equals(player, StringComparison.OrdinalIgnoreCase)))
                 .Where(player => !_settingsRepository.IgnoreLocalPlayer || !player.Equals(localPlayer, StringComparison.OrdinalIgnoreCase))
-                .Where(player => !_settingsRepository.IgnorePartyPlayers || !_partyPlayers.Contains(player))
+                .Where(player => !_settingsRepository.IgnorePartyPlayers || !IsPartyOrTeammate(player))
                 .ToList();
         }
 
@@ -192,7 +193,7 @@ namespace BedwarsOverlay.App
                 string player = _players[i].Name;
                 bool ignoreListed = ignoredPlayers.Exists(ignoredPlayer => ignoredPlayer.Equals(player, StringComparison.OrdinalIgnoreCase));
                 bool ignoreLocal = _settingsRepository.IgnoreLocalPlayer && player.Equals(localPlayer, StringComparison.OrdinalIgnoreCase);
-                bool ignoreParty = _settingsRepository.IgnorePartyPlayers && _partyPlayers.Contains(player);
+                bool ignoreParty = _settingsRepository.IgnorePartyPlayers && IsPartyOrTeammate(player);
                 if (ignoreListed || ignoreLocal || ignoreParty)
                 {
                     _players.RemoveAt(i);
@@ -204,5 +205,9 @@ namespace BedwarsOverlay.App
                 PlaceholderPanel.Visibility = Visibility.Visible;
             }
         }
+
+        private bool IsPartyOrTeammate(string player) =>
+            _partyPlayers.Contains(player) || TeammateResolver.IsTeammate(player,
+                _settingsRepository?.LocalPlayerName ?? string.Empty, _partyPlayers, _currentTeamByPlayer);
     }
 }

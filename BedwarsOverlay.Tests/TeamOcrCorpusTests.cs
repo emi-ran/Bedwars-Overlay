@@ -35,8 +35,21 @@ public class TeamOcrCorpusTests
                 ? Path.Combine(directory, file)
                 : Path.Combine(originalDirectory, entry.GetProperty("sourceImage").GetString()!);
             var actual = recognizer.ReadTeams(File.ReadAllBytes(capturePath), roster, out _, trace);
+            string[] knownMissing = entry.TryGetProperty("knownMissingNames", out var missing)
+                ? missing.Deserialize<string[]>()! : Array.Empty<string>();
+            string? reportDirectory = Environment.GetEnvironmentVariable("BEDWARS_OCR_REPORT");
+            if (!string.IsNullOrWhiteSpace(reportDirectory))
+            {
+                Directory.CreateDirectory(reportDirectory);
+                File.WriteAllText(Path.Combine(reportDirectory, file + ".json"), JsonSerializer.Serialize(new
+                {
+                    image = file, expectedTeams = expected, recognizedTeams = actual, passes = trace.Passes
+                }, new JsonSerializerOptions { WriteIndented = true }));
+            }
             foreach (var pair in expected)
-                if (!actual.TryGetValue(pair.Key, out string? team) || team != pair.Value)
+                if (knownMissing.Contains(pair.Key))
+                    Assert.False(actual.ContainsKey(pair.Key), $"Known miss {pair.Key} is now recognized; update corpus expectations.");
+                else if (!actual.TryGetValue(pair.Key, out string? team) || team != pair.Value)
                     failures.Add($"{file}: {pair.Key} expected {pair.Value}, actual {team ?? "missing"}");
             foreach (var pair in actual)
                 if (!expected.TryGetValue(pair.Key, out string? team) || team != pair.Value)

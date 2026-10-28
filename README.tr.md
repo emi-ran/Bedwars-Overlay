@@ -54,6 +54,8 @@ Kadroyu yüklemek için oyun başlar başlamaz `/who` yaz; durum çubuğu seni u
 
 İncelenen Badlion loglarında ölüm mesajları takım renklerini içermiyor; bu durumda `TAB` + `END` hâlâ gerekiyor. Minecraft renk kodlarını koruyan istemcilerde tanınan ölüm mesajlarından takım bilgisi alınabilir. Yalnızca isimlerden, kimin kimi öldürdüğünden veya yatak yıkılma mesajından takım tahmin edilmez.
 
+Nickli takım arkadaşları maçtaki görünen adlarıyla desteklenir: `/who` ve `TAB` + `END` sonrasında seninle aynı takımda tanınan oyuncular, adları `/p list` ile eşleşmese de takım arkadaşı sayılır. Ayarlardaki Minecraft adın takımını belirler; senin takımın bilinmiyorsa takımı tanınan parti üyelerinin tamamı tek takımda olmalıdır. Parti üyeleri farklı takımlardaysa bilinmeyen takım arkadaşı tahmin edilmez. `Ignore party players`, tarama sonrası ve sonraki kadro yüklemelerinde bu aynı-takım oyuncularını da gizler (partide olmayan takım arkadaşları dahil); normal ölümleri aynı kuralla `Split!` tetikleyebilir. Split için kendi adını girmelisin. Nickin gerçek hesabı, kesin parti üyeliği veya gerçek hesabın istatistikleri bulunmaz. Görünen adın yüklenen kadroyla güvenle eşleşmesi gerekir; çıkarım maçla sınırlıdır, parti kadrosuna eklenmez.
+
 Takım OCR'ı, küçük arayüz ölçeklerindeki dikey gölgelendirme dahil, doygun takım renkli yazıların koyulaşan çizgilerini korur. Takım etiketi uyumu ve yeterli isim eşleşme güveni hâlâ zorunludur; belirsiz satırlar boş kalır.
 
 Gri takım Hypixel'de `S` etiketi kullanır; yeşilin `G` etiketiyle karıştırılmaz. Tekrarlanan etiket konumlarından TAB sütunu ve satır aralığı bulunup satırlar ayrı okunur; kafa ikonları ve çevre yazıları ayrılır. Tesseract beyaz takımın blok `W` harfini `HW`/`WH` okursa harfin pikselleri doğrulanarak yalnız isim tekrar okunur; isim eşleşme eşikleri gevşetilmez. İncelenen altı görüntüde doğru görünür/etiketli oyuncu ataması 57/76'dan 76/76'ya çıktı; ek yanlış atama yok. Tam orijinaller ve maskelenmiş regresyon görselleri doğrulandı; bu sonuç her istemci/arayüz ölçeği için garanti değildir.
@@ -97,6 +99,10 @@ Gereksinimler:
 
 ### Geliştirme OCR kayıtları
 
+Hizalı satır eşleşmesi başarısızsa OCR'nin okuduğu takım harfi korunup yalnız isim bölgesi tekrar okunabilir (`Mode=TabName`). Son iki 15 kişilik görüntünün tamamı artık eşleşiyor; genişletilmiş 29 görselde 369 atamanın 363'ü doğru, ek atama yok, gri arka planla birleşen altı isim hâlâ eksik. Bu sayı aşağıdaki eski veri seti toplamlarının yerini alır.
+
+OCR sonucu için hizalı TAB etiketleri/satır aralığı gerekir; dünyadaki tekil isim etiketi yeterli değildir. O/0 font karışıklığı, eşleşme eşiği düşürülmeden ve belirsiz adaylar reddedilerek oyuncu listesinden çözülebilir. Genişletilmiş veri setinde 292 atamanın 290'ı doğru, yanlış/ek atama yok. Arka planla birleşen iki gri isim hâlâ okunamıyor; ayrıntı `BedwarsOverlay.Tests/Fixtures/TeamOcr/README.md` içinde.
+
 OCR geçişleri `Mode=ColorMask` veya `Mode=TabRow` ile ayrılır; tekil satırlarda orijinal görseldeki `RowY` konumu bulunur ve piksel sayısı tüm maske yerine etiket bölgesini ifade eder.
 
 Varsayılan Debug `dotnet run --project "BedwarsOverlay.App\BedwarsOverlay.App.csproj"` çalıştırmasında her tamamlanan TAB+END ekran yakalaması, orijinal çözünürlüğüyle proje kökündeki `images/team-ocr/` dizinine kaydedilir. `captures.json` yoksa oluşturulur, varsa yeni kayıt eklenir: PNG dosyası, UTC yakalama zamanı, OCR'ye verilen oyuncu listesi, takım rengi başına ham OCR metni ve piksel sayısı, bulunan takımlar, eşleşmeyen oyuncular, tanı bilgileri ve varsa OCR hatası. Yetersiz piksel nedeniyle atlanan renklerin metni null olur. Sıfır eşleşmeler ve oyuncu listesi değiştiği için uygulanmayan sonuçlar da saklanır; mevcut TAB/oyuncu listesi/pencere kontrolleri geçerlidir.
@@ -132,13 +138,13 @@ try {
 Release dosyalarını oluştur:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.4.9"
+.\scripts\publish-release.ps1 -Version "1.4.10"
 ```
 
 `.pfx` sertifika ile release dosyalarını imzala:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version "1.4.9" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
+.\scripts\publish-release.ps1 -Version "1.4.10" -Sign -CertificatePath ".\Bedwars-Overlay.pfx"
 ```
 
 Script sertifika şifresini sorar. `.pfx` veya `.p12` dosyalarını commit etme.

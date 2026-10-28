@@ -138,7 +138,7 @@ namespace BedwarsOverlay.App.Services
                     }
                 }
 
-                ReadAnchoredRows(source, anchors, roster, candidates, trace);
+                if (!ReadAnchoredRows(source, anchors, roster, candidates, trace)) candidates.Clear();
 
                 foreach (var candidate in candidates)
                 {
@@ -503,6 +503,11 @@ namespace BedwarsOverlay.App.Services
             {
                 string normalizedName = Regex.Replace(rosterName.ToUpperInvariant(), "[^A-Z0-9]", string.Empty);
                 double score = BestSubstringSimilarity(compactLine, normalizedName, out _);
+                // O/0 are indistinguishable in some Minecraft fonts. Keep ambiguity checks and
+                // score below a literal match; never normalize other letters into arbitrary digits.
+                if (normalizedName.Contains('O') || normalizedName.Contains('0'))
+                    score = Math.Max(score, BestSubstringSimilarity(compactLine.Replace('O', '0'),
+                        normalizedName.Replace('O', '0'), out _) * 0.95);
 
                 if (score > matchedScore)
                 {
@@ -597,18 +602,18 @@ namespace BedwarsOverlay.App.Services
             return output.ToArray();
         }
 
-        private void ReadAnchoredRows(Bitmap source, List<Rectangle> anchors, string[] roster,
+        private bool ReadAnchoredRows(Bitmap source, List<Rectangle> anchors, string[] roster,
             Dictionary<string, (string Team, double Score)> candidates, TeamOcrTrace? trace)
         {
             // Repeated team-prefix positions locate the actual TAB column without assuming a GUI scale.
             var column = anchors.Where(a => a.Height >= 5 && a.Width >= 3)
                 .GroupBy(a => a.X / 4).OrderByDescending(g => g.Count()).FirstOrDefault();
-            if (column == null || column.Count() < 3) return;
+            if (column == null || column.Count() < 3) return false;
             Rectangle[] aligned = column.OrderBy(a => a.Y).ToArray();
             int glyphHeight = aligned.Select(a => a.Height).OrderBy(h => h).ElementAt(aligned.Length / 2);
             int[] gaps = aligned.Zip(aligned.Skip(1), (a, b) => b.Y - a.Y)
                 .Where(g => g > glyphHeight && g <= glyphHeight * 1.7).ToArray();
-            if (gaps.Length < 2) return;
+            if (gaps.Length < 2) return false;
             int step = gaps.GroupBy(g => g).OrderByDescending(g => g.Count()).First().Key;
             int left = aligned.Select(a => a.X).OrderBy(x => x).ElementAt(aligned.Length / 2);
             int firstY = aligned[0].Y;
@@ -634,6 +639,26 @@ namespace BedwarsOverlay.App.Services
                     string text;
                     using (var image = PixImage.LoadFromMemory(EncodeForOcr(row)))
                     using (var page = GetEngine().Process(image, PageSegMode.SingleLine)) text = page.Text.Trim();
+                    if (team.Name != "White" && text.Length > 0 &&
+                        HasMatchingTeamPrefix(text[0] + " ", team.Name) &&
+                        (!HasMatchingTeamPrefix(text, team.Name) ||
+                         !TryMatchRosterName(text, roster, out _, out _)))
+                    {
+                        // Read the name independently: a merged Y+name or trailing health digits
+                        // must not force relaxed prefix checks or roster similarity thresholds.
+                        int offset = glyphHeight;
+                        using var nameRow = row.Clone(new Rectangle(8 + offset, 0,
+                            row.Width - 8 - offset, row.Height), row.PixelFormat);
+                        string nameText;
+                        using (var nameImage = PixImage.LoadFromMemory(EncodeForOcr(nameRow)))
+                        using (var namePage = GetEngine().Process(nameImage, PageSegMode.SingleLine))
+                            nameText = namePage.Text.Trim();
+                        string isolated = text[0] + " " + nameText;
+                        trace?.Passes.Add(new TeamOcrPass(team.Name, prefixPixels, isolated) { Mode = "TabName", RowY = top });
+                        if (TryMatchRosterName(isolated, roster, out string isolatedName, out double isolatedScore) &&
+                            (!candidates.TryGetValue(isolatedName, out var prior) || isolatedScore > prior.Score))
+                            candidates[isolatedName] = (team.Name, isolatedScore);
+                    }
                     // Minecraft's block W is regularly read as HW/WH. Validate its pixels instead
                     // of accepting arbitrary OCR noise ahead of a roster name.
                     if (team.Name == "White" && IsWhitePrefix(row, glyphHeight))
@@ -652,6 +677,7 @@ namespace BedwarsOverlay.App.Services
                         candidates[name] = (team.Name, score);
                 }
             }
+            return true;
         }
 
         private static bool IsWhitePrefix(Bitmap row, int height)
